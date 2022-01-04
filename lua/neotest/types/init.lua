@@ -30,7 +30,7 @@
 ---@field output string
 
 ---@class NeotestRunArgs
----@field position? NeotestPosition
+---@field tree? Tree
 ---@field extra_args? string[]
 ---@field strategy string
 

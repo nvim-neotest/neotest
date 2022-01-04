@@ -117,4 +117,10 @@ function M._P()
   PP(client._state._positions)
 end
 
+function M._J(file)
+  local file = io.open(file, "w")
+  file:write(vim.json.encode(client._state._positions))
+  file:close()
+end
+
 return M

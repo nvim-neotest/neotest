@@ -35,4 +35,17 @@ M.vim_test = require("neotest.lib.vim_test")
 
 M.ui = require("neotest.lib.ui")
 
+---@param parent NeotestPosition
+---@param child NeotestPosition
+---@return boolean
+M.contains = function(parent, child)
+  if parent.type == "dir" then
+    return parent.path == child.path or vim.startswith(child.path, parent.path .. M.files.sep)
+  end
+  if child.type == "dir" then
+    return false
+  end
+  return parent.range[1] <= child.range[1] and parent.range[3] >= child.range[3]
+end
+
 return M

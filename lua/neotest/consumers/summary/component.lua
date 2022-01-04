@@ -14,6 +14,7 @@ function SummaryComponent:new(client)
     client = client,
     expanded_children = {},
     child_components = {},
+    render_step = 0,
   }
   setmetatable(elem, self)
   self.__index = self
@@ -42,6 +43,7 @@ function SummaryComponent:render(render_state, tree, expanded, indent)
   local root_pos = tree:data()
   local children = tree:children()
   if #children == 0 and (root_pos.type == "dir" or root_pos.type == "file") then
+    P(children)
     self.client:update_positions(root_pos.id)
     children = self.client:get_position(root_pos.id):children()
   end
@@ -74,17 +76,17 @@ function SummaryComponent:render(render_state, tree, expanded, indent)
           local positions = {}
           local root_type = position.type
           -- Don't want to load all files under dir to prevent memory issues
-          if root_type == "dir" then
-            for _, pos in node:iter() do
-              if pos.type == "dir" then
-                positions[pos.id] = true
-              end
-            end
-          else
+          -- if root_type == "dir" then
+          --   for _, pos in node:iter() do
+          --     if pos.type == "dir" then
+          --       positions[pos.id] = true
+          --     end
+          --   end
+          -- else
             for _, pos in node:iter() do
               positions[pos.id] = true
             end
-          end
+          -- end
           require("neotest").summary.render(positions)
         end)
       )

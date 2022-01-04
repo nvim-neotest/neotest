@@ -76,7 +76,7 @@ return function(client)
       if
         result.status == "failed"
         and client:get_position(pos_id, false)
-        and #client:get_position(pos_id)._children > 0 -- TODO: Not use hidden prop
+        and #client:get_position(pos_id):children() > 0 -- TODO: Not use hidden prop
       then
         expanded[pos_id] = true
       end

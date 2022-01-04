@@ -10,7 +10,7 @@ describe("events processor", function()
   it("emits event", function()
     local called = false
     processor.listeners.discover_positions["test"] = function()
-      called = true
+      called = false
     end
     processor:emit(events.events.DISCOVER_POSITIONS)
     assert.is.True(called)

@@ -20,5 +20,6 @@ function NeotestAdapter.build_spec(args) end
 ---@async
 ---@param spec NeotestRunSpec
 ---@param result NeotestStrategyResult
+---@param tree Tree
 ---@return table<string, NeotestResult>
-function NeotestAdapter.results(spec, result) end
+function NeotestAdapter.results(spec, result, tree) end

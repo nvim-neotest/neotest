@@ -66,7 +66,7 @@ function NeotestClient:_collect_results(tree, results)
     if (pos.type == "test" or (pos.type == "file" and root.id ~= pos.id)) and results[pos.id] then
       for parent in node:iter_parents() do
         local parent_pos = parent:data()
-        if parent_pos.id == root.id then
+        if not lib.contains(root, parent_pos) then
           break
         end
         local parent_result = results[parent_pos.id]
@@ -99,9 +99,13 @@ function NeotestClient:_collect_results(tree, results)
       end
     end
   end
-  self._state:update_running(root.id, running)
+  if not vim.tbl_isempty(running) then
+    self._state:update_running(root.id, running)
+  end
 end
 
+---@param tree Tree
+---@param args table
 ---@return table<string, NeotestResult>
 function NeotestClient:_run_tree(tree, args)
   args = args or {}
@@ -111,7 +115,7 @@ function NeotestClient:_run_tree(tree, args)
 
   async.util.scheduler()
   local spec = adapter.build_spec(vim.tbl_extend("force", args, {
-    position = position,
+    tree = tree,
   }))
 
   local results = {}
@@ -138,7 +142,7 @@ function NeotestClient:_run_tree(tree, args)
       config.strategies[args.strategy] or {}
     )
     local process_result = self._processes:run(position.id, spec, args)
-    results = adapter.results(spec, process_result)
+    results = adapter.results(spec, process_result, tree)
     if vim.tbl_isempty(results) then
       logger.warn("Results returned were empty, setting all positions to failed")
       for _, pos in tree:iter() do
@@ -304,7 +308,9 @@ function NeotestClient:_add_listeners()
         new_results[pos.id] = results[pos.id]
       end
       self:_collect_results(tree, new_results)
-      self._state:update_results(new_results)
+      if not vim.tbl_isempty(new_results) then
+        self._state:update_results(new_results)
+      end
     end
   end
 end

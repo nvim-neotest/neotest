@@ -133,11 +133,13 @@ local function parse_buf_positions(file_path, query, buf, opts)
   return tree
 end
 
+---@async
 ---@param file_path string
 ---@param query string | vim.treesitter.Query
 ---@param opts table
 ---@return Tree
 function M.parse_positions(file_path, query, opts)
+  async.util.sleep(10)
   opts = vim.tbl_extend("force", {
     nested_namespaces = false, -- Allow nested namespaces
     require_namespaces = false, -- Only allow tests within namespaces
