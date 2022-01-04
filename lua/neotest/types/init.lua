@@ -4,7 +4,6 @@
 ---@field name string
 ---@field path string
 ---@field range integer[]
----@field namespaces string[]
 
 ---@class NeotestResult
 ---@field status "passed" | "failed" | "skipped"
@@ -40,13 +39,6 @@
 ---@field cwd? string
 ---@field context? table Arbitrary data to preserve state between running and result collection
 ---@field strategy? table Arguments for strategy
-
----@class NeotestFailure
----@field name string
----@field namespaces string[]
----@field file string
----@field time? string | number
----@field message? string
 
 local M = {}
 

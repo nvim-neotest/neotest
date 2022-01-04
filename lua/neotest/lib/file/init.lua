@@ -103,8 +103,7 @@ function M.parse_dir_from_files(root, files)
         id = abs_path,
         path = abs_path,
         name = path_elems[#path_elems],
-        range = { 0, 0, 0, 0 },
-        namespaces = {},
+        range = nil,
       })
     end
     return positions

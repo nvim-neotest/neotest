@@ -264,7 +264,8 @@ function NeotestClient:start()
   self._started = true
   self:_get_adapter(nil, true)
   self:update_positions(async.fn.getcwd())
-  vim.cmd([[
+  vim.schedule(function()
+    vim.cmd([[
       augroup Neotest 
         au!
         autocmd BufAdd,BufWritePost * lua require("neotest")._update_positions(vim.fn.expand("<afile>:p"))
@@ -272,6 +273,7 @@ function NeotestClient:start()
         autocmd BufDelete * lua require("neotest")._update_files(vim.fn.expand("<afile>:h"))
       augroup END
     ]])
+  end)
 end
 ---@param file_path? string
 ---@return NeotestAdapter

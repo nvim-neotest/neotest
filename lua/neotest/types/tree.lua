@@ -1,7 +1,7 @@
 local fu = require("neotest.lib.func_util")
 ---@class Tree
 ---@field private _data any
----@field private _children string[]
+---@field private _children Tree[]
 ---@field private _nodes table<string, Tree>
 ---@field private _key fun(data: any): string
 ---@field private _parent? Tree
@@ -19,23 +19,19 @@ function Tree:new(data, children, key, parent, nodes)
     _data = data,
     _key = key,
     _parent = parent,
+    _children = children,
   }
   tree._nodes[key(data)] = tree
   setmetatable(tree, self)
   self.__index = self
-  tree:_update_children(children)
   return tree
-end
-
-function Tree:_update_children(children)
-  self._children = children
 end
 
 ---@return integer
 function Tree:length()
   local length = 1
-  for _, child in pairs(self._children) do
-    length = length + self._nodes[child]:length()
+  for _, child in ipairs(self:children()) do
+    length = length + child:length()
   end
   return length
 end
@@ -45,8 +41,8 @@ end
 ---@parm data any[]
 function Tree.from_list(data, key)
   local nodes = {}
-  local node_key = Tree._from_list(data, key, nil, nodes)
-  return nodes[node_key]
+  local x = Tree._from_list(data, key, nil, nodes)
+  return x
 end
 
 function Tree._from_list(data, key, parent, nodes)
@@ -55,18 +51,17 @@ function Tree._from_list(data, key, parent, nodes)
   if vim.tbl_islist(data) then
     local node_data = data[1]
     node_key = key(node_data)
-    node = Tree:new(node_data, {}, key, parent, nodes)
     local children = {}
+    node = Tree:new(node_data, children, key, parent, nodes)
     for i = 2, #data, 1 do
-      children[#children + 1] = Tree._from_list(data[i], key, node_key, nodes)
+      children[#children + 1] = Tree._from_list(data[i], key, node, nodes)
     end
-    node:_update_children(children)
   else
     node_key = key(data)
     node = Tree:new(data, {}, key, parent, nodes)
   end
   nodes[node_key] = node
-  return node_key
+  return node
 end
 
 ---@param index integer
@@ -112,8 +107,8 @@ function Tree:set_key(key, tree)
   if parent then
     tree._parent = current._parent
     for i, child in pairs(parent._children) do
-      if key == child then
-        parent._children[i] = key
+      if key == self._key(child:data()) then
+        parent._children[i] = tree
         break
       end
     end
@@ -142,13 +137,13 @@ end
 ---@return Tree[]
 function Tree:children()
   return fu.map(function(i, pos_id)
-    return i, self._nodes[pos_id]
+    return i, pos_id
   end, self._children)
 end
 
 ---@return Tree | nil
 function Tree:parent()
-  return self._parent and self._nodes[self._parent]
+  return self._parent
 end
 
 function Tree:iter_parents()
@@ -186,7 +181,7 @@ function Tree:iter_nodes()
         if #self._children < child_i then
           return nil
         end
-        child_iter = self._nodes[self._children[child_i]]:iter_nodes()
+        child_iter = self._children[child_i]:iter_nodes()
       end
       local _, child_data = child_iter()
       if child_data then

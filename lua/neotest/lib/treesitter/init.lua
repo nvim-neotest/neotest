@@ -33,7 +33,6 @@ local function collect(file_path, query, buf, root, opts)
     path = file_path,
     name = path_elems[#path_elems],
     range = { root:range() },
-    namespaces = {},
   })
   vim.tbl_add_reverse_lookup(query.captures)
   for _, match in query:iter_matches(root, buf) do
@@ -41,9 +40,6 @@ local function collect(file_path, query, buf, root, opts)
     if type then
       ---@type string
       local name = vim.treesitter.get_node_text(match[query.captures[type .. ".name"]], buf)
-      if opts.quoted_names then
-        name = name:sub(2, #name - 1)
-      end
       local definition = match[query.captures[type .. ".definition"]]
 
       nodes:push({
@@ -51,7 +47,6 @@ local function collect(file_path, query, buf, root, opts)
         path = file_path,
         name = name,
         range = { definition:range() },
-        namespaces = {},
       })
     end
   end
@@ -76,7 +71,6 @@ local function contains(pos_a, pos_b)
 end
 
 ---@param positions FIFOQueue
----@param namespaces string[]
 ---@return table[] Nested lists to be parsed as a tree object
 local function parse_tree(positions, namespaces, opts)
   ---@type NeotestPosition
@@ -84,7 +78,6 @@ local function parse_tree(positions, namespaces, opts)
   if not parent then
     return nil
   end
-  parent.namespaces = namespaces
   parent.id = parent.type == "file" and parent.path
     or table.concat(vim.tbl_flatten({ parent.path, namespaces, parent.name }), "::")
   local current_level = { parent }
@@ -143,7 +136,6 @@ function M.parse_positions(file_path, query, opts)
   opts = vim.tbl_extend("force", {
     nested_namespaces = false, -- Allow nested namespaces
     require_namespaces = false, -- Only allow tests within namespaces
-    quoted_names = false, -- Test/namespace names are in quotes which should be removed
   }, opts or {})
   local lines = require("neotest.lib").files.read_lines(file_path)
   if #lines == 0 then
