@@ -42,7 +42,7 @@ function SummaryComponent:render(render_state, tree, expanded, indent)
   end
   local root_pos = tree:data()
   local children = tree:children()
-  if #children == 0 and (root_pos.type == "dir" or root_pos.type == "file") then
+  if #children == 0 and root_pos.type ~= "namespace" then
     children = self.client:get_position(root_pos.id):children()
   end
   for index, node in pairs(children) do
@@ -139,6 +139,12 @@ function SummaryComponent:render(render_state, tree, expanded, indent)
     if self.expanded_children[position.id] then
       self:_get_child_component(position.id):render(render_state, node, expanded, chid_indent)
     end
+  end
+  if #children == 0 and root_pos.type ~= "test" then
+    if #indent > 0 then
+      render_state:write(indent .. "  ", { group = hi.indent })
+    end
+    render_state:write("No tests found\n", { group = hi.expand_marker })
   end
 end
 

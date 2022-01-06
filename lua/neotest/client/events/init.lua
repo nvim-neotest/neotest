@@ -41,7 +41,7 @@ end
 ---@param event NeotestEvent
 ---@vararg any Arguments for the event
 function NeotestEventProcessor:emit(event, ...)
-  local args = {...}
+  local args = { ... }
   async.run(function()
     logger.info("Emitting", event, "event")
     for name, listener in pairs(self.listeners[event] or {}) do

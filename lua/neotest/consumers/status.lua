@@ -87,4 +87,20 @@ return function(client)
     end
     render_files(vim.tbl_keys(files))
   end
+
+  vim.cmd([[
+    augroup NeotestStatusRefresh
+      au!
+      au BufEnter * lua require("neotest").status.render(vim.fn.expand("<afile>:p"))
+    augroup END
+  ]])
+
+  return {
+    render = function(file_path)
+      if client:get_results()[file_path] then
+        tracked_files[file_path] = true
+        render_files({ file_path })
+      end
+    end,
+  }
 end

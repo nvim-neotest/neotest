@@ -64,28 +64,6 @@ function Tree._from_list(data, key, parent, nodes)
   return node
 end
 
----@param index integer
----@return any | nil
-function Tree:get(index)
-  if index > self:length() then
-    return nil
-  end
-
-  if index == 0 then
-    return self._data
-  end
-
-  local checked = 1
-  for _, child in pairs(self:children()) do
-    if child:length() > index - checked then
-      return child:get(index - checked)
-    end
-    checked = checked + child:length()
-  end
-
-  return nil
-end
-
 ---@parem key any
 ---@param tree Tree
 function Tree:set_key(key, tree)
@@ -209,47 +187,6 @@ end
 function Tree:node(index)
   for i, node in self:iter_nodes() do
     if i == index then
-      return node
-    end
-  end
-end
-
----Binary search through sorted tree
----@param target any Value given from key function
----@param key fun(data: any): any Function to apply to node data to give comparable value
----@param strict boolean Only return node if exact match, else give closest
----@return Tree | nil
-function Tree:sorted_search(target, key, strict)
-  local l, r = 1, self:length()
-  while l <= r do
-    local m = math.floor((l + r) / 2)
-    local mid = self:node(m)
-    local search_key_value = key(mid:data())
-
-    if search_key_value < target then
-      l = m + 1
-    elseif search_key_value > target then
-      r = m - 1
-    else
-      return mid
-    end
-  end
-  if r <= 0 then
-    return nil
-  end
-  local closest = self:node(r)
-  if strict or key(closest:data()) >= target then
-    return nil
-  end
-  return closest
-end
-
----Linear search through tree
----@param target any Value given from key function
----@param key fun(data: any): any Function to apply to node data to give comparable value
-function Tree:search(target, key)
-  for node in self:iter_nodes() do
-    if key(node:data()) == target then
       return node
     end
   end

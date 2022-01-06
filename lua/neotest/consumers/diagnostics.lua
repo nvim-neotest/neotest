@@ -119,8 +119,17 @@ return function(client)
     self.error_code_lines[pos_id] = error_lines
   end
 
-  client.listeners.discover_positions[consumer_name] = function(tree)
-    local path = tree:data().id
+  vim.cmd([[
+    augroup NeotestDiagnosticsRefresh
+      au!
+      au BufEnter * lua require("neotest").diagnostics.render(vim.fn.expand("<afile>:p"))
+    augroup END
+  ]])
+
+  local function draw_buffer(path)
+    if not client:get_results()[path] then
+      return
+    end
     if not buf_diags[path] then
       local bufnr = async.api.nvim_eval("bufnr('" .. path .. "')")
       if bufnr == -1 then
@@ -129,6 +138,11 @@ return function(client)
       buf_diags[path] = BufferDiagnostics:new(bufnr, path)
     end
     buf_diags[path]:draw_buffer()
+  end
+
+  client.listeners.discover_positions[consumer_name] = function(tree)
+    local path = tree:data().id
+    draw_buffer(path)
   end
 
   client.listeners.run[consumer_name] = function(_, position_ids)
@@ -166,4 +180,10 @@ return function(client)
       end
     end
   end
+
+  return {
+    render = function(file_path)
+      draw_buffer(file_path)
+    end,
+  }
 end

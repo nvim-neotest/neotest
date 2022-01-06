@@ -19,7 +19,6 @@ local M = {}
 ---@type NeotestClient
 local client
 local consumers = {}
-local started = false
 
 function M.setup(config)
   local adapters = require("neotest.adapters")

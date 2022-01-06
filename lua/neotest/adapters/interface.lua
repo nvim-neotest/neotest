@@ -2,7 +2,6 @@
 ---@field name string
 local NeotestAdapter = {}
 
-
 ---@async
 ---@param file_path string
 ---@return boolean
