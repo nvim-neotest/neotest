@@ -43,7 +43,6 @@ function SummaryComponent:render(render_state, tree, expanded, indent)
   local root_pos = tree:data()
   local children = tree:children()
   if #children == 0 and (root_pos.type == "dir" or root_pos.type == "file") then
-    self.client:update_positions(root_pos.id)
     children = self.client:get_position(root_pos.id):children()
   end
   for index, node in pairs(children) do

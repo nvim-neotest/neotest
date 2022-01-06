@@ -8,6 +8,7 @@ local lib = require("neotest.lib")
 ---@field private _state NeotestState
 ---@field private _events NeotestEventProcessor
 ---@field private _processes NeotestProcessTracker
+---@field private _files_read table<string, boolean>
 ---@field listeners NeotestEventListeners
 ---@field _adapters table
 local NeotestClient = {}
@@ -23,6 +24,7 @@ function NeotestClient:new(adapters, events, state, processes)
     _events = events,
     _state = state,
     _processes = processes,
+    _files_read = {},
     listeners = events.listeners,
   }
   self.__index = self
@@ -188,7 +190,8 @@ function NeotestClient:get_nearest(file_path, row)
   end
   local nearest
   for _, pos in positions:iter_nodes() do
-    if pos:data().range[1] <= row then
+    local data = pos:data()
+    if data.range and data.range[1] <= row then
       nearest = pos
     else
       return nearest
@@ -211,9 +214,24 @@ function NeotestClient:get_position(position_id, refresh)
     position_id = string.sub(position_id, 1, #position_id - #lib.files.sep)
   end
   local positions = self._state:positions(position_id)
+
+  -- To reduce memory, we lazy load files. We have to check the files are not
+  -- read automatically more than once to prevent loops with empty files
+  if
+    positions
+    and not self._files_read[position_id]
+    and positions:data().type == "file"
+    and #positions:children() == 0
+  then
+    self._files_read[position_id] = true
+    self:update_positions(position_id)
+    positions = self._state:positions(position_id)
+  end
+
   if positions or refresh == false then
     return positions
   end
+
   if lib.files.exists(position_id) then
     self:update_positions(position_id)
     return self._state:positions(position_id)
