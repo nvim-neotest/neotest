@@ -8,9 +8,9 @@ local NeotestAdapter = {}
 function NeotestAdapter.is_test_file(file_path) end
 
 ---@async
----@param path string
+---@param file_path string
 ---@return Tree | nil
-function NeotestAdapter.discover_positions(path) end
+function NeotestAdapter.discover_positions(file_path) end
 
 ---@param args NeotestRunArgs
 ---@return NeotestRunSpec

@@ -144,7 +144,7 @@ function SummaryComponent:render(render_state, tree, expanded, indent)
     if #indent > 0 then
       render_state:write(indent .. "  ", { group = hi.indent })
     end
-    render_state:write("No tests found\n", { group = hi.expand_marker })
+    render_state:write("  No tests found\n", { group = hi.expand_marker })
   end
 end
 

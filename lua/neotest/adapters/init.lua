@@ -12,11 +12,12 @@ function M.set_adapters(a)
 end
 
 local function get_current_adapter_from_cwd()
+  local files = lib.files.find({async.fn.getcwd()})
   for _, adapter in pairs(adapters) do
-    logger.info("Checking current directory for test files with", adapter.name, "adapter")
-    local tree = adapter.discover_positions(async.fn.getcwd())
-    if tree and #tree:children() > 0 then
-      return adapter
+    for _, file in pairs(files) do
+      if adapter.is_test_file(file) then
+        return adapter
+      end
     end
   end
 end

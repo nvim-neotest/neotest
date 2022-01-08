@@ -35,17 +35,36 @@ M.vim_test = require("neotest.lib.vim_test")
 
 M.ui = require("neotest.lib.ui")
 
----@param parent NeotestPosition
----@param child NeotestPosition
----@return boolean
-M.contains = function(parent, child)
-  if parent.type == "dir" then
-    return parent.path == child.path or vim.startswith(child.path, parent.path .. M.files.sep)
-  end
-  if child.type == "dir" then
-    return false
-  end
-  return parent.range[1] <= child.range[1] and parent.range[3] >= child.range[3]
-end
+M.positions = {
+  ---@param tree Tree
+  ---@param line integer
+  ---@return Tree
+  nearest = function(tree, line)
+    local nearest = tree
+    for _, node in tree:iter_nodes() do
+      local pos = node:data()
+      if pos.range then
+        if line >= pos.range[1] then
+          nearest = node
+        else
+          return nearest
+        end
+      end
+    end
+    return nearest
+  end,
+  ---@param parent NeotestPosition
+  ---@param child NeotestPosition
+  ---@return boolean
+  contains = function(parent, child)
+    if parent.type == "dir" then
+      return parent.path == child.path or vim.startswith(child.path, parent.path .. M.files.sep)
+    end
+    if child.type == "dir" then
+      return false
+    end
+    return parent.range[1] <= child.range[1] and parent.range[3] >= child.range[3]
+  end,
+}
 
 return M

@@ -42,10 +42,14 @@ function NeotestClient:run_tree(tree, args)
     table.insert(pos_ids, pos.id)
   end
 
-  self._state:update_running(tree:data().id, pos_ids)
+  local pos = tree:data()
+  self._state:update_running(pos.id, pos_ids)
   local results = self:_run_tree(tree, args)
-  if tree:data().type ~= "test" then
+  if pos.type ~= "test" then
     self:_collect_results(tree, results)
+  end
+  if pos.type == "test" or pos.type == "namespace" then
+    results[pos.path] = nil
   end
   self._state:update_results(results)
 end
@@ -68,7 +72,7 @@ function NeotestClient:_collect_results(tree, results)
     if (pos.type == "test" or (pos.type == "file" and root.id ~= pos.id)) and results[pos.id] then
       for parent in node:iter_parents() do
         local parent_pos = parent:data()
-        if not lib.contains(root, parent_pos) then
+        if not lib.positions.contains(root, parent_pos) then
           break
         end
         local parent_result = results[parent_pos.id]
@@ -126,7 +130,8 @@ function NeotestClient:_run_tree(tree, args)
       logger.warn("Adapter doesn't support running directories, attempting files")
       for _, node in tree:iter_nodes() do
         if node:data().type == "file" then
-          results = vim.tbl_extend("error", self:_run_tree(node, args), results)
+          local x = self:_run_tree(node, args)
+          results = vim.tbl_extend("error", x, results)
         end
       end
     elseif position.type == "file" then
@@ -146,13 +151,17 @@ function NeotestClient:_run_tree(tree, args)
     local process_result = self._processes:run(position.id, spec, args)
     results = adapter.results(spec, process_result, tree)
     if vim.tbl_isempty(results) then
-      logger.warn("Results returned were empty, setting all positions to failed")
-      for _, pos in tree:iter() do
-        results[pos.id] = {
-          status = "failed",
-          errors = {},
-          output = process_result.output,
-        }
+      if #tree:children() ~= 0 then
+        logger.warn("Results returned were empty, setting all positions to failed")
+        for _, pos in tree:iter() do
+          results[pos.id] = {
+            status = "failed",
+            errors = {},
+            output = process_result.output,
+          }
+        end
+      else
+        results[tree:data().id] = { status = "skipped", output = process_result.output }
       end
     else
       for _, result in pairs(results) do
@@ -261,8 +270,8 @@ function NeotestClient:is_test_file(file_path)
 end
 
 ---@async
----@param file_path string
-function NeotestClient:update_positions(file_path)
+---@param path string
+function NeotestClient:update_positions(path)
   local adapter = self:_get_adapter()
   if not adapter then
     return
@@ -270,9 +279,16 @@ function NeotestClient:update_positions(file_path)
   if not self._started then
     self:start()
   end
-  local success, positions = pcall(adapter.discover_positions, file_path)
+  local success, positions = pcall(function()
+    if lib.files.is_dir(path) then
+      local files = lib.func_util.filter_list(adapter.is_test_file, lib.files.find({ path }))
+      return lib.files.parse_dir_from_files(path, files)
+    else
+      return adapter.discover_positions(path)
+    end
+  end)
   if not success then
-    logger.info("Couldn't find positions in file", file_path, positions)
+    logger.info("Couldn't find positions in path", path, positions)
     return
   end
   self._state:update_positions(positions)
