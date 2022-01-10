@@ -50,7 +50,10 @@ end
 
 ---@return NeotestStrategy
 function NeotestProcessTracker:_get_strategy(args)
-  return get_strategy(args.strategy)
+  if type(args.strategy) == "string" then
+    return get_strategy(args.strategy)
+  end
+  return args.strategy
 end
 
 ---@async

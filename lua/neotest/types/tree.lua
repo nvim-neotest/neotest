@@ -36,9 +36,10 @@ function Tree:length()
   return length
 end
 
---- Parses a tree in the shape of nested lists.
---- The head of the list is the root of the tree, and all following elements are its children.
----@parm data any[]
+---Parses a tree in the shape of nested lists.
+---The head of the list is the root of the tree, and all following elements are its children.
+---@param data any[]
+---@return Tree
 function Tree.from_list(data, key)
   local nodes = {}
   local x = Tree._from_list(data, key, nil, nodes)

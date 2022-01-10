@@ -91,7 +91,7 @@ return function(client)
       vim.cmd([[ 
     augroup NeotestSummaryFollow
       au!
-      au BufEnter,BufWrite * lua require("neotest").summary.expand(vim.fn.expand("<afile>:p"))
+      au BufEnter,BufWrite * lua require("neotest").summary.expand(vim.fn.expand("<afile>:p"), true)
     augroup END
     ]])
     end
@@ -118,13 +118,20 @@ return function(client)
         end
       end)
     end,
-    expand = function(pos_id)
+    expand = function(pos_id, recursive)
       async.run(function()
         local tree = client:get_position(pos_id, false)
         if not tree then
           return
         end
-        local expanded = { [pos_id] = true }
+        local expanded = {}
+        if recursive then
+          for _, pos in tree:iter() do
+            expanded[pos.id] = true
+          end
+        else
+          expanded[pos_id] = true
+        end
         for parent in tree:iter_parents() do
           expanded[parent:data().id] = true
         end
@@ -133,3 +140,4 @@ return function(client)
     end,
   }
 end
+

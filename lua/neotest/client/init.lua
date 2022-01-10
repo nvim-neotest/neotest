@@ -291,9 +291,24 @@ function NeotestClient:update_positions(path)
     logger.info("Couldn't find positions in path", path, positions)
     return
   end
+  local existing = self._state:positions(path)
+  if positions:data().type == "file" and existing and #existing:children() == 0 then
+    self:_propagate_results_to_new_positions(positions)
+  end
   self._state:update_positions(positions)
 end
 
+function NeotestClient:_propagate_results_to_new_positions(tree)
+  local new_results = {}
+  local results = self:get_results()
+  for _, pos in tree:iter() do
+    new_results[pos.id] = results[pos.id]
+  end
+  self:_collect_results(tree, new_results)
+  if not vim.tbl_isempty(new_results) then
+    self._state:update_results(new_results)
+  end
+end
 function NeotestClient:start()
   self._started = true
   self:_get_adapter(nil, true)
@@ -332,20 +347,6 @@ function NeotestClient:_add_listeners()
             self._state:update_positions(positions)
           end
         end
-      end
-    end
-  end
-
-  self._events.listeners.discover_positions["neotest-client-update-results"] = function(tree)
-    if tree:data().type == "file" then
-      local new_results = {}
-      local results = self:get_results()
-      for _, pos in tree:iter() do
-        new_results[pos.id] = results[pos.id]
-      end
-      self:_collect_results(tree, new_results)
-      if not vim.tbl_isempty(new_results) then
-        self._state:update_results(new_results)
       end
     end
   end

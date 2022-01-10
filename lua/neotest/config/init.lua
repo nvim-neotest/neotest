@@ -5,8 +5,8 @@ return {
     failed = "✖",
     skipped = "ﰸ",
     unknown = "?",
-    collapsed = "▸",
-    expanded = "▾",
+    collapsed = "─",
+    expanded = "╮",
   },
   highlights = {
     passed = "NeotestPassed",

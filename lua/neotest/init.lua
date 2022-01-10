@@ -7,7 +7,7 @@ vim.cmd([[
   hi default NeotestRunning ctermfg=Yellow guifg=#FFEC63
   hi default NeotestSkipped ctermfg=Cyan guifg=#00f1f5
   hi link NeotestTest Normal 
-  hi default NeotestNamespace ctermfg=Yellow guifg=#FFF59D
+  hi default NeotestNamespace ctermfg=Magenta guifg=#D484FF
   hi default NeotestFile ctermfg=Cyan guifg=#00f1f5
   hi default NeotestDir ctermfg=Cyan guifg=#00f1f5
   hi default NeotestIndent ctermfg=Grey guifg=#8B8B8B

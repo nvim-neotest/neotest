@@ -53,9 +53,9 @@ function SummaryComponent:render(render_state, tree, expanded, indent)
       self.expanded_children[position.id] = true
     end
 
-    local node_indent = indent .. (is_last_child and "└ " or "│ ")
-    local chid_indent = is_last_child and (indent .. "  ") or node_indent
-    if #indent > 0 then
+    local node_indent = indent .. (is_last_child and "╰─" or "├─")
+    local chid_indent = indent .. (is_last_child and "  " or "│ ")
+    if #node_indent > 0 then
       render_state:write(node_indent, { group = hi.indent })
     end
 
@@ -81,7 +81,7 @@ function SummaryComponent:render(render_state, tree, expanded, indent)
               end
             end
           else
-            for _, pos in node:iter() do
+            for _, pos in self.client:get_position(position.id):iter() do
               positions[pos.id] = true
             end
           end
@@ -157,7 +157,7 @@ end
 
 function SummaryComponent:_position_prefix(position)
   if position.type == "test" then
-    return " "
+    return config.icons.collapsed
   end
   return config.icons[self.expanded_children[position.id] and "expanded" or "collapsed"]
 end

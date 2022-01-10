@@ -68,4 +68,60 @@ describe("client state", function()
       assert.equal(test:root(), root)
     end)
   end)
+
+  describe("results state", function()
+    it("stores new results", function()
+      state:update_results({ pos = true })
+      local stored = state:results()["pos"]
+      assert.is.True(stored)
+    end)
+
+    it("emits results event on update", function()
+      state:update_results({ pos = true })
+      assert.equal(emitted_event, events.RESULTS)
+    end)
+
+    it("emits event with new results", function()
+      state:update_results({ pos = true })
+      assert.same(emitted_args[1], { pos = true })
+    end)
+
+    it("sets pos to not running", function()
+      state:update_running("root", { "pos" })
+      state:update_results({ pos = true })
+      assert.is.Nil(state:running()["pos"])
+    end)
+
+    it("overwrites existing result", function()
+      state:update_results({ pos = true })
+      state:update_results({ pos = false })
+      local stored = state:results()["pos"]
+      assert.is.False(stored)
+    end)
+  end)
+
+  describe("running state", function()
+    it("stores running", function()
+      state:update_running("root", { "pos" })
+      local stored = state:running()["pos"]
+      assert.equal(stored, "root")
+    end)
+
+    it("emits run event on update", function()
+      state:update_running("root", { "pos" })
+      assert.equal(emitted_event, events.RUN)
+    end)
+
+    it("emits event with root and running positions", function()
+      state:update_running("root", { "pos" })
+      assert.same(emitted_args, { "root", { "pos" } })
+    end)
+
+    it("removes existing result", function()
+      state:update_results({ pos = true })
+      state:update_running("root", { "pos" })
+      local stored = state:results()["pos"]
+      assert.is.Nil(stored)
+    end)
+  end)
 end)
