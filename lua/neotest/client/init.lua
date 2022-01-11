@@ -356,6 +356,6 @@ end
 ---@param state? NeotestState
 ---@param processes? NeotestProcessTracker
 ---@return NeotestClient
-return function(events, state, processes)
-  return NeotestClient:new(events, state, processes)
+return function(adapters, events, state, processes)
+  return NeotestClient:new(adapters, events, state, processes)
 end
