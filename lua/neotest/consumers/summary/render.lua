@@ -169,7 +169,7 @@ end
 function M._mapping(action)
   local buffer = api.nvim_get_current_buf()
   local line = vim.fn.line(".")
-  local callbacks = _mappings[buffer][action][line]
+  local callbacks = _mappings[buffer][action] and _mappings[buffer][action][line] or nil
   if not callbacks then
     return
   end

@@ -12,7 +12,7 @@ function M.set_adapters(a)
 end
 
 local function get_current_adapter_from_cwd()
-  local files = lib.files.find({async.fn.getcwd()})
+  local files = lib.files.find({ async.fn.getcwd() })
   for _, adapter in pairs(adapters) do
     for _, file in pairs(files) do
       if adapter.is_test_file(file) then

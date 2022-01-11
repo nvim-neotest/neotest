@@ -125,22 +125,29 @@ function NeotestClient:_run_tree(tree, args)
   }))
 
   local results = {}
+
   if not spec then
+    local function run_pos_types(pos_type)
+      local async_runners = {}
+      for _, node in tree:iter_nodes() do
+        if node:data().type == pos_type then
+          table.insert(async_runners, function()
+            return self:_run_tree(node, args)
+          end)
+        end
+      end
+      local all_results = {}
+      for i, res in ipairs(async.util.join(async_runners)) do
+        all_results[i] = res[1]
+      end
+      return vim.tbl_extend("error", {}, unpack(all_results))
+    end
     if position.type == "dir" then
       logger.warn("Adapter doesn't support running directories, attempting files")
-      for _, node in tree:iter_nodes() do
-        if node:data().type == "file" then
-          local x = self:_run_tree(node, args)
-          results = vim.tbl_extend("error", x, results)
-        end
-      end
+      results = run_pos_types("file")
     elseif position.type == "file" then
       logger.warn("Adapter doesn't support running files")
-      for _, node in tree:iter_nodes() do
-        if node:data().type == "test" then
-          results = vim.tbl_extend("error", self:_run_tree(node, args), results)
-        end
-      end
+      results = run_pos_types("test")
     end
   else
     spec.strategy = vim.tbl_extend(
