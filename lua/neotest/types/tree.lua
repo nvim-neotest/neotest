@@ -70,25 +70,27 @@ end
 function Tree:set_key(key, tree)
   local current = self:get_key(key)
 
-  -- Remove dandling children
-  local to_remove = {}
-  for _, node in current:iter() do
-    table.insert(to_remove, self._key(node))
-  end
-  for _, node_key in pairs(to_remove) do
-    self._nodes[node_key] = nil
-  end
+  if current then
+    -- Remove dangling children
+    local to_remove = {}
+    for _, node in current:iter() do
+      table.insert(to_remove, self._key(node))
+    end
+    for _, node_key in pairs(to_remove) do
+      self._nodes[node_key] = nil
+    end
 
-  self._nodes[key] = tree
+    self._nodes[key] = tree
 
-  -- Replace child key in parent
-  local parent = current:parent()
-  if parent then
-    tree._parent = current._parent
-    for i, child in pairs(parent._children) do
-      if key == self._key(child:data()) then
-        parent._children[i] = tree
-        break
+    -- Replace child key in parent
+    local parent = current:parent()
+    if parent then
+      tree._parent = current._parent
+      for i, child in pairs(parent._children) do
+        if key == self._key(child:data()) then
+          parent._children[i] = tree
+          break
+        end
       end
     end
   end

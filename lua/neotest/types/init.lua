@@ -8,7 +8,7 @@
 ---@class NeotestResult
 ---@field status "passed" | "failed" | "skipped"
 ---@field output? string Path to file containing full output data
----@field short? string
+---@field short? string Shortened output string
 ---@field errors? NeotestError[]
 
 ---@class NeotestError

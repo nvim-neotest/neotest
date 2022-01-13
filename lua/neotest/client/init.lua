@@ -69,22 +69,26 @@ function NeotestClient:_collect_results(tree, results)
   local running = {}
   for _, node in tree:iter_nodes() do
     local pos = node:data()
+
     if (pos.type == "test" or (pos.type == "file" and root.id ~= pos.id)) and results[pos.id] then
       for parent in node:iter_parents() do
         local parent_pos = parent:data()
         if not lib.positions.contains(root, parent_pos) then
           break
         end
+
         local parent_result = results[parent_pos.id]
         local pos_result = results[pos.id]
         if not parent_result then
-          parent_result = { id = parent_pos.id, status = "passed", output = pos_result.output }
+          parent_result = { status = "passed", output = pos_result.output }
         end
+
         if pos_result.status ~= "skipped" then
           if parent_result.status == "passed" then
             parent_result.status = pos_result.status
           end
         end
+
         if pos_result.errors then
           parent_result.errors = vim.list_extend(parent_result.errors or {}, pos_result.errors)
         end
@@ -93,6 +97,7 @@ function NeotestClient:_collect_results(tree, results)
       end
     end
   end
+
   for _, node in tree:iter_nodes() do
     local pos = node:data()
     if pos.type == "test" or pos.type == "namespace" then
@@ -101,7 +106,7 @@ function NeotestClient:_collect_results(tree, results)
       end
       if not results[pos.id] and results[root.id] then
         local root_result = results[root.id]
-        results[pos.id] = { id = pos.id, status = root_result.status, output = root_result.output }
+        results[pos.id] = { status = root_result.status, output = root_result.output }
       end
     end
   end
@@ -231,6 +236,9 @@ function NeotestClient:get_position(position_id, refresh)
   end
   local positions = self._state:positions(position_id)
 
+  if refresh == false then
+    return positions
+  end
   -- To reduce memory, we lazy load files. We have to check the files are not
   -- read automatically more than once to prevent loops with empty files
   if
@@ -244,14 +252,12 @@ function NeotestClient:get_position(position_id, refresh)
     positions = self._state:positions(position_id)
   end
 
-  if positions or refresh == false then
-    return positions
+  if not positions and lib.files.exists(position_id) then
+    self:update_positions(position_id)
+    positions = self._state:positions(position_id)
   end
 
-  if lib.files.exists(position_id) then
-    self:update_positions(position_id)
-    return self._state:positions(position_id)
-  end
+  return positions
 end
 
 ---@return table<string, NeotestResult>
@@ -316,6 +322,7 @@ function NeotestClient:_propagate_results_to_new_positions(tree)
     self._state:update_results(new_results)
   end
 end
+
 function NeotestClient:start()
   self._started = true
   self:_get_adapter(nil, true)

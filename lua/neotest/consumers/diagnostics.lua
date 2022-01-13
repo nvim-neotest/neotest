@@ -76,24 +76,25 @@ return function(client)
       local pos_id = position.id
       local result = results[pos_id]
       if position.type == "test" and result and result.errors and #result.errors > 0 then
-        if not self.tracking_marks[pos_id] then
-          self:init_mark(pos_id, result.errors, positions:get_key(pos_id):data().range[1])
-        end
-        for error_i, error in pairs(result.errors or {}) do
-          local mark = api.nvim_buf_get_extmark_by_id(
-            bufnr,
-            tracking_namespace,
-            self.tracking_marks[pos_id][error_i],
-            {}
-          )
-          local mark_code = api.nvim_buf_get_lines(bufnr, mark[1], mark[1] + 1, false)[1]
-          if mark_code == self.error_code_lines[pos_id][error_i] then
-            diagnostics[#diagnostics + 1] = {
-              lnum = mark[1],
-              col = 0,
-              message = error.message,
-              source = "neotest",
-            }
+        local placed = self.tracking_marks[pos_id]
+          or self:init_mark(pos_id, result.errors, positions:get_key(pos_id):data().range[1])
+        if placed then
+          for error_i, error in pairs(result.errors or {}) do
+            local mark = api.nvim_buf_get_extmark_by_id(
+              bufnr,
+              tracking_namespace,
+              self.tracking_marks[pos_id][error_i],
+              {}
+            )
+            local mark_code = api.nvim_buf_get_lines(bufnr, mark[1], mark[1] + 1, false)[1]
+            if mark_code == self.error_code_lines[pos_id][error_i] then
+              diagnostics[#diagnostics + 1] = {
+                lnum = mark[1],
+                col = 0,
+                message = error.message,
+                source = "neotest",
+              }
+            end
           end
         end
       end
@@ -106,17 +107,24 @@ return function(client)
     local error_lines = {}
     for error_i, error in pairs(errors) do
       local line = error.line or default_line
-      marks[error_i] = api.nvim_buf_set_extmark(
+      local success, mark_id = pcall(
+        api.nvim_buf_set_extmark,
         self.bufnr,
         tracking_namespace,
         line,
         0,
         { end_line = line }
       )
+      if not success then
+        logger.error("Failed to place mark for buf", self.bufnr, mark_id)
+        return false
+      end
+      marks[error_i] = mark_id
       error_lines[error_i] = api.nvim_buf_get_lines(self.bufnr, line, line + 1, false)[1]
     end
     self.tracking_marks[pos_id] = marks
     self.error_code_lines[pos_id] = error_lines
+    return true
   end
 
   vim.cmd([[
@@ -127,13 +135,28 @@ return function(client)
   ]])
 
   local function draw_buffer(path)
-    if not client:get_results()[path] then
-      return
-    end
     if not buf_diags[path] then
       local bufnr = async.api.nvim_eval("bufnr('" .. path .. "')")
       if bufnr == -1 then
         return
+      end
+      if not client:get_results()[path] then
+        P("here")
+        local tree = client:get_position(path, false)
+        if not tree then
+          return
+        end
+        local results = client:get_results()
+        local has_result = false
+        for _, pos in tree:iter() do
+          if results[pos.id] then
+            has_result = true
+            break
+          end
+        end
+        if not has_result then
+          return
+        end
       end
       buf_diags[path] = BufferDiagnostics:new(bufnr, path)
     end
@@ -175,15 +198,15 @@ return function(client)
       end
     end
     for file_path, _ in pairs(files) do
-      if buf_diags[file_path] then
-        buf_diags[file_path]:draw_buffer()
-      end
+      draw_buffer(file_path)
     end
   end
 
   return {
     render = function(file_path)
-      draw_buffer(file_path)
+      async.run(function()
+        draw_buffer(file_path)
+      end)
     end,
   }
 end

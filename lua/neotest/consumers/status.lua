@@ -97,10 +97,12 @@ return function(client)
 
   return {
     render = function(file_path)
-      if client:get_results()[file_path] then
-        tracked_files[file_path] = true
-        render_files({ file_path })
-      end
+      async.run(function()
+        if client:get_results()[file_path] then
+          tracked_files[file_path] = true
+          render_files({ file_path })
+        end
+      end)
     end,
   }
 end

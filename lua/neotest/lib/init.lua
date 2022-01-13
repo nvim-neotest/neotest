@@ -63,6 +63,12 @@ M.positions = {
     if child.type == "dir" then
       return false
     end
+    if parent.type == "file" then
+      return parent.path == child.path
+    end
+    if child.type == "file" then
+      return false
+    end
     return parent.range[1] <= child.range[1] and parent.range[3] >= child.range[3]
   end,
 }
