@@ -124,6 +124,7 @@ return function(client)
         if not tree then
           return
         end
+        tree = client:get_position(pos_id)
         local expanded = {}
         if recursive then
           for _, pos in tree:iter() do

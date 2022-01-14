@@ -141,7 +141,6 @@ return function(client)
         return
       end
       if not client:get_results()[path] then
-        P("here")
         local tree = client:get_position(path, false)
         if not tree then
           return

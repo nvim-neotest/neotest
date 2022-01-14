@@ -29,7 +29,6 @@ function NeotestClient:new(adapters, events, state, processes)
   }
   self.__index = self
   setmetatable(neotest, self)
-  neotest:_add_listeners()
   return neotest
 end
 
@@ -44,7 +43,8 @@ function NeotestClient:run_tree(tree, args)
 
   local pos = tree:data()
   self._state:update_running(pos.id, pos_ids)
-  local results = self:_run_tree(tree, args)
+  local adapter = self:_get_adapter()
+  local results = self:_run_tree(tree, args, adapter)
   if pos.type ~= "test" then
     self:_collect_results(tree, results)
   end
@@ -118,10 +118,9 @@ end
 ---@param tree Tree
 ---@param args table
 ---@return table<string, NeotestResult>
-function NeotestClient:_run_tree(tree, args)
+function NeotestClient:_run_tree(tree, args, adapter)
   args = args or {}
   args.strategy = args.strategy or "integrated"
-  local adapter = self:_get_adapter()
   local position = tree:data()
 
   async.util.scheduler()
@@ -137,7 +136,7 @@ function NeotestClient:_run_tree(tree, args)
       for _, node in tree:iter_nodes() do
         if node:data().type == pos_type then
           table.insert(async_runners, function()
-            return self:_run_tree(node, args)
+            return self:_run_tree(node, args, adapter)
           end)
         end
       end
@@ -304,7 +303,7 @@ function NeotestClient:update_positions(path)
     logger.info("Couldn't find positions in path", path, positions)
     return
   end
-  local existing = self._state:positions(path)
+  local existing = self:get_position(path, false)
   if positions:data().type == "file" and existing and #existing:children() == 0 then
     self:_propagate_results_to_new_positions(positions)
   end
@@ -342,28 +341,6 @@ end
 ---@return NeotestAdapter
 function NeotestClient:_get_adapter(file_path, from_dir)
   return self._adapters.get_adapter({ file_path = file_path, from_dir = from_dir })
-end
-
-function NeotestClient:_add_listeners()
-  self._events.listeners.discover_positions["neotest-client-update-buffers"] = function(tree)
-    if tree:data().type == "dir" then
-      local adapter = self:_get_adapter()
-      for _, pos in tree:iter() do
-        if pos.type == "file" then
-          local file_path = pos.path
-
-          local bufnr = async.api.nvim_eval("bufnr('" .. file_path .. "')")
-          -- If it's not listed, it could have been opened in background by
-          -- another plugin
-          local is_open = bufnr ~= -1 and async.api.nvim_buf_get_option(bufnr, "buflisted")
-          if is_open and #self._state:positions(file_path):children() == 0 then
-            local positions = adapter.discover_positions(file_path)
-            self._state:update_positions(positions)
-          end
-        end
-      end
-    end
-  end
 end
 
 ---@param events? NeotestEventProcessor

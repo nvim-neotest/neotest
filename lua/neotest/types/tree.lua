@@ -27,15 +27,6 @@ function Tree:new(data, children, key, parent, nodes)
   return tree
 end
 
----@return integer
-function Tree:length()
-  local length = 1
-  for _, child in ipairs(self:children()) do
-    length = length + child:length()
-  end
-  return length
-end
-
 ---Parses a tree in the shape of nested lists.
 ---The head of the list is the root of the tree, and all following elements are its children.
 ---@param data any[]
