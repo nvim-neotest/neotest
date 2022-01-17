@@ -7,14 +7,16 @@ local lib = require("neotest.lib")
 ---@field client NeotestClient
 ---@field expanded_children table
 ---@field child_components table<number, SummaryComponent>
+---@field adapter_id integer
 local SummaryComponent = {}
 
-function SummaryComponent:new(client)
+function SummaryComponent:new(client, adapter_id)
   local elem = {
     client = client,
     expanded_children = {},
     child_components = {},
     render_step = 0,
+    adapter_id = adapter_id,
   }
   setmetatable(elem, self)
   self.__index = self
@@ -43,7 +45,7 @@ function SummaryComponent:render(render_state, tree, expanded, indent)
   local root_pos = tree:data()
   local children = tree:children()
   if #children == 0 and root_pos.type ~= "namespace" then
-    children = self.client:get_position(root_pos.id):children()
+    children = self.client:get_position(root_pos.id, { adapter = self.adapter_id }):children()
   end
   for index, node in pairs(children) do
     local is_last_child = index == #children
@@ -81,7 +83,7 @@ function SummaryComponent:render(render_state, tree, expanded, indent)
               end
             end
           else
-            for _, pos in self.client:get_position(position.id):iter() do
+            for _, pos in self.client:get_position(position.id, { adapter = self.adapter_id }):iter() do
               positions[pos.id] = true
             end
           end
@@ -150,7 +152,7 @@ end
 
 function SummaryComponent:_get_child_component(pos_id)
   if not self.child_components[pos_id] then
-    self.child_components[pos_id] = SummaryComponent:new(self.client)
+    self.child_components[pos_id] = SummaryComponent:new(self.client, self.adapter_id)
   end
   return self.child_components[pos_id]
 end
@@ -163,7 +165,7 @@ function SummaryComponent:_position_prefix(position)
 end
 
 function SummaryComponent:_position_icon(position)
-  local result = self.client:get_results()[position.id]
+  local result = self.client:get_results(self.adapter_id)[position.id]
   if not result then
     if self.client:is_running(position.id) then
       return config.icons.running, config.highlights.running
@@ -174,6 +176,6 @@ function SummaryComponent:_position_icon(position)
 end
 
 ---@return SummaryComponent
-return function(client)
-  return SummaryComponent:new(client)
+return function(client, adapter_id)
+  return SummaryComponent:new(client, adapter_id)
 end

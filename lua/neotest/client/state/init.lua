@@ -2,15 +2,18 @@ local logger = require("neotest.logging")
 
 local NeotestEvents = require("neotest.client.events").events
 ---@class NeotestState
----@field private _positions Tree
----@field private _results table<string, Tree> table
+---@field private _focused table<integer, string>
+---@field private _positions table<integer, Tree>
+---@field private _results table<integer, table<string, Tree> >
 ---@field private _events NeotestEventProcessor
----@field private _running table<string, string>
+---@field private _running table<integer, table<string, string>>
 ---@field private _all_positions Tree
 local NeotestState = {}
 
 function NeotestState:new(events)
   local state = {
+    _focused = {},
+    _positions = {},
     _results = {},
     _events = events,
     _running = {},
@@ -22,35 +25,34 @@ end
 
 ---@param position_id? string
 ---@return Tree | nil
-function NeotestState:positions(position_id)
-  if not self._positions then
+function NeotestState:positions(adapter_id, position_id)
+  if not self._positions[adapter_id] then
     return nil
   end
   if not position_id then
-    return self._positions
+    return self._positions[adapter_id]
   end
-  return self._positions:get_key(position_id)
+  return self._positions[adapter_id]:get_key(position_id)
 end
 
 ---@return table<string, boolean>
-function NeotestState:running()
-  return self._running
+function NeotestState:running(adapter_id)
+  return self._running[adapter_id] or {}
 end
 
 ---@return table<string, NeotestResult>
-function NeotestState:results()
-  return self._results
+function NeotestState:results(adapter_id)
+  return self._results[adapter_id] or {}
 end
 
 ---@param tree Tree
-function NeotestState:update_positions(tree)
+function NeotestState:update_positions(adapter_id, tree)
   local root_id = tree:data().id
   logger.debug("New positions at ID", root_id)
-  logger.trace(tree)
-  if not self._positions then
-    self._positions = tree
+  if not self._positions[adapter_id] then
+    self._positions[adapter_id] = tree
   elseif tree:data().type == "dir" then
-    for _, node in self._positions:iter_nodes() do
+    for _, node in self._positions[adapter_id]:iter_nodes() do
       if node:data().type == "file" then
         local new_file_tree = tree:get_key(node:data().id)
         if new_file_tree and #node:children() > 0 and #new_file_tree:children() == 0 then
@@ -58,31 +60,41 @@ function NeotestState:update_positions(tree)
         end
       end
     end
-    self._positions = tree
+    self._positions[adapter_id] = tree
   else
-    self._positions:set_key(root_id, tree)
+    self._positions[adapter_id]:set_key(root_id, tree)
   end
-  self._events:emit(NeotestEvents.DISCOVER_POSITIONS, tree)
+  self._events:emit(NeotestEvents.DISCOVER_POSITIONS, adapter_id, tree)
 end
 
 ---@param results table<string, NeotestResult>
-function NeotestState:update_results(results)
+function NeotestState:update_results(adapter_id, results)
   logger.debug("New results", results)
-  self._results = vim.tbl_extend("force", self._results, results)
+  self._results[adapter_id] = vim.tbl_extend("force", self._results[adapter_id] or {}, results)
   for id, _ in pairs(results) do
-    self._running[id] = nil
+    self._running[adapter_id][id] = nil
   end
-  self._events:emit(NeotestEvents.RESULTS, results)
+  self._events:emit(NeotestEvents.RESULTS, adapter_id, results)
 end
 
-function NeotestState:update_running(root_id, position_ids)
+function NeotestState:update_running(adapter_id, root_id, position_ids)
   logger.debug("Setting positions to running", root_id, position_ids)
-  for _, pos_id in ipairs(position_ids) do
-    self._running[pos_id] = root_id
-    self._results[pos_id] = nil
+  if not self._running[adapter_id] then
+    self._running[adapter_id] = {}
+    self._results[adapter_id] = {}
   end
-  self._events:emit(NeotestEvents.RUN, root_id, position_ids)
+  for _, pos_id in ipairs(position_ids) do
+    self._running[adapter_id][pos_id] = root_id
+    self._results[adapter_id][pos_id] = nil
+  end
+  self._events:emit(NeotestEvents.RUN, adapter_id, root_id, position_ids)
 end
+
+function NeotestState:update_focused(adapter_id, path)
+  self._focused[adapter_id] = path
+  self._events:emit(NeotestEvents.TEST_FILE_FOCUSED, adapter_id, path)
+end
+
 ---@param events NeotestEventProcessor
 ---@return NeotestState
 return function(events)

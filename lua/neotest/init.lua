@@ -1,5 +1,6 @@
 local lib = require("neotest.lib")
 local async = require("plenary.async")
+local config = require("neotest.config")
 
 vim.cmd([[
   hi default NeotestPassed ctermfg=Green guifg=#96F291
@@ -12,6 +13,7 @@ vim.cmd([[
   hi default NeotestDir ctermfg=Cyan guifg=#00f1f5
   hi default NeotestIndent ctermfg=Grey guifg=#8B8B8B
   hi default NeotestExpandMarker ctermfg=Grey guifg=#8094b4
+  hi default NeotestAdapterName ctermfg=Red guifg=#F70067
 ]])
 
 local M = {}
@@ -20,10 +22,9 @@ local M = {}
 local client
 local consumers = {}
 
-function M.setup(config)
-  local adapters = require("neotest.adapters")
-  adapters.set_adapters(config.adapters or {})
-  client = require("neotest.client")(adapters)
+function M.setup(user_config)
+  config.setup(user_config)
+  client = require("neotest.client")()
   for name, consumer in pairs(require("neotest.consumers")) do
     consumers[name] = consumer(client)
   end
@@ -32,7 +33,7 @@ end
 local function get_tree_from_args(args)
   if args[1] then
     local position_id = lib.files.exists(args[1]) and async.fn.fnamemodify(args[1], ":p") or args[1]
-    return client:get_position(position_id)
+    return client:get_position(position_id, { adapter = args.adapter })
   end
   local file_path = async.fn.expand("%:p")
   local row = async.fn.getpos(".")[2] - 1
@@ -90,7 +91,7 @@ end
 function M._update_positions(file_path)
   async.run(function()
     local c = client
-    if not c:get_position(file_path, false) then
+    if not c:get_position(file_path, { refresh = false }) then
       if not c:is_test_file(file_path) then
         return
       end
@@ -103,6 +104,18 @@ end
 function M._update_files(path)
   async.run(function()
     client:update_positions(path)
+  end)
+end
+
+function M._dir_changed()
+  async.run(function()
+    client:_update_adapters()
+  end)
+end
+
+function M._focus_file(path)
+  async.run(function()
+    client:_focused(path)
   end)
 end
 

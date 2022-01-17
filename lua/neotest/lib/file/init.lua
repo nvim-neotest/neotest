@@ -1,3 +1,4 @@
+local Path = require("plenary.path")
 local async = require("plenary.async")
 local filetype = require("plenary.filetype")
 local fu = require("neotest.lib.func_util")
@@ -50,7 +51,7 @@ end
 
 M.find = require("neotest.lib.file.find").find
 
-M.parent = function(path)
+function M.parent(path)
   local elems = vim.split(path, M.sep, { plain = true })
   return table.concat(elems, M.sep, 1, #elems - 1)
 end
@@ -137,6 +138,24 @@ function M.parse_dir_from_files(root, files)
   return Tree.from_list(parse_tree(paths_to_positions(sorted_paths)), function(pos)
     return pos.id
   end)
+end
+
+---@vararg string
+---@return fun(path: string): string | nil
+function M.match_root_pattern(...)
+  local patterns = vim.tbl_flatten({ ... })
+  return function(start_path)
+    local potential_roots = vim.list_extend({ start_path }, Path:new(start_path):parents())
+    for _, path in ipairs(potential_roots) do
+      for _, pattern in ipairs(patterns) do
+        for _, p in ipairs(async.fn.glob(Path:new(path, pattern).filename, true, true)) do
+          if M.exists(p) then
+            return path
+          end
+        end
+      end
+    end
+  end
 end
 
 return M

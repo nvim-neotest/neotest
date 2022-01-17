@@ -1,4 +1,5 @@
 ---@param client NeotestClient
+local lib = require("neotest.lib")
 local consumer_name = "neotest-summary"
 local config = require("neotest.config")
 ---@param client NeotestClient
@@ -47,18 +48,32 @@ return function(client)
     async.api.nvim_set_current_win(cur_win)
   end
 
-  local component = SummaryComponent(client)
+  local components = {}
 
   local render = function(expanded)
     if not is_open() then
       return
     end
-    local tree = client:get_position()
-    if not tree then
-      return
-    end
     local render_state = RenderState.new(config.summary)
-    component:render(render_state, tree, expanded or {})
+    local cwd = async.fn.getcwd()
+    for _, adapter_id in ipairs(client:get_adapters()) do
+      local tree = client:get_position(nil, { adapter = adapter_id })
+      if tree then
+        local root_dir = tree:data().path == cwd and "."
+          or async.fn.fnamemodify(tree:data().path, ":.")
+        render_state:write(adapter_id .. "\n", { group = config.highlights.adapter_name })
+        render_state:write(root_dir .. "\n", { group = config.highlights.dir })
+        components[adapter_id] = components[adapter_id] or SummaryComponent(client, adapter_id)
+        components[adapter_id]:render(render_state, tree, expanded or {})
+        render_state:write("\n")
+      end
+    end
+    if render_state:length() > 1 then
+      render_state:remove_line()
+      render_state:remove_line()
+    else
+      render_state:write("No tests found")
+    end
     render_state:render_buffer(summary_buf)
   end
 
@@ -67,7 +82,7 @@ return function(client)
   end
   client.listeners.discover_positions[consumer_name] = listener
   client.listeners.run[consumer_name] = listener
-  client.listeners.results[consumer_name] = function(results)
+  client.listeners.results[consumer_name] = function(adapter_id, results)
     if not config.summary.expand_errors then
       render()
     end
@@ -75,8 +90,8 @@ return function(client)
     for pos_id, result in pairs(results) do
       if
         result.status == "failed"
-        and client:get_position(pos_id, false)
-        and #client:get_position(pos_id):children() > 0 -- TODO: Not use hidden prop
+        and client:get_position(pos_id, { refresh = false, adapter = adapter_id })
+        and #client:get_position(pos_id, { adapter = adapter_id }):children() > 0
       then
         expanded[pos_id] = true
       end
@@ -120,7 +135,7 @@ return function(client)
     end,
     expand = function(pos_id, recursive)
       async.run(function()
-        local tree = client:get_position(pos_id, false)
+        local tree = client:get_position(pos_id, { refresh = false })
         if not tree then
           return
         end

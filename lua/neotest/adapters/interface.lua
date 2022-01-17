@@ -3,6 +3,11 @@
 local NeotestAdapter = {}
 
 ---@async
+---@param dir string @Directory to treat as cwd
+---@return string | nil @Absolute root dir of test suite
+function NeotestAdapter.root(dir) end
+
+---@async
 ---@param file_path string
 ---@return boolean
 function NeotestAdapter.is_test_file(file_path) end

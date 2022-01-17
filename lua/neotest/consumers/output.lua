@@ -79,19 +79,19 @@ return function(client)
         opts.enter = true
       end
       async.run(function()
-        local tree
+        local tree, adapter_id
         if not opts.position_id then
           local file_path = vim.fn.expand("%:p")
           local row = vim.fn.getbufinfo(file_path)[1].lnum - 1
-          tree = client:get_nearest(file_path, row)
+          tree, adapter_id = client:get_nearest(file_path, row)
         else
-          tree = client:get_position(opts.position_id)
+          tree, adapter_id = client:get_position(opts.position_id)
         end
         if not tree then
           lib.notify("No tests found in file", "warn")
           return
         end
-        local result = client:get_results()[tree:data().id]
+        local result = client:get_results(adapter_id)[tree:data().id]
         if not result then
           lib.notify("No output for " .. tree:data().name)
           return
@@ -101,5 +101,3 @@ return function(client)
     end,
   }
 end
-
-

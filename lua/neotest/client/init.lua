@@ -1,3 +1,4 @@
+local adapters = require("neotest.adapters")
 local async = require("plenary.async")
 local config = require("neotest.config")
 local logger = require("neotest.logging")
@@ -9,18 +10,18 @@ local lib = require("neotest.lib")
 ---@field private _events NeotestEventProcessor
 ---@field private _processes NeotestProcessTracker
 ---@field private _files_read table<string, boolean>
+---@field private _adapters table<integer, NeotestAdapter>
 ---@field listeners NeotestEventListeners
----@field _adapters table
 local NeotestClient = {}
 
-function NeotestClient:new(adapters, events, state, processes)
+function NeotestClient:new(events, state, processes)
   events = events or require("neotest.client.events").processor()
   state = state or require("neotest.client.state")(events)
   processes = processes or require("neotest.client.strategies")()
 
   local neotest = {
     _started = false,
-    _adapters = adapters,
+    _adapters = {},
     _events = events,
     _state = state,
     _processes = processes,
@@ -42,16 +43,20 @@ function NeotestClient:run_tree(tree, args)
   end
 
   local pos = tree:data()
-  self._state:update_running(pos.id, pos_ids)
-  local adapter = self:_get_adapter()
+  local adapter_id, adapter = self:_get_adapter(pos.id, args.adapter)
+  if not adapter_id then
+    logger.error("Adapter not found for position", pos.id)
+    return
+  end
+  self._state:update_running(adapter_id, pos.id, pos_ids)
   local results = self:_run_tree(tree, args, adapter)
   if pos.type ~= "test" then
-    self:_collect_results(tree, results)
+    self:_collect_results(adapter_id, tree, results)
   end
   if pos.type == "test" or pos.type == "namespace" then
     results[pos.path] = nil
   end
-  self._state:update_results(results)
+  self._state:update_results(adapter_id, results)
 end
 
 ---@param position Tree
@@ -64,7 +69,7 @@ function NeotestClient:stop(position)
   self._processes:stop(running_process_root)
 end
 
-function NeotestClient:_collect_results(tree, results)
+function NeotestClient:_collect_results(adapter_id, tree, results)
   local root = tree:data()
   local running = {}
   for _, node in tree:iter_nodes() do
@@ -111,7 +116,7 @@ function NeotestClient:_collect_results(tree, results)
     end
   end
   if not vim.tbl_isempty(running) then
-    self._state:update_running(root.id, running)
+    self._state:update_running(adapter_id, root.id, running)
   end
 end
 
@@ -202,9 +207,9 @@ end
 ---@async
 ---@param file_path string
 ---@param row integer Zero-indexed row
----@return Tree
+---@return Tree | nil, integer | nil
 function NeotestClient:get_nearest(file_path, row)
-  local positions = self:get_position(file_path)
+  local positions, adapter_id = self:get_position(file_path)
   if not positions then
     return
   end
@@ -214,77 +219,85 @@ function NeotestClient:get_nearest(file_path, row)
     if data.range and data.range[1] <= row then
       nearest = pos
     else
-      return nearest
+      return nearest, adapter_id
     end
   end
-  return nearest
+  return nearest, adapter_id
+end
+
+---@return string[]
+function NeotestClient:get_adapters()
+  return lib.func_util.map(function(adapter_id, adapter)
+    return adapter_id, adapter.name
+  end, self._adapters)
 end
 
 ---@async
 ---@param position_id string
----@return Tree | nil
-function NeotestClient:get_position(position_id, refresh)
+---@return Tree | nil, integer | nil
+function NeotestClient:get_position(position_id, args)
+  args = args or {}
+  local refresh = args.refresh ~= false
+
   if not self._started then
     self:start()
-  end
-  if not position_id then
-    return self._state:positions()
   end
   if position_id and vim.endswith(position_id, lib.files.sep) then
     position_id = string.sub(position_id, 1, #position_id - #lib.files.sep)
   end
-  local positions = self._state:positions(position_id)
+  local adapter_id = self:_get_adapter(position_id, args.adapter)
+  local positions = self._state:positions(adapter_id, position_id)
 
-  if refresh == false then
-    return positions
-  end
-  -- To reduce memory, we lazy load files. We have to check the files are not
-  -- read automatically more than once to prevent loops with empty files
-  if
-    positions
-    and not self._files_read[position_id]
-    and positions:data().type == "file"
-    and #positions:children() == 0
-  then
-    self._files_read[position_id] = true
-    self:update_positions(position_id)
-    positions = self._state:positions(position_id)
+  if refresh ~= false then
+    -- To reduce memory, we lazy load files. We have to check the files are not
+    -- read automatically more than once to prevent loops with empty files
+    if
+      positions
+      and not self._files_read[position_id]
+      and positions:data().type == "file"
+      and #positions:children() == 0
+    then
+      self._files_read[position_id] = true
+      self:update_positions(position_id, { adapter = adapter_id })
+      positions = self._state:positions(adapter_id, position_id)
+    end
+
+    if not positions and position_id and lib.files.exists(position_id) then
+      self:update_positions(position_id, { adapter = adapter_id })
+      positions = self._state:positions(adapter_id, position_id)
+    end
   end
 
-  if not positions and lib.files.exists(position_id) then
-    self:update_positions(position_id)
-    positions = self._state:positions(position_id)
-  end
-
-  return positions
+  return positions, adapter_id
 end
 
 ---@return table<string, NeotestResult>
-function NeotestClient:get_results()
-  return self._state:results()
+function NeotestClient:get_results(adapter_id)
+  return self._state:results(adapter_id)
 end
 
-function NeotestClient:is_running(position_id)
-  return self._state:running()[position_id] or false
+function NeotestClient:is_running(position_id, args)
+  args = args or {}
+  if args.adapter then
+    return self._state:running(args.adapter)[position_id] or false
+  end
+  for _, adapter_id in ipairs(self:get_adapters()) do
+    if self._state:running(adapter_id)[position_id] then
+      return true
+    end
+  end
+  return false
 end
 
 function NeotestClient:is_test_file(file_path)
-  if self._state:positions(file_path) then
-    return true
-  end
-  local adapter = self:_get_adapter(file_path)
-  if not adapter then
-    return false
-  end
-  if adapter.is_test_file(file_path) then
-    return true
-  end
+  return self:_get_adapter(file_path) ~= nil
 end
 
 ---@async
 ---@param path string
-function NeotestClient:update_positions(path)
-  local adapter = self:_get_adapter()
+function NeotestClient:update_positions(path, args)
+  args = args or {}
+  local adapter_id, adapter = self:_get_adapter(path, args.adapter)
   if not adapter then
     return
   end
@@ -303,50 +316,114 @@ function NeotestClient:update_positions(path)
     logger.info("Couldn't find positions in path", path, positions)
     return
   end
-  local existing = self:get_position(path, false)
+  local existing = self:get_position(path, { refresh = false, adapter = adapter_id })
   if positions:data().type == "file" and existing and #existing:children() == 0 then
-    self:_propagate_results_to_new_positions(positions)
+    self:_propagate_results_to_new_positions(adapter_id, positions)
   end
-  self._state:update_positions(positions)
+  self._state:update_positions(adapter_id, positions)
 end
 
-function NeotestClient:_propagate_results_to_new_positions(tree)
+---@return integer, NeotestAdapter | nil
+function NeotestClient:_get_adapter(position_id, adapter_id)
+  if not position_id and not adapter_id then
+    adapter_id = self._adapters[1].name
+  end
+  if adapter_id then
+    for _, adapter in ipairs(self._adapters) do
+      if adapter_id == adapter.name then
+        return adapter_id, adapter
+      end
+    end
+  end
+  for _, adapter in ipairs(self._adapters) do
+    if self._state:positions(adapter.name, position_id) or adapter.is_test_file(position_id) then
+      return adapter.name, adapter
+    end
+  end
+
+  if not lib.files.exists(position_id) then
+    return
+  end
+
+  local new_adapter = adapters.get_file_adapter(position_id)
+  if not new_adapter then
+    return
+  end
+
+  table.insert(self._adapters, new_adapter)
+  return new_adapter.name, new_adapter
+end
+
+function NeotestClient:_propagate_results_to_new_positions(adapter_id, tree)
   local new_results = {}
   local results = self:get_results()
   for _, pos in tree:iter() do
     new_results[pos.id] = results[pos.id]
   end
-  self:_collect_results(tree, new_results)
+  self:_collect_results(adapter_id, tree, new_results)
   if not vim.tbl_isempty(new_results) then
-    self._state:update_results(new_results)
+    self._state:update_results(adapter_id, new_results)
   end
+end
+
+function NeotestClient:_focused(path)
+  local adapter_id = self:_get_adapter(path)
+  if not adapter_id then
+    return
+  end
+  self._state:update_focused(adapter_id, path)
 end
 
 function NeotestClient:start()
   self._started = true
-  self:_get_adapter(nil, true)
-  self:update_positions(async.fn.getcwd())
+  self:_update_adapters()
   vim.schedule(function()
     vim.cmd([[
       augroup Neotest 
         au!
         autocmd BufAdd,BufWritePost * lua require("neotest")._update_positions(vim.fn.expand("<afile>:p"))
-        autocmd DirChanged * lua require("neotest")._update_files(vim.fn.getcwd())
+        autocmd DirChanged * lua require("neotest")._dir_changed()
         autocmd BufDelete * lua require("neotest")._update_files(vim.fn.expand("<afile>:h"))
+        autocmd BufEnter * lua require("neotest")._focus_file(vim.fn.expand("<afile>:p"))
       augroup END
     ]])
   end)
 end
----@param file_path? string
----@return NeotestAdapter
-function NeotestClient:_get_adapter(file_path, from_dir)
-  return self._adapters.get_adapter({ file_path = file_path, from_dir = from_dir })
-end
 
+function NeotestClient:_update_adapters()
+  local cwd = async.fn.getcwd()
+  local all_adapters = vim.list_extend(
+    adapters.adapters_with_root_dir(cwd),
+    adapters.adapters_matching_open_bufs()
+  )
+  local new_adapters = {}
+  local found = {}
+  for _, adapter in pairs(self._adapters) do
+    table.insert(new_adapters, adapter)
+    found[adapter.name] = true
+  end
+  for _, adapter in ipairs(all_adapters) do
+    if not found[adapter.name] then
+      table.insert(new_adapters, adapter)
+      found[adapter.name] = true
+    end
+  end
+  self._adapters = new_adapters
+  for _, adapter in ipairs(self._adapters) do
+    local root = adapter.root(cwd)
+    if not root then
+      local existing_tree = self._state:positions(adapter.name)
+      if existing_tree then
+        root = existing_tree:data().path
+      end
+    end
+    self:update_positions(root or cwd, { adapter = adapter.name })
+  end
+end
 ---@param events? NeotestEventProcessor
 ---@param state? NeotestState
 ---@param processes? NeotestProcessTracker
 ---@return NeotestClient
-return function(adapters, events, state, processes)
-  return NeotestClient:new(adapters, events, state, processes)
+return function(events, state, processes)
+  return NeotestClient:new(events, state, processes)
 end

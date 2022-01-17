@@ -1,4 +1,6 @@
-return {
+---@class NeotestConfig
+local default_config = {
+  adapters = {},
   icons = {
     passed = "✔",
     running = "🗘",
@@ -20,6 +22,7 @@ return {
     border = "NeotestBorder",
     indent = "NeotestIndent",
     expand_marker = "NeotestExpandMarker",
+    adapter_name = "NeotestAdapterName",
   },
   floating = {
     border = "rounded",
@@ -49,3 +52,21 @@ return {
     open_on_run = "short",
   },
 }
+
+local user_config = default_config
+
+---@type NeotestConfig
+local M = {}
+
+setmetatable(M, {
+  __index = function(_, key)
+    if key == "setup" then
+      return function(config)
+        user_config = vim.tbl_deep_extend("force", default_config, config)
+      end
+    end
+    return user_config[key]
+  end,
+})
+
+return M

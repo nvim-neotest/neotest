@@ -21,17 +21,18 @@ return function(client)
     { text = config.icons.running, texthl = config.highlights.running }
   )
 
-  local tracked_files = {}
+  local file_adapters = {}
 
   local function render_files(files)
-    local results = client:get_results()
     for _, file_path in pairs(files) do
+      local adapter_id = file_adapters[file_path]
+      local results = client:get_results(adapter_id)
       async.fn.sign_unplace(consumer_name, { buffer = file_path })
-      local tree = client:get_position(file_path)
+      local tree = client:get_position(file_path, { adapter = adapter_id })
       for _, pos in tree:iter() do
         if pos.type ~= "file" then
           local icon
-          if client:is_running(pos.id) then
+          if client:is_running(pos.id, { adapter = adapter_id }) then
             icon = "neotest_running"
           elseif results[pos.id] then
             local result = results[pos.id]
@@ -51,21 +52,21 @@ return function(client)
     end
   end
 
-  client.listeners.discover_positions[consumer_name] = function(tree)
+  client.listeners.discover_positions[consumer_name] = function(adapter_id, tree)
     local file_path = tree:data().id
     if tree:data().type == "file" and async.fn.bufnr(file_path) ~= -1 then
-      tracked_files[file_path] = true
+      file_adapters[file_path] = adapter_id
       render_files({ file_path })
     end
   end
 
-  client.listeners.run[consumer_name] = function(_, position_ids)
+  client.listeners.run[consumer_name] = function(adapter_id, _, position_ids)
     local files = {}
     for _, pos_id in pairs(position_ids) do
-      local node = client:get_position(pos_id)
+      local node = client:get_position(pos_id, { adapter = adapter_id })
       if node then
         local file = node:data().path
-        if tracked_files[file] then
+        if file_adapters[file] then
           files[file] = files[file] or {}
           table.insert(files[file], pos_id)
         end
@@ -74,13 +75,13 @@ return function(client)
     render_files(vim.tbl_keys(files))
   end
 
-  client.listeners.results[consumer_name] = function(results)
+  client.listeners.results[consumer_name] = function(adapter_id, results)
     local files = {}
     for pos_id, _ in pairs(results) do
-      local node = client:get_position(pos_id)
+      local node = client:get_position(pos_id, { adapter = adapter_id })
       if node then
         local file = node:data().path
-        if tracked_files[file] then
+        if file_adapters[file] then
           files[file] = true
         end
       end
@@ -88,21 +89,10 @@ return function(client)
     render_files(vim.tbl_keys(files))
   end
 
-  vim.cmd([[
-    augroup NeotestStatusRefresh
-      au!
-      au BufEnter * lua require("neotest").status.render(vim.fn.expand("<afile>:p"))
-    augroup END
-  ]])
-
-  return {
-    render = function(file_path)
-      async.run(function()
-        if client:get_results()[file_path] then
-          tracked_files[file_path] = true
-          render_files({ file_path })
-        end
-      end)
-    end,
-  }
+  client.listeners.test_file_focused[consumer_name] = function(adapter_id, file_path)
+    if not file_adapters[file_path] then
+      file_adapters[file_path] = adapter_id
+    end
+    render_files({ file_path })
+  end
 end

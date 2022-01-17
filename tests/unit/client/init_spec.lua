@@ -112,7 +112,7 @@ describe("neotest client", function()
       local tree = client:get_position(dir)
       local file_tree = tree:get_key(dir .. "/test_file_1")
       assert.same(file_tree:children(), {})
-      file_tree = client:get_position(file_tree:data().id, false)
+      file_tree = client:get_position(file_tree:data().id, { refresh = false })
       assert.same(file_tree:children(), {})
     end)
 

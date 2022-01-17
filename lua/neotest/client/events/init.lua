@@ -12,15 +12,16 @@ local NeotestEvents = {
   DISCOVER_POSITIONS = "discover_positions",
   RUN = "run",
   RESULTS = "results",
+  TEST_FILE_FOCUSED = "test_file_focused",
 }
 
 M.events = NeotestEvents
 
 ---@class NeotestEventListeners
----@field discover_files table<string, fun(files: string[])>
----@field discover_positions table<string, fun(file_path: string, tree: Tree)>
----@field run table<string, fun(position_ids: string[])>
----@field results table<string, fun(results: table<string, NeotestResult>)>
+---@field discover_positions table<string, fun(adapter_id: integer, path: string, tree: Tree)>
+---@field run table<string, fun(adapter_id: integer, position_ids: string[])>
+---@field results table<string, fun(adapter_id: integer, results: table<string, NeotestResult>)>
+---@field test_file_focused table<string,fun(file_path: string)>>
 
 ---@class NeotestEventProcessor
 ---@field listeners NeotestEventListeners
