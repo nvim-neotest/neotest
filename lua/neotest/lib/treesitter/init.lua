@@ -98,7 +98,10 @@ local function parse_tree(positions, namespaces, opts)
       return current_level
     end
 
-    current_level[#current_level + 1] = parse_tree(positions, child_namespaces, opts)
+    local sub_tree = parse_tree(positions, child_namespaces, opts)
+    if opts.nested_tests or parent.type ~= "test" then
+      current_level[#current_level + 1] = sub_tree
+    end
   end
 end
 
@@ -134,7 +137,7 @@ end
 function M.parse_positions(file_path, query, opts)
   async.util.sleep(10)
   opts = vim.tbl_extend("force", {
-    nested_namespaces = false, -- Allow nested namespaces
+    nested_tests = false, -- Allow nested namespaces
     require_namespaces = false, -- Only allow tests within namespaces
   }, opts or {})
   local lines = require("neotest.lib").files.read_lines(file_path)

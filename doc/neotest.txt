@@ -1,0 +1,294 @@
+================================================================================
+                                                                       *neotest*
+
+A NeoVim plugin to run tests and analyse results
+
+There are three main components to this plugin's architecture.
+- Adapters: Generally language specific objects to parse tests, build commands
+  and parse results
+- Client: Runs tests and stores state of tests and results, emitting events
+  during operation
+- Consumers: Use the client to provide some utility to interact with tests and
+  results
+
+In order to use neotest, you must use an adapter for your language of choice.
+You can supply them in the setup function.
+
+Once you have setup an adapter, you can use neotest module functions to run and
+interact with tests.
+
+For most users, the bulk of relevant features will be in the consumers. There
+are multiple consumers:
+
+- summary: Shows all known tests in a tree structure, along with their current
+  state.
+
+- output: Displays the output of tests.
+
+- diagnostics: Uses vim.diagnostic to show error messages where they occur (if
+  supported by the adapter).
+
+- status: Displays signs beside tests and namespaces to show current result
+  state.
+
+Each consumer can be accessed as a property of the neotest module
+
+>
+ require("neotest").summary.toggle()
+<
+
+
+
+neotest.setup({user_config})                                 *neotest.setup()*
+    Configure Neotest strategies and consumers
+       See: ~
+           |NeotestConfig|
+
+    Default values:
+      {
+        adapters = {},
+        diagnostics = {
+          enabled = true
+        },
+        floating = {
+          border = "rounded",
+          max_height = 0.6,
+          max_width = 0.6
+        },
+        highlights = {
+          adapter_name = "NeotestAdapterName",
+          border = "NeotestBorder",
+          dir = "NeotestDir",
+          expand_marker = "NeotestExpandMarker",
+          failed = "NeotestFailed",
+          file = "NeotestFile",
+          indent = "NeotestIndent",
+          namespace = "NeotestNamespace",
+          passed = "NeotestPassed",
+          running = "NeotestRunning",
+          skipped = "NeotestSkipped",
+          test = "NeotestTest"
+        },
+        icons = {
+          collapsed = "─",
+          expanded = "╮",
+          failed = "✖",
+          passed = "✔",
+          running = "🗘",
+          skipped = "ﰸ",
+          unknown = "?"
+        },
+        output = {
+          enabled = true,
+          open_on_run = "short"
+        },
+        status = {
+          enabled = true
+        },
+        strategies = {
+          integrated = {
+            width = 120
+          }
+        },
+        summary = {
+          enabled = true,
+          expand_errors = true,
+          follow = true,
+          mappings = {
+            attach = "a",
+            expand = { "<CR>", "<2-LeftMouse>" },
+            expand_all = "e",
+            jumpto = "i",
+            output = "o",
+            run = "r",
+            short = "O",
+            stop = "u"
+          }
+        }
+      }
+
+    Parameters: ~
+        {user_config} (NeotestConfig)
+
+
+neotest.run({args})                                            *neotest.run()*
+    Run the given position or the nearest position if not given. All arguments
+    are optional
+
+    Run the current file
+    >
+    lua require("neotest").run(vim.fn.expand("%"))
+<
+
+    Run the nearest test
+    >
+    lua require("neotest").run()
+<
+
+    Debug the current file with nvim-dap
+    >
+    lua require("neotest").run({vim.fn.expand("%"), strategy = "dap"})
+<
+
+
+    Parameters: ~
+        {args} (string|table)  Position ID to run or args. If args then
+                               args[1] should be the position ID.
+
+    Fields: ~
+        {adapter}    (string)    Adapter ID, if not given the first adapter
+                                 found with chosen position is used.
+        {strategy}   (string)    Strategy to run commands with
+        {extra_args} (string[])  Extra arguments for test command
+
+
+neotest.stop({args})                                          *neotest.stop()*
+    Stop a running process
+
+
+    Parameters: ~
+        {args} (string|table)  Position ID to stop or args. If args then
+                               args[1] should be the position ID.
+
+    Fields: ~
+        {adapter} (string)  Adapter ID, if not given the first adapter found
+                            with chosen position is used.
+
+
+neotest.attach({args})                                      *neotest.attach()*
+    Attach to a running process for the given position.
+
+
+    Parameters: ~
+        {args} (string|table)  Position ID to attach to or args. If args then
+                               args[1] should be the position ID.
+
+    Fields: ~
+        {adapter} (string)  Adapter ID, if not given the first adapter found
+                            with chosen position is used.
+
+
+
+================================================================================
+                                                                *neotest.config*
+
+NeotestConfig                                                  *NeotestConfig*
+
+
+    Fields: ~
+        {adapters}   (NeotestAdapter[])
+        {icons}      (NeotestIconsConfig)
+        {highlights} (NeotestHighlightsConfig)
+        {floating}   (NeotestFloatingConfig)
+        {strategies} (NeotestStrategiesConfig)
+        {summary}    (NeotestSummaryConfig)
+        {output}     (NeotestOutputConfig)
+
+
+NeotestIconsConfig                                        *NeotestIconsConfig*
+
+
+    Fields: ~
+        {passed}    (string)
+        {running}   (string)
+        {failed}    (string)
+        {skipped}   (string)
+        {unknown}   (string)
+        {collapsed} (string)
+        {expanded}  (string)
+
+
+NeotestHighlightsConfig                              *NeotestHighlightsConfig*
+
+
+    Fields: ~
+        {passed}        (string)
+        {running}       (string)
+        {failed}        (string)
+        {skipped}       (string)
+        {test}          (string)
+        {namespace}     (string)
+        {file}          (string)
+        {dir}           (string)
+        {border}        (string)
+        {indent}        (string)
+        {expand_marker} (string)
+        {adapter_name}  (string)
+
+
+NeotestFloatingConfig                                  *NeotestFloatingConfig*
+
+
+    Fields: ~
+        {border}     (string)  Border style
+        {max_height} (number)  Max height of window as proportion of NeoVim
+                               window
+        {max_width}  (number)  Max width of window as proportion of NeoVim
+                               window
+
+
+NeotestIntegratedStrategyConfig              *NeotestIntegratedStrategyConfig*
+
+
+    Fields: ~
+        {width} (integer)  Width to pass to the pty runnning commands
+
+
+NeotestStrategiesConfig                              *NeotestStrategiesConfig*
+
+
+    Fields: ~
+        {integrated} (NeotestIntegratedStrategyConfig)
+
+
+NeotestSummaryConfig                                    *NeotestSummaryConfig*
+
+
+    Fields: ~
+        {enabled}       (boolean)
+        {follow}        (boolean)                 Expand user's current file
+        {expand_errors} (boolean)                 Expand all failed positions
+        {mappings}      (NeotestSummaryMappings)  Buffer mappings for summary
+                                                  window
+
+
+NeotestSummaryMappings                                *NeotestSummaryMappings*
+
+
+    Fields: ~
+        {expand}     (string|string[])  Expand currently selected position
+        {expand_all} (string|string[])  Expand all positions under currently
+                                        selected
+        {output}     (string|string[])  Show output for position
+        {short}      (string|string[])  Show short output for position (if
+                                        exists)
+        {attach}     (string|string[])  Attach to process for position
+        {jumpto}     (string|string[])  Jump to the selected position
+        {stop}       (string|string[])  Stop selected position
+        {run}        (string|string[])  Run selected position
+
+
+NeotestOutputConfig                                      *NeotestOutputConfig*
+
+
+    Fields: ~
+        {enabled}     (boolean)
+        {open_on_run} (boolean)  Open nearest test result after running
+
+
+NeotestDiagnosticsConfig                            *NeotestDiagnosticsConfig*
+
+
+    Fields: ~
+        {enabled} (boolean)
+
+
+NeotestStatusConfig                                      *NeotestStatusConfig*
+
+
+    Fields: ~
+        {enabled} (boolean)
+
+
+
+ vim:tw=78:ts=8:ft=help:norl:

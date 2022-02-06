@@ -67,6 +67,10 @@ function NeotestProcessTracker:attach(pos_id)
   return true
 end
 
+function NeotestProcessTracker:exists(proc_key)
+  return self._instances[proc_key] ~= nil
+end
+
 return function()
   return NeotestProcessTracker:new()
 end

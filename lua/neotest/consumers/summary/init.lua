@@ -1,5 +1,4 @@
 ---@param client NeotestClient
-local lib = require("neotest.lib")
 local consumer_name = "neotest-summary"
 local config = require("neotest.config")
 ---@param client NeotestClient
@@ -58,15 +57,14 @@ return function(client)
     local cwd = async.fn.getcwd()
     for _, adapter_id in ipairs(client:get_adapters()) do
       local tree = client:get_position(nil, { adapter = adapter_id })
-      if tree then
-        local root_dir = tree:data().path == cwd and "."
-          or async.fn.fnamemodify(tree:data().path, ":.")
-        render_state:write(adapter_id .. "\n", { group = config.highlights.adapter_name })
+      render_state:write(adapter_id .. "\n", { group = config.highlights.adapter_name })
+      if tree:data().path ~= cwd then
+        local root_dir = async.fn.fnamemodify(tree:data().path, ":.")
         render_state:write(root_dir .. "\n", { group = config.highlights.dir })
-        components[adapter_id] = components[adapter_id] or SummaryComponent(client, adapter_id)
-        components[adapter_id]:render(render_state, tree, expanded or {})
-        render_state:write("\n")
       end
+      components[adapter_id] = components[adapter_id] or SummaryComponent(client, adapter_id)
+      components[adapter_id]:render(render_state, tree, expanded or {})
+      render_state:write("\n")
     end
     if render_state:length() > 1 then
       render_state:remove_line()
@@ -98,24 +96,36 @@ return function(client)
     end
     render(expanded)
   end
-
-  local started = false
-  local start = function()
-    started = true
-    if config.summary.follow then
-      vim.cmd([[ 
-    augroup NeotestSummaryFollow
-      au!
-      au BufEnter,BufWrite * lua require("neotest").summary.expand(vim.fn.expand("<afile>:p"), true)
-    augroup END
-    ]])
+  local function expand(pos_id, recursive)
+    local tree = client:get_position(pos_id)
+    if not tree then
+      return
     end
+    local expanded = {}
+    if recursive then
+      for _, node in tree:iter_nodes() do
+        if #node:children() > 0 then
+          expanded[node:data().id] = true
+        end
+      end
+    else
+      expanded[pos_id] = true
+    end
+    for parent in tree:iter_parents() do
+      expanded[parent:data().id] = true
+    end
+    render(expanded)
   end
 
-  local function open()
-    if not started then
-      start()
+  if config.summary.follow then
+    client.listeners.test_file_focused[consumer_name] = function(_, file_path)
+      expand(file_path, true)
     end
+  end
+  local function open()
+    async.run(function()
+      client:ensure_started()
+    end)
     create_buf()
     open_window(summary_buf)
   end
@@ -135,23 +145,7 @@ return function(client)
     end,
     expand = function(pos_id, recursive)
       async.run(function()
-        local tree = client:get_position(pos_id, { refresh = false })
-        if not tree then
-          return
-        end
-        tree = client:get_position(pos_id)
-        local expanded = {}
-        if recursive then
-          for _, pos in tree:iter() do
-            expanded[pos.id] = true
-          end
-        else
-          expanded[pos_id] = true
-        end
-        for parent in tree:iter_parents() do
-          expanded[parent:data().id] = true
-        end
-        render(expanded)
+        expand(pos_id, recursive)
       end)
     end,
   }

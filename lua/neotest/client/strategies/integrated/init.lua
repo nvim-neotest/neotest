@@ -11,6 +11,7 @@ local uv = vim.loop
 ---@param spec NeotestRunSpec
 ---@return NeotestProcess
 return function(spec)
+  async.util.scheduler()
   local master, slave = pty.openpty(spec.strategy.height, spec.strategy.width)
 
   local pipe = uv.new_pipe(false)

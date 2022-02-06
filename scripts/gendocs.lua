@@ -4,12 +4,12 @@ local docs = {}
 
 docs.test = function()
   local input_files = {
-    "./lua/notify/init.lua",
-    "./lua/notify/render/init.lua",
+    "./lua/neotest/init.lua",
+    "./lua/neotest/config/init.lua",
   }
 
   -- Output file
-  local output_file = "./doc/nvim-notify.txt"
+  local output_file = "./doc/neotest.txt"
   local output_file_handle = io.open(output_file, "w")
 
   for _, input_file in ipairs(input_files) do

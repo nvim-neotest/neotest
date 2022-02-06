@@ -4,10 +4,6 @@ local stub = require("luassert.stub")
 local Tree = require("neotest.types").Tree
 local lib = require("neotest.lib")
 local NeotestClient = require("neotest.client")
-A = function(...)
-  async.util.scheduler()
-  print(vim.inspect(...))
-end
 
 describe("neotest client", function()
   local mock_adapter, mock_adapters, mock_strategy, client
@@ -17,7 +13,7 @@ describe("neotest client", function()
     stub(lib.files, "find", files)
     mock_adapter = {
       is_test_file = function()
-        return true
+        return "adapter"
       end,
       discover_positions = function(file_path)
         return Tree.from_list({

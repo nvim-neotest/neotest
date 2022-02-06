@@ -1,0 +1,17 @@
+NeotestConfig	neotest.txt	/*NeotestConfig*
+NeotestDiagnosticsConfig	neotest.txt	/*NeotestDiagnosticsConfig*
+NeotestFloatingConfig	neotest.txt	/*NeotestFloatingConfig*
+NeotestHighlightsConfig	neotest.txt	/*NeotestHighlightsConfig*
+NeotestIconsConfig	neotest.txt	/*NeotestIconsConfig*
+NeotestIntegratedStrategyConfig	neotest.txt	/*NeotestIntegratedStrategyConfig*
+NeotestOutputConfig	neotest.txt	/*NeotestOutputConfig*
+NeotestStatusConfig	neotest.txt	/*NeotestStatusConfig*
+NeotestStrategiesConfig	neotest.txt	/*NeotestStrategiesConfig*
+NeotestSummaryConfig	neotest.txt	/*NeotestSummaryConfig*
+NeotestSummaryMappings	neotest.txt	/*NeotestSummaryMappings*
+neotest	neotest.txt	/*neotest*
+neotest.attach()	neotest.txt	/*neotest.attach()*
+neotest.config	neotest.txt	/*neotest.config*
+neotest.run()	neotest.txt	/*neotest.run()*
+neotest.setup()	neotest.txt	/*neotest.setup()*
+neotest.stop()	neotest.txt	/*neotest.stop()*

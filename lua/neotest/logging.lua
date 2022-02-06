@@ -36,7 +36,7 @@ function Logger:new(filename, opts)
   local function path_join(...)
     return table.concat(vim.tbl_flatten({ ... }), path_sep)
   end
-  self._level = opts.level or M.levels.TRACE
+  self._level = opts.level or M.levels.DEBUG
   self._filename = path_join(vim.fn.stdpath("cache"), filename .. ".log")
 
   vim.fn.mkdir(vim.fn.stdpath("cache"), "p")

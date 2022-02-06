@@ -36,6 +36,7 @@ function M.openpty(rows, cols)
   local amaster = ffi.new("int[1]")
   local aslave = ffi.new("int[1]")
   local winp = ffi.new("struct winsize")
+
   winp.ws_row = rows or os.getenv("LINES") or vim.opt.lines:get()
   winp.ws_col = cols or os.getenv("COLUMNS") or vim.opt.columns:get()
   util.openpty(amaster, aslave, nil, nil, winp)

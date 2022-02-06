@@ -127,6 +127,9 @@ function RenderState:render_buffer(buffer)
   _mappings[buffer] = self.mappings
   for action, _ in pairs(self.mappings) do
     local mappings = self.config.mappings[action]
+    if type(mappings) ~= "table" then
+      mappings = { mappings }
+    end
     for _, key in pairs(mappings) do
       vim.api.nvim_buf_set_keymap(
         buffer,

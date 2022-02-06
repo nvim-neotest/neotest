@@ -1,4 +1,5 @@
 local logger = require("neotest.logging")
+local lib = require("neotest.lib")
 
 local NeotestEvents = require("neotest.client.events").events
 ---@class NeotestState
@@ -51,26 +52,20 @@ function NeotestState:update_positions(adapter_id, tree)
   logger.debug("New positions at ID", root_id)
   if not self._positions[adapter_id] then
     self._positions[adapter_id] = tree
-  elseif tree:data().type == "dir" then
-    for _, node in self._positions[adapter_id]:iter_nodes() do
-      if node:data().type == "file" then
-        local new_file_tree = tree:get_key(node:data().id)
-        if new_file_tree and #node:children() > 0 and #new_file_tree:children() == 0 then
-          tree:set_key(node:data().id, node)
-        end
-      end
-    end
-    self._positions[adapter_id] = tree
   else
-    self._positions[adapter_id]:set_key(root_id, tree)
+    self._positions[adapter_id] = lib.positions.merge(self._positions[adapter_id], tree)
   end
   self._events:emit(NeotestEvents.DISCOVER_POSITIONS, adapter_id, tree)
 end
 
 ---@param results table<string, NeotestResult>
 function NeotestState:update_results(adapter_id, results)
-  logger.debug("New results", results)
+  logger.debug("New results for adapter", adapter_id)
+  logger.trace(results)
   self._results[adapter_id] = vim.tbl_extend("force", self._results[adapter_id] or {}, results)
+  if not self._running[adapter_id] then
+    self._running[adapter_id] = {}
+  end
   for id, _ in pairs(results) do
     self._running[adapter_id][id] = nil
   end
@@ -78,7 +73,8 @@ function NeotestState:update_results(adapter_id, results)
 end
 
 function NeotestState:update_running(adapter_id, root_id, position_ids)
-  logger.debug("Setting positions to running", root_id, position_ids)
+  logger.debug("Setting positions to running", root_id)
+  logger.trace(position_ids)
   if not self._running[adapter_id] then
     self._running[adapter_id] = {}
     self._results[adapter_id] = {}

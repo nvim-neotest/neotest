@@ -44,9 +44,6 @@ function SummaryComponent:render(render_state, tree, expanded, indent)
   end
   local root_pos = tree:data()
   local children = tree:children()
-  if #children == 0 and root_pos.type ~= "namespace" then
-    children = self.client:get_position(root_pos.id, { adapter = self.adapter_id }):children()
-  end
   for index, node in pairs(children) do
     local is_last_child = index == #children
     local position = node:data()
@@ -130,7 +127,7 @@ function SummaryComponent:render(render_state, tree, expanded, indent)
       require("neotest").run(position.id)
     end)
 
-    local prefix = self:_position_prefix(position)
+    local prefix = config.icons[self.expanded_children[position.id] and "expanded" or "collapsed"]
     render_state:write(prefix, { group = config.highlights.expand_marker })
 
     local icon, icon_group = self:_position_icon(position)
@@ -157,17 +154,10 @@ function SummaryComponent:_get_child_component(pos_id)
   return self.child_components[pos_id]
 end
 
-function SummaryComponent:_position_prefix(position)
-  if position.type == "test" then
-    return config.icons.collapsed
-  end
-  return config.icons[self.expanded_children[position.id] and "expanded" or "collapsed"]
-end
-
 function SummaryComponent:_position_icon(position)
   local result = self.client:get_results(self.adapter_id)[position.id]
   if not result then
-    if self.client:is_running(position.id) then
+    if self.client:is_running(position.id, { adapter = self.adapter_id }) then
       return config.icons.running, config.highlights.running
     end
     return config.icons.unknown, "Normal"

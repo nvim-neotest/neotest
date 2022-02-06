@@ -10,7 +10,7 @@ function M.adapters_with_root_dir(cwd)
   for _, adapter in ipairs(config.adapters) do
     local root = adapter.root(cwd)
     if root then
-      table.insert(adapters, adapter)
+      table.insert(adapters, { adapter = adapter, root = root })
     end
   end
   return adapters

@@ -92,13 +92,13 @@ function M.parse_dir_from_files(root, files)
       root = ""
     end
     for _, path in ipairs(paths) do
-      local path_elems = vim.split(path.path, sep, { plain = true, trimempty = true })
       local abs_path
       if path.path ~= "" then
         abs_path = root .. M.sep .. path.path
       else
         abs_path = root
       end
+      local path_elems = vim.split(abs_path, sep, { plain = true, trimempty = true })
       positions:push({
         type = path.type,
         id = abs_path,
@@ -145,7 +145,9 @@ end
 function M.match_root_pattern(...)
   local patterns = vim.tbl_flatten({ ... })
   return function(start_path)
-    local potential_roots = vim.list_extend({ start_path }, Path:new(start_path):parents())
+    local start_parents = Path:new(start_path):parents()
+    local potential_roots = M.is_dir(start_path) and vim.list_extend({ start_path }, start_parents)
+      or start_parents
     for _, path in ipairs(potential_roots) do
       for _, pattern in ipairs(patterns) do
         for _, p in ipairs(async.fn.glob(Path:new(path, pattern).filename, true, true)) do
