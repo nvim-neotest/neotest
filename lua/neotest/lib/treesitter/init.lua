@@ -34,7 +34,7 @@ local function collect(file_path, query, buf, root, opts)
     name = path_elems[#path_elems],
     range = { root:range() },
   })
-  vim.tbl_add_reverse_lookup(query.captures)
+  pcall(vim.tbl_add_reverse_lookup, query.captures)
   for _, match in query:iter_matches(root, buf) do
     local type = get_query_type(query, match)
     if type then
