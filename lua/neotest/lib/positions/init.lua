@@ -95,23 +95,23 @@ M.merge = function(orig, new)
     return orig
   end
 
-  if M.contains(orig:data(), new:data()) then
-    for _, node in orig:get_key(new:data().id):iter_nodes() do
+  if M.contains(new:data(), orig:data()) then
+    for _, node in orig:iter_nodes() do
       if node:data().type == "file" then
         update_file_node(new, node)
       end
     end
-    replace_node(orig, new)
-    return orig
+
+    return new
   end
 
-  for _, node in orig:iter_nodes() do
+  for _, node in orig:get_key(new:data().id):iter_nodes() do
     if node:data().type == "file" then
       update_file_node(new, node)
     end
   end
-
-  return new
+  replace_node(orig, new)
+  return orig
 end
 
 return M

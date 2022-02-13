@@ -126,7 +126,7 @@ function NeotestClient:_collect_results(adapter_id, tree, results)
   for _, node in tree:iter_nodes() do
     local pos = node:data()
 
-    if (pos.type == "test" or (pos.type == "file" and root.id ~= pos.id)) and results[pos.id] then
+    if pos.type == "test" and results[pos.id] then
       for parent in node:iter_parents() do
         local parent_pos = parent:data()
         if not lib.positions.contains(root, parent_pos) then

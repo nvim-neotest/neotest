@@ -5,7 +5,7 @@ local lib = require("neotest.lib")
 
 ---@class SummaryComponent
 ---@field client NeotestClient
----@field expanded_children table
+---@field expanded_positions table
 ---@field child_components table<number, SummaryComponent>
 ---@field adapter_id integer
 local SummaryComponent = {}
@@ -13,9 +13,7 @@ local SummaryComponent = {}
 function SummaryComponent:new(client, adapter_id)
   local elem = {
     client = client,
-    expanded_children = {},
-    child_components = {},
-    render_step = 0,
+    expanded_positions = {},
     adapter_id = adapter_id,
   }
   setmetatable(elem, self)
@@ -24,7 +22,7 @@ function SummaryComponent:new(client, adapter_id)
 end
 
 function SummaryComponent:toggle_reference(pos_id)
-  self.expanded_children[pos_id] = not self.expanded_children[pos_id]
+  self.expanded_positions[pos_id] = not self.expanded_positions[pos_id]
 end
 
 local async_func = function(f)
@@ -37,11 +35,6 @@ end
 ---@param tree Tree
 function SummaryComponent:render(render_state, tree, expanded, indent)
   indent = indent or ""
-  for pos_id, _ in pairs(self.child_components) do
-    if not tree:get_key(pos_id) then
-      self.child_components[pos_id] = nil
-    end
-  end
   local root_pos = tree:data()
   local children = tree:children()
   for index, node in pairs(children) do
@@ -49,7 +42,7 @@ function SummaryComponent:render(render_state, tree, expanded, indent)
     local position = node:data()
 
     if expanded[position.id] then
-      self.expanded_children[position.id] = true
+      self.expanded_positions[position.id] = true
     end
 
     local node_indent = indent .. (is_last_child and "╰─" or "├─")
@@ -127,7 +120,7 @@ function SummaryComponent:render(render_state, tree, expanded, indent)
       require("neotest").run(position.id)
     end)
 
-    local prefix = config.icons[self.expanded_children[position.id] and "expanded" or "collapsed"]
+    local prefix = config.icons[self.expanded_positions[position.id] and "expanded" or "collapsed"]
     render_state:write(prefix, { group = config.highlights.expand_marker })
 
     local icon, icon_group = self:_position_icon(position)
@@ -135,8 +128,8 @@ function SummaryComponent:render(render_state, tree, expanded, indent)
 
     render_state:write(position.name .. "\n", { group = config.highlights[position.type] })
 
-    if self.expanded_children[position.id] then
-      self:_get_child_component(position.id):render(render_state, node, expanded, chid_indent)
+    if self.expanded_positions[position.id] then
+      self:render(render_state, node, expanded, chid_indent)
     end
   end
   if #children == 0 and root_pos.type ~= "test" then
@@ -145,13 +138,6 @@ function SummaryComponent:render(render_state, tree, expanded, indent)
     end
     render_state:write("  No tests found\n", { group = hi.expand_marker })
   end
-end
-
-function SummaryComponent:_get_child_component(pos_id)
-  if not self.child_components[pos_id] then
-    self.child_components[pos_id] = SummaryComponent:new(self.client, self.adapter_id)
-  end
-  return self.child_components[pos_id]
 end
 
 function SummaryComponent:_position_icon(position)
