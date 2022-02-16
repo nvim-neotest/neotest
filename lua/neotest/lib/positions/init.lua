@@ -71,6 +71,7 @@ end
 local function update_file_node(dir_tree, file_tree, force)
   local existing = dir_tree:get_key(file_tree:data().id)
   if not existing then
+    print(debug.traceback())
     error("File " .. file_tree:data().id .. "not in tree")
   end
   if force or (#existing:children() == 0 and #file_tree:children() > 0) then
@@ -97,7 +98,7 @@ M.merge = function(orig, new)
 
   if M.contains(new:data(), orig:data()) then
     for _, node in orig:iter_nodes() do
-      if node:data().type == "file" then
+      if node:data().type == "file" and new:get_key(node:data().id) then
         update_file_node(new, node)
       end
     end
@@ -106,7 +107,7 @@ M.merge = function(orig, new)
   end
 
   for _, node in orig:get_key(new:data().id):iter_nodes() do
-    if node:data().type == "file" then
+    if node:data().type == "file" and new:get_key(node:data().id) then
       update_file_node(new, node)
     end
   end
