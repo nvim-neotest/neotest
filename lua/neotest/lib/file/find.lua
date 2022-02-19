@@ -12,18 +12,18 @@ local function get_find_command(search_dirs)
       for _, v in pairs(search_dirs) do
         table.insert(find_command, v)
       end
-    elseif 1 == async.executable("fdfind") then
+    elseif 1 == async.fn.executable("fdfind") then
       find_command = { "fdfind", "--type", "f" }
       table.insert(find_command, ".")
       for _, v in pairs(search_dirs) do
         table.insert(find_command, v)
       end
-    elseif 1 == async.executable("rg") then
+    elseif 1 == async.fn.executable("rg") then
       find_command = { "rg", "--files" }
       for _, v in pairs(search_dirs) do
         table.insert(find_command, v)
       end
-    elseif 1 == async.executable("find") and async.has("win32") == 0 then
+    elseif 1 == async.fn.executable("find") and async.fn.has("win32") == 0 then
       find_command = { "find", "-type", "f" }
       for _, v in pairs(search_dirs) do
         table.insert(find_command, 2, v)
@@ -55,21 +55,13 @@ function M.find(search_dirs)
     stderr:close()
     finish_cond:notify_all()
   end)
-  local files = {}
-  local max_files = 1000 ^ 2
+  local files_data = {}
   stdout:read_start(function(err, data)
     if err then
       logger.error(err)
       return
     end
-    for file in vim.gsplit(data or "", "\n") do
-      if #file > 0 and #files <= max_files then
-        table.insert(files, file)
-      end
-    end
-    if #files >= max_files then
-      logger.warn("Max files exceeded")
-    end
+    table.insert(files_data, data)
   end)
   stderr:read_start(function(err, data)
     if err or data then
@@ -82,6 +74,7 @@ function M.find(search_dirs)
     logger.error("Error while finding files")
     return {}
   end
+  local files = vim.split(table.concat(files_data, ""), "\n", { plain = true, trimempty = true })
   return files
 end
 
