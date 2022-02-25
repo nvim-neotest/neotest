@@ -7,7 +7,8 @@ return function(spec)
 
   local handler_id = "neotest_" .. async.fn.localtime()
 
-  local output = ""
+  local output_path = vim.fn.tempname()
+  local output_file = assert(io.open(output_path, "w"))
 
   local finish_cond = async.control.Condvar.new()
   local result_code
@@ -16,7 +17,7 @@ return function(spec)
     before = function(config)
       dap.listeners.after.event_output[handler_id] = function(_, body)
         if vim.tbl_contains({ "stdout", "stderr" }, body.category) then
-          output = output .. body.output
+          output_file:write(body.output)
         end
       end
       dap.listeners.after.event_exited[handler_id] = function(_, info)
@@ -35,7 +36,7 @@ return function(spec)
       return result_code ~= nil
     end,
     output = function()
-      return output
+      return output_path
     end,
     attach = function()
       dap.repl.open()
