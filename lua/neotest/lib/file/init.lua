@@ -71,7 +71,7 @@ function M.parse_dir_from_files(root, files)
       return nil
     end
     local function dir_contains(dir, child)
-      return vim.startswith(child.path, dir.path)
+      return vim.startswith(child.path, dir.path .. M.sep)
     end
     local current_level = { parent }
     while true do
