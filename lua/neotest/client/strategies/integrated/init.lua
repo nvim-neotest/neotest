@@ -1,4 +1,3 @@
-local pty = require("neotest.client.strategies.integrated.pty")
 local async = require("plenary.async")
 
 local uv = vim.loop
@@ -11,49 +10,37 @@ local uv = vim.loop
 ---@param spec NeotestRunSpec
 ---@return NeotestProcess
 return function(spec)
-  async.util.scheduler()
-  local master, slave = pty.openpty(spec.strategy.height, spec.strategy.width)
-
-  local pipe = uv.new_pipe(false)
-  pipe:open(master)
-
   local env, cwd = spec.env, spec.cwd
 
   local finish_cond = async.control.Condvar.new()
   local result_code = nil
   local command = spec.command
 
-  local process, _ = uv.spawn(command[1], {
-    stdio = { slave, slave, slave },
-    cwd = cwd,
-    env = env,
-    detached = false,
-    args = #command > 1 and vim.list_slice(command, 2, #command) or nil,
-  }, function(code, _)
-    result_code = code
-    finish_cond:notify_all()
-  end)
-  local output_path = vim.fn.tempname()
+  local unread_data = ""
+  local attach_win, attach_buf, attach_chan
+  local output_path = async.fn.tempname()
   -- TODO: Resolve permissions issues with opening file with luv
   local output_file = assert(io.open(output_path, "w"))
-
-  local err, unread_data = nil, ""
-  local second_reader = nil
-  local attach_win, attach_buf, attach_chan
-
-  pipe:read_start(function(err_, data)
-    if not err_ then
+  local job = async.fn.jobstart(command, {
+    cwd = cwd,
+    env = env,
+    pty = true,
+    height = spec.strategy.height,
+    width = spec.strategy.width,
+    on_stdout = function(_, data)
+      data = table.concat(data, "\r\n")
       unread_data = unread_data .. data
       output_file:write(data)
-      if second_reader then
-        second_reader(err, unread_data)
+      if attach_chan then
+        async.api.nvim_chan_send(attach_chan, unread_data)
         unread_data = ""
       end
-    else
-      err = err_
-    end
-  end)
-
+    end,
+    on_exit = function(code, _)
+      result_code = code
+      finish_cond:notify_all()
+    end,
+  })
   return {
     is_complete = function()
       return result_code ~= nil
@@ -62,22 +49,22 @@ return function(spec)
       return output_path
     end,
     stop = function()
-      uv.process_kill(process, 15)
+      uv.process_kill(job, 15)
     end,
     attach = function()
       attach_buf = attach_buf or vim.api.nvim_create_buf(false, true)
       attach_chan = attach_chan
         or vim.api.nvim_open_term(attach_buf, {
           on_input = function(_, _, _, data)
-            pipe:write(data)
+            async.api.nvim_chan_send(job, data)
           end,
         })
       attach_win = vim.api.nvim_open_win(attach_buf, true, {
         relative = "cursor",
         row = 1,
         col = 1,
-        width = 120,
-        height = 20, -- TODO: Get width/height of data
+        width = spec.strategy.width,
+        height = spec.strategy.height,
         style = "minimal",
         border = "rounded",
       })
@@ -89,19 +76,14 @@ return function(spec)
         { noremap = true, silent = true }
       )
       vim.cmd("autocmd WinLeave * lua pcall(vim.api.nvim_win_close, " .. attach_win .. ", true)")
-      second_reader = vim.schedule_wrap(function(err_, data)
-        if not err_ then
-          vim.api.nvim_chan_send(attach_chan, data)
-        end
-      end)
       if unread_data ~= "" then
-        vim.api.nvim_chan_send(attach_chan, unread_data)
+        async.api.nvim_chan_send(attach_chan, unread_data)
         unread_data = ""
       end
     end,
     result = function()
       finish_cond:wait()
-      pipe:close()
+      async.fn.chanclose(job)
       output_file:close()
       if attach_win then
         vim.schedule(function()
