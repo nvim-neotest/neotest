@@ -4,6 +4,9 @@ local stub = require("luassert.stub")
 local Tree = require("neotest.types").Tree
 local lib = require("neotest.lib")
 local NeotestClient = require("neotest.client")
+A = function(...)
+  print(vim.inspect(...))
+end
 
 describe("neotest client", function()
   local mock_adapter, mock_adapters, mock_strategy, client
@@ -11,9 +14,11 @@ describe("neotest client", function()
   local files = { dir .. "/test_file_1", dir .. "/test_file_2" }
   before_each(function()
     stub(lib.files, "find", files)
+    require("neotest.config").setup({ adapters = { mock_adapter } })
     mock_adapter = {
+      name = "adapter",
       is_test_file = function()
-        return "adapter"
+        return true
       end,
       discover_positions = function(file_path)
         return Tree.from_list({
@@ -62,11 +67,6 @@ describe("neotest client", function()
         return results
       end,
     }
-    mock_adapters = {
-      get_adapter = function()
-        return mock_adapter
-      end,
-    }
     mock_strategy = function(spec)
       return {
         is_complete = function()
@@ -82,7 +82,7 @@ describe("neotest client", function()
         end,
       }
     end
-    client = NeotestClient(mock_adapters)
+    client = NeotestClient()
   end)
   after_each(function()
     lib.files.find:revert()
@@ -91,6 +91,7 @@ describe("neotest client", function()
   describe("reading positions", function()
     a.it("reads all tests files", function()
       local tree = client:get_position(dir)
+      A(client._state._positions)
       assert.Not.Nil(tree:get_key(dir .. "/test_file_1"))
       assert.Not.Nil(tree:get_key(dir .. "/test_file_2"))
       assert.Nil(tree:get_key(dir .. "/test_file_3"))

@@ -4,43 +4,43 @@ local _mappings = {}
 local api = vim.api
 M.namespace = api.nvim_create_namespace("neotest-render")
 
----@class RenderState
+---@class Canvas
 ---@field lines table
 ---@field matches table
 ---@field mappings table
 ---@field valid boolean
 ---@field config table
-local RenderState = {}
+local Canvas = {}
 
----@return RenderState
-function RenderState:new(config)
+---@return Canvas
+function Canvas:new(config)
   local mappings = {}
-  local render_state = {
+  local canvas = {
     lines = { "" },
     matches = {},
     mappings = mappings,
     valid = true,
     config = config,
   }
-  setmetatable(render_state, self)
+  setmetatable(canvas, self)
   self.__index = self
-  return render_state
+  return canvas
 end
 
--- Used by components waiting on state update to render.
+-- Used by components waiting on canvas update to render.
 -- This is to avoid flickering updates as information is updated.
-function RenderState:invalidate()
+function Canvas:invalidate()
   self.valid = false
 end
 
-function RenderState:write(text, opts)
+function Canvas:write(text, opts)
   opts = opts or {}
   local lines = vim.split(text, "[\r]?\n", false)
   for i, line in pairs(lines) do
     local cur_line = self.lines[#self.lines]
     self.lines[#self.lines] = cur_line .. line
     if opts.group and #line > 0 then
-      self:add_match(opts.group, #self.lines, #cur_line + 1, #line)
+      self.matches[#self.matches + 1] = { opts.group, { #self.lines, #cur_line + 1, #line } }
     end
     if i < #lines then
       table.insert(self.lines, "")
@@ -48,31 +48,15 @@ function RenderState:write(text, opts)
   end
 end
 
---- Remove the last line from state
-function RenderState:remove_line()
+--- Remove the last line from canvas
+function Canvas:remove_line()
   self.lines[#self.lines] = nil
 end
 
-function RenderState:reset()
+function Canvas:reset()
   self.lines = {}
   self.matches = {}
   self.mappings = {}
-end
-
----Add a new highlight match to pass to matchaddpos
----@param group string Highlight group
----@param line number Line to add match for
----@param start_col number First column to start match
----@param length number Length of match
-function RenderState:add_match(group, line, start_col, length)
-  local pos = { line }
-  if start_col ~= nil then
-    pos[#pos + 1] = start_col
-  end
-  if length ~= nil then
-    pos[#pos + 1] = length
-  end
-  self.matches[#self.matches + 1] = { group, pos }
 end
 
 ---Add a mapping for a specific line
@@ -80,8 +64,8 @@ end
 ---@param callback function Callback for when mapping is used
 ---@param opts table Optional extra arguments
 -- Extra arguments currently accepts:
---   `line` Line to map to, defaults to last in state
-function RenderState:add_mapping(action, callback, opts)
+--   `line` Line to map to, defaults to last in canvas
+function Canvas:add_mapping(action, callback, opts)
   opts = opts or {}
   local line = opts["line"] or self:length()
   if not self.mappings[action] then
@@ -91,13 +75,13 @@ function RenderState:add_mapping(action, callback, opts)
   self.mappings[action][line][#self.mappings[action][line] + 1] = callback
 end
 
----Get the number of lines in state
-function RenderState:length()
+---Get the number of lines in canvas
+function Canvas:length()
   return #self.lines
 end
 
----Get the length of the longest line in state
-function RenderState:width()
+---Get the length of the longest line in canvas
+function Canvas:width()
   local width = 0
   for _, line in pairs(self.lines) do
     width = width < #line and #line or width
@@ -105,10 +89,10 @@ function RenderState:width()
   return width
 end
 
----Apply a render state to a buffer
----@param self RenderState
+---Apply a render canvas to a buffer
+---@param self Canvas
 ---@param buffer number
-function RenderState:render_buffer(buffer)
+function Canvas:render_buffer(buffer)
   local success, _ = pcall(api.nvim_buf_set_option, buffer, "modifiable", true)
   if not success then
     return false
@@ -135,7 +119,7 @@ function RenderState:render_buffer(buffer)
         buffer,
         "n",
         key,
-        "<cmd>lua require('neotest.consumers.summary.render')._mapping('" .. action .. "')<CR>",
+        "<cmd>lua require('neotest.consumers.summary.canvas')._mapping('" .. action .. "')<CR>",
         { noremap = true }
       )
     end
@@ -164,9 +148,9 @@ function RenderState:render_buffer(buffer)
   return true
 end
 
---- @return RenderState
+--- @return Canvas
 function M.new(config)
-  return RenderState:new(config)
+  return Canvas:new(config)
 end
 
 function M._mapping(action)

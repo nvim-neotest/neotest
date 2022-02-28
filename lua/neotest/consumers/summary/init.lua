@@ -3,7 +3,7 @@ local consumer_name = "neotest-summary"
 local config = require("neotest.config")
 ---@param client NeotestClient
 return function(client)
-  local RenderState = require("neotest.consumers.summary.render")
+  local Canvas = require("neotest.consumers.summary.canvas")
   local SummaryComponent = require("neotest.consumers.summary.component")
   local async = require("plenary.async")
 
@@ -53,26 +53,36 @@ return function(client)
     if not is_open() then
       return
     end
-    local render_state = RenderState.new(config.summary)
-    local cwd = async.fn.getcwd()
-    for _, adapter_id in ipairs(client:get_adapters()) do
-      local tree = client:get_position(nil, { adapter = adapter_id })
-      render_state:write(adapter_id .. "\n", { group = config.highlights.adapter_name })
-      if tree:data().path ~= cwd then
-        local root_dir = async.fn.fnamemodify(tree:data().path, ":.")
-        render_state:write(root_dir .. "\n", { group = config.highlights.dir })
-      end
-      components[adapter_id] = components[adapter_id] or SummaryComponent(client, adapter_id)
-      components[adapter_id]:render(render_state, tree, expanded or {})
-      render_state:write("\n")
+    local ready = client:has_started()
+    if not ready then
+      async.run(function()
+        client:ensure_started()
+      end)
     end
-    if render_state:length() > 1 then
-      render_state:remove_line()
-      render_state:remove_line()
+    local canvas = Canvas.new(config.summary)
+    if not ready then
+      canvas:write("Parsing tests")
     else
-      render_state:write("No tests found")
+      local cwd = async.fn.getcwd()
+      for _, adapter_id in ipairs(client:get_adapters()) do
+        local tree = client:get_position(nil, { adapter = adapter_id })
+        canvas:write(adapter_id .. "\n", { group = config.highlights.adapter_name })
+        if tree:data().path ~= cwd then
+          local root_dir = async.fn.fnamemodify(tree:data().path, ":.")
+          canvas:write(root_dir .. "\n", { group = config.highlights.dir })
+        end
+        components[adapter_id] = components[adapter_id] or SummaryComponent(client, adapter_id)
+        components[adapter_id]:render(canvas, tree, expanded or {})
+        canvas:write("\n")
+      end
+      if canvas:length() > 1 then
+        canvas:remove_line()
+        canvas:remove_line()
+      else
+        canvas:write("No tests found")
+      end
     end
-    render_state:render_buffer(summary_buf)
+    canvas:render_buffer(summary_buf)
   end
 
   local listener = function()
@@ -123,9 +133,6 @@ return function(client)
     end
   end
   local function open()
-    async.run(function()
-      client:ensure_started()
-    end)
     create_buf()
     open_window(summary_buf)
   end

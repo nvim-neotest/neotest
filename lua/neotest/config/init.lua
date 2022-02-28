@@ -117,6 +117,7 @@ local default_config = {
   strategies = {
     integrated = {
       width = 120,
+      height = 40,
     },
   },
   summary = {

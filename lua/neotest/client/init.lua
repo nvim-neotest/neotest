@@ -1,4 +1,3 @@
-local adapters = require("neotest.adapters")
 local async = require("plenary.async")
 local config = require("neotest.config")
 local logger = require("neotest.logging")
@@ -11,10 +10,12 @@ local lib = require("neotest.lib")
 ---@field private _processes NeotestProcessTracker
 ---@field private _files_read table<string, boolean>
 ---@field private _adapters table<integer, NeotestAdapter>
+---@field private _adapter_group AdapterGroup
 ---@field listeners NeotestEventListeners
 local NeotestClient = {}
 
-function NeotestClient:new(events, state, processes)
+function NeotestClient:new(adapters, events, state, processes)
+  adapters = adapters or require("neotest.adapters")
   events = events or require("neotest.client.events").processor()
   state = state or require("neotest.client.state")(events)
   processes = processes or require("neotest.client.strategies")()
@@ -23,6 +24,7 @@ function NeotestClient:new(events, state, processes)
     _started = false,
     _adapters = {},
     _events = events,
+    _adapter_group = adapters,
     _state = state,
     _processes = processes,
     _files_read = {},
@@ -90,11 +92,13 @@ function NeotestClient:_get_process_key(position, args)
   end
 
   local get_proc_key = function(pos_id)
-    return self:_create_process_key(get_adapter(pos_id), pos_id)
+    local adapter = get_adapter(pos_id)
+    return adapter and self:_create_process_key(adapter, pos_id)
   end
 
   local is_running = function(pos_id)
-    return self._processes:exists(get_proc_key(pos_id))
+    local proc_key = get_proc_key(pos_id)
+    return proc_key and self._processes:exists(proc_key)
   end
 
   local running_process_root
@@ -248,10 +252,10 @@ function NeotestClient:_run_tree(tree, args, adapter)
 end
 
 ---Attach to the given running position.
+---@param position Tree
 ---@param args table
 ---@field adapter string Adapter ID
 ---@async
----@param position Tree
 function NeotestClient:attach(position, args)
   args = args or {}
   local running_process_root = self:_get_process_key(position, args)
@@ -260,7 +264,7 @@ function NeotestClient:attach(position, args)
     return
   end
   if self._processes:attach(running_process_root) then
-    logger.debug("Attached to process", running_process_root, "for position", position.id)
+    logger.debug("Attached to process", running_process_root, "for position", position:data().id)
     return
   end
 end
@@ -299,6 +303,10 @@ function NeotestClient:get_adapters()
     end
   end
   return active_adapters
+end
+
+function NeotestClient:has_started()
+  return self._started
 end
 
 ---Ensure that the client has initialised adapters and begun parsing files
@@ -403,7 +411,9 @@ function NeotestClient:_update_positions(path, args)
     end
     -- This is extremely IO heavy so running together has large benefit thanks to using luv for IO.
     -- More than twice as fast compared to running in sequence for cpython repo. (~18000 tests)
-    async.util.join(parse_funcs)
+    if #parse_funcs > 0 then
+      async.util.join(parse_funcs)
+    end
   end
 end
 
@@ -431,7 +441,7 @@ function NeotestClient:_get_adapter(position_id, adapter_id)
     return
   end
 
-  local new_adapter = adapters.get_file_adapter(position_id)
+  local new_adapter = self._adapter_group.get_file_adapter(position_id)
   if not new_adapter then
     return
   end
@@ -492,8 +502,10 @@ end
 ---@private
 ---@async
 function NeotestClient:_update_adapters(path)
-  local adapters_with_root = lib.files.is_dir(path) and adapters.adapters_with_root_dir(path) or {}
-  local adapters_with_bufs = adapters.adapters_matching_open_bufs()
+  local adapters_with_root = lib.files.is_dir(path)
+      and self._adapter_group.adapters_with_root_dir(path)
+    or {}
+  local adapters_with_bufs = self._adapter_group.adapters_matching_open_bufs()
   local found = {}
   for _, adapter in pairs(self._adapters) do
     found[adapter.name] = true
@@ -520,6 +532,6 @@ end
 ---@param state? NeotestState
 ---@param processes? NeotestProcessTracker
 ---@return NeotestClient
-return function(events, state, processes)
-  return NeotestClient:new(events, state, processes)
+return function(adapter_group, events, state, processes)
+  return NeotestClient:new(adapter_group, events, state, processes)
 end

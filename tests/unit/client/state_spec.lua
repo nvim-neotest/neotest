@@ -7,9 +7,6 @@ local function create_tree(positions)
     return pos.id
   end)
 end
-A = function(...)
-  print(vim.inspect(...))
-end
 
 describe("client state", function()
   local state, event_processor, emitted_event, emitted_args

@@ -135,7 +135,7 @@ end
 ---@param opts table
 ---@return Tree
 function M.parse_positions(file_path, query, opts)
-  async.util.sleep(10)
+  async.util.sleep(10) -- Prevent completely hogging main thread
   opts = vim.tbl_extend("force", {
     nested_tests = false, -- Allow nested namespaces
     require_namespaces = false, -- Only allow tests within namespaces

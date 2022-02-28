@@ -31,9 +31,9 @@ local async_func = function(f)
   end
 end
 
----@param render_state RenderState
+---@param canvas Canvas
 ---@param tree Tree
-function SummaryComponent:render(render_state, tree, expanded, indent)
+function SummaryComponent:render(canvas, tree, expanded, indent)
   indent = indent or ""
   local root_pos = tree:data()
   local children = tree:children()
@@ -41,18 +41,18 @@ function SummaryComponent:render(render_state, tree, expanded, indent)
     local is_last_child = index == #children
     local position = node:data()
 
-    if expanded[position.id] then
+    if expanded[position.id] and position.type ~= "test" then
       self.expanded_positions[position.id] = true
     end
 
     local node_indent = indent .. (is_last_child and "╰─" or "├─")
     local chid_indent = indent .. (is_last_child and "  " or "│ ")
     if #node_indent > 0 then
-      render_state:write(node_indent, { group = hi.indent })
+      canvas:write(node_indent, { group = hi.indent })
     end
 
     if position.type ~= "test" then
-      render_state:add_mapping(
+      canvas:add_mapping(
         "expand",
         async_func(function()
           self:toggle_reference(position.id)
@@ -60,7 +60,7 @@ function SummaryComponent:render(render_state, tree, expanded, indent)
         end)
       )
 
-      render_state:add_mapping(
+      canvas:add_mapping(
         "expand_all",
         async_func(function()
           local positions = {}
@@ -82,7 +82,7 @@ function SummaryComponent:render(render_state, tree, expanded, indent)
       )
     end
     if position.type ~= "dir" then
-      render_state:add_mapping("jumpto", function()
+      canvas:add_mapping("jumpto", function()
         local buf = vim.fn.bufadd(position.path)
         vim.fn.bufload(buf)
         if position.type == "file" then
@@ -92,51 +92,51 @@ function SummaryComponent:render(render_state, tree, expanded, indent)
         end
       end)
     end
-    render_state:add_mapping(
+    canvas:add_mapping(
       "attach",
       async_func(function()
         require("neotest").attach(position.id)
       end)
     )
-    render_state:add_mapping(
+    canvas:add_mapping(
       "output",
       async_func(function()
         require("neotest").output.open({ position_id = position.id })
       end)
     )
 
-    render_state:add_mapping(
+    canvas:add_mapping(
       "short",
       async_func(function()
         require("neotest").output.open({ position_id = position.id, short = true })
       end)
     )
 
-    render_state:add_mapping("stop", function()
+    canvas:add_mapping("stop", function()
       require("neotest").stop(position.id)
     end)
 
-    render_state:add_mapping("run", function()
+    canvas:add_mapping("run", function()
       require("neotest").run(position.id)
     end)
 
     local prefix = config.icons[self.expanded_positions[position.id] and "expanded" or "collapsed"]
-    render_state:write(prefix, { group = config.highlights.expand_marker })
+    canvas:write(prefix, { group = config.highlights.expand_marker })
 
     local icon, icon_group = self:_position_icon(position)
-    render_state:write(" " .. icon .. " ", { group = icon_group })
+    canvas:write(" " .. icon .. " ", { group = icon_group })
 
-    render_state:write(position.name .. "\n", { group = config.highlights[position.type] })
+    canvas:write(position.name .. "\n", { group = config.highlights[position.type] })
 
     if self.expanded_positions[position.id] then
-      self:render(render_state, node, expanded, chid_indent)
+      self:render(canvas, node, expanded, chid_indent)
     end
   end
   if #children == 0 and root_pos.type ~= "test" then
     if #indent > 0 then
-      render_state:write(indent .. "  ", { group = hi.indent })
+      canvas:write(indent .. "  ", { group = hi.indent })
     end
-    render_state:write("  No tests found\n", { group = hi.expand_marker })
+    canvas:write("  No tests found\n", { group = hi.expand_marker })
   end
 end
 

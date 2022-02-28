@@ -3,9 +3,10 @@ local logger = require("neotest.logging")
 local config = require("neotest.config")
 local lib = require("neotest.lib")
 
-local M = {}
+---@class AdapterGroup
+local AdapterGroup = {}
 
-function M.adapters_with_root_dir(cwd)
+function AdapterGroup.adapters_with_root_dir(cwd)
   local adapters = {}
   for _, adapter in ipairs(config.adapters) do
     local root = adapter.root(cwd)
@@ -16,7 +17,7 @@ function M.adapters_with_root_dir(cwd)
   return adapters
 end
 
-function M.adapters_matching_open_bufs()
+function AdapterGroup.adapters_matching_open_bufs()
   local adapters = {}
   local buffers = async.api.nvim_list_bufs()
 
@@ -35,7 +36,7 @@ function M.adapters_matching_open_bufs()
   return adapters
 end
 
-function M.get_file_adapter(file_path)
+function AdapterGroup.get_file_adapter(file_path)
   for _, adapter in ipairs(config.adapters) do
     if adapter.is_test_file(file_path) then
       return adapter
@@ -43,4 +44,4 @@ function M.get_file_adapter(file_path)
   end
 end
 
-return M
+return AdapterGroup
