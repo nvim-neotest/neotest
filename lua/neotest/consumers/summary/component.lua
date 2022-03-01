@@ -85,6 +85,7 @@ function SummaryComponent:render(canvas, tree, expanded, indent)
       canvas:add_mapping("jumpto", function()
         local buf = vim.fn.bufadd(position.path)
         vim.fn.bufload(buf)
+        vim.api.nvim_buf_set_option(buf, "buflisted", true)
         if position.type == "file" then
           lib.ui.open_buf(buf)
         else
