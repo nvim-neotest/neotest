@@ -497,6 +497,7 @@ function NeotestClient:_start()
   self:_update_adapters(async.fn.getcwd())
   local end_time = async.fn.localtime()
   logger.info("Initialisation finished in", end_time - start, "seconds")
+  self:_set_focused(async.fn.expand("%:p"))
 end
 
 ---@private
