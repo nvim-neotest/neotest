@@ -49,7 +49,7 @@ return function(spec)
       return output_path
     end,
     stop = function()
-      uv.process_kill(job, 15)
+      async.fn.jobstop(job)
     end,
     attach = function()
       attach_buf = attach_buf or vim.api.nvim_create_buf(false, true)
