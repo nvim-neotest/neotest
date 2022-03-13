@@ -1,4 +1,5 @@
 ---@param client NeotestClient
+local logger = require("neotest.logging")
 local consumer_name = "neotest-summary"
 local config = require("neotest.config")
 ---@param client NeotestClient
@@ -49,7 +50,8 @@ return function(client)
 
   local components = {}
 
-  local render = function(expanded)
+  local render
+  render = function(expanded)
     if not is_open() then
       return
     end
@@ -57,6 +59,10 @@ return function(client)
     if not ready then
       async.run(function()
         client:ensure_started()
+        -- In case no tests are found, we re-render.
+        -- Want to do async because otherwise the "No tests found" render will
+        -- happen before the "Parsing tests" render
+        vim.schedule(render)
       end)
     end
     local canvas = Canvas.new(config.summary)
@@ -82,7 +88,10 @@ return function(client)
         canvas:write("No tests found")
       end
     end
-    canvas:render_buffer(summary_buf)
+    local rendered, err = canvas:render_buffer(summary_buf)
+    if not rendered then
+      logger.error("Couldn't render buffer", err)
+    end
   end
 
   local listener = function()

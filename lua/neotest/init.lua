@@ -62,11 +62,11 @@ end
 local function get_tree_from_args(args)
   if args[1] then
     local position_id = lib.files.exists(args[1]) and async.fn.fnamemodify(args[1], ":p") or args[1]
-    return client:get_position(position_id, { adapter = args.adapter })
+    return client:get_position(position_id, args)
   end
   local file_path = async.fn.expand("%:p")
   local row = async.fn.getpos(".")[2] - 1
-  return client:get_nearest(file_path, row)
+  return client:get_nearest(file_path, row, args)
 end
 
 ---Run the given position or the nearest position if not given.

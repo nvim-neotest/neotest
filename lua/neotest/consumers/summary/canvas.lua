@@ -93,19 +93,19 @@ end
 ---@param self Canvas
 ---@param buffer number
 function Canvas:render_buffer(buffer)
-  local success, _ = pcall(api.nvim_buf_set_option, buffer, "modifiable", true)
+  local success, err = pcall(api.nvim_buf_set_option, buffer, "modifiable", true)
   if not success then
-    return false
+    return false, err
   end
   if self:length() == 0 then
-    return
+    return false, "No lines to render"
   end
   if buffer < 0 then
-    return false
+    return false, "Invalid buffer"
   end
   local win = vim.fn.bufwinnr(buffer)
   if win == -1 then
-    return false
+    return false, "Window not found"
   end
 
   _mappings[buffer] = self.mappings

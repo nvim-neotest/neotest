@@ -21,7 +21,7 @@ return function(spec)
   local output_path = async.fn.tempname()
   -- TODO: Resolve permissions issues with opening file with luv
   local output_file = assert(io.open(output_path, "w"))
-  local job = async.fn.jobstart(command, {
+  local success, job = pcall(async.fn.jobstart, command, {
     cwd = cwd,
     env = env,
     pty = true,
@@ -36,11 +36,16 @@ return function(spec)
         unread_data = ""
       end
     end,
-    on_exit = function(code, _)
+    on_exit = function(_, code)
       result_code = code
       finish_cond:notify_all()
     end,
   })
+  if not success then
+    output_file:write(job)
+    result_code = 1
+    finish_cond:notify_all()
+  end
   return {
     is_complete = function()
       return result_code ~= nil

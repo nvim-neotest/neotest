@@ -272,9 +272,11 @@ end
 ---@async
 ---@param file_path string
 ---@param row integer Zero-indexed row
+---@param args table
+---@field adapter string Adapter ID
 ---@return Tree | nil, integer | nil
-function NeotestClient:get_nearest(file_path, row)
-  local positions, adapter_id = self:get_position(file_path)
+function NeotestClient:get_nearest(file_path, row, args)
+  local positions, adapter_id = self:get_position(file_path, args)
   if not positions then
     return
   end
@@ -389,7 +391,7 @@ function NeotestClient:_update_positions(path, args)
       return adapter.discover_positions(path)
     end
   end)
-  if not success then
+  if not success or not positions then
     logger.error("Couldn't find positions in path", path, positions)
     return
   end

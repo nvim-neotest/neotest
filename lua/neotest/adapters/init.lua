@@ -1,5 +1,4 @@
 local async = require("plenary.async")
-local logger = require("neotest.logging")
 local config = require("neotest.config")
 local lib = require("neotest.lib")
 
@@ -25,9 +24,11 @@ function AdapterGroup.adapters_matching_open_bufs()
     return i, async.fn.fnamemodify(async.fn.bufname(buf), ":p")
   end, buffers)
 
+  local matched_files = {}
   for _, adapter in ipairs(config.adapters) do
     for _, path in ipairs(paths) do
-      if adapter.is_test_file(path) then
+      if adapter.is_test_file(path) and not matched_files[path] then
+        matched_files[path] = true
         table.insert(adapters, adapter)
         break
       end

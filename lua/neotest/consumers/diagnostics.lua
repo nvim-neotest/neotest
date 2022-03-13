@@ -134,7 +134,7 @@ return function(client)
 
   local function draw_buffer(path, adapter_id)
     if not buf_diags[path] then
-      local bufnr = async.api.nvim_eval("bufnr('" .. path .. "')")
+      local bufnr = async.fn.bufnr(path)
       if bufnr == -1 then
         return
       end
@@ -165,8 +165,11 @@ return function(client)
   end
 
   client.listeners.discover_positions[consumer_name] = function(adapter_id, tree)
-    local path = tree:data().id
-    draw_buffer(path, adapter_id)
+    for _, pos in tree:iter() do
+      if pos.type == "file" then
+        draw_buffer(pos.path, adapter_id)
+      end
+    end
   end
 
   client.listeners.run[consumer_name] = function(adapter_id, _, position_ids)
@@ -194,7 +197,7 @@ return function(client)
     local files = {}
     for pos_id, _ in pairs(results) do
       local node = client:get_position(pos_id, { adapter = adapter_id })
-      if node then
+      if node and node:data().type ~= "dir" then
         files[node:data().path] = true
       end
     end
