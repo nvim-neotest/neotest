@@ -158,15 +158,23 @@ function NeotestClient:_collect_results(adapter_id, tree, results)
     end
   end
 
+  local root_result = results[root.id]
   for _, node in tree:iter_nodes() do
     local pos = node:data()
-    if pos.type == "test" or pos.type == "namespace" then
-      if self:is_running(root.id) then
-        table.insert(running, pos.id)
-      end
-      if not results[pos.id] and results[root.id] then
-        local root_result = results[root.id]
-        results[pos.id] = { status = root_result.status, output = root_result.output }
+    if pos.type ~= "dir" then
+      if pos.type == "file" then
+        -- Files not being present means that they were skipped (probably)
+        if not results[pos.id] and root_result then
+          results[pos.id] = { status = "skipped", output = root.output }
+        end
+      else
+        if self:is_running(root.id) then
+          table.insert(running, pos.id)
+        end
+        -- Tests and namespaces not being present means that they failed to even start, count as root result
+        if not results[pos.id] and root_result then
+          results[pos.id] = { status = root_result.status, output = root_result.output }
+        end
       end
     end
   end
