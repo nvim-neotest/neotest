@@ -1,5 +1,5 @@
 local Path = require("plenary.path")
-local async = require("plenary.async")
+local async = require("neotest.async")
 local filetype = require("plenary.filetype")
 local fu = require("neotest.lib.func_util")
 local types = require("neotest.types")
@@ -62,10 +62,10 @@ M.sep = vim.loop.os_uname().sysname == "Windows" and "\\" or "/"
 M.detect_filetype = fu.memoize(filetype.detect)
 
 ---@param files string[] List of files to include in directory tree, along with parents
----@return Tree
+---@return neotest.Tree
 function M.parse_dir_from_files(root, files)
   local function parse_tree(dirs)
-    ---@type NeotestPosition
+    ---@type neotest.Position
     local parent = dirs:pop()
     if not parent then
       return nil
@@ -84,7 +84,7 @@ function M.parse_dir_from_files(root, files)
   end
 
   ---@param paths table[]
-  ---@return NeotestPosition[]
+  ---@return neotest.Position[]
   local function paths_to_positions(paths)
     local positions = FIFOQueue()
     local sep = M.sep

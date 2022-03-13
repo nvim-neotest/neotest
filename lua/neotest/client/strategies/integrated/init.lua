@@ -1,4 +1,4 @@
-local async = require("plenary.async")
+local async = require("neotest.async")
 
 local uv = vim.loop
 
@@ -7,8 +7,8 @@ local uv = vim.loop
 ---@field width integer
 
 ---@async
----@param spec NeotestRunSpec
----@return NeotestProcess
+---@param spec neotest.RunSpec
+---@return neotest.Process
 return function(spec)
   local env, cwd = spec.env, spec.cwd
 

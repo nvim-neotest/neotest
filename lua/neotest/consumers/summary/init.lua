@@ -1,12 +1,12 @@
----@param client NeotestClient
+---@param client neotest.Client
 local logger = require("neotest.logging")
 local consumer_name = "neotest-summary"
 local config = require("neotest.config")
----@param client NeotestClient
-return function(client)
+---@param client neotest.Client
+local function init(client)
   local Canvas = require("neotest.consumers.summary.canvas")
   local SummaryComponent = require("neotest.consumers.summary.component")
-  local async = require("plenary.async")
+  local async = require("neotest.async")
 
   local buf_name = "Neotest Summary"
   local summary_buf
@@ -146,13 +146,29 @@ return function(client)
     open_window(summary_buf)
   end
 
+  local function close()
+    if is_open() then
+      local win = async.fn.win_getid(async.fn.bufwinnr(summary_buf))
+      async.api.nvim_win_close(win, true)
+    end
+  end
+
   return {
     render = render,
+    open = function()
+      if is_open() then
+        return
+      end
+      open()
+      render()
+    end,
+    close = function()
+      close()
+    end,
     toggle = function()
       async.run(function()
         if is_open() then
-          local win = async.fn.win_getid(async.fn.bufwinnr(summary_buf))
-          async.api.nvim_win_close(win, true)
+          close()
         else
           open()
           render()
@@ -166,3 +182,43 @@ return function(client)
     end,
   }
 end
+
+---@tag neotest.summary
+---@brief [[
+--- A consumer that displays the structure of the test suite, along with results and allows running tests.
+---<pre>
+---    See: ~
+---        |neotest.Config.summary.mappings| for all mappings in the summary window
+---</pre>
+---@brief ]]
+local neotest = {}
+neotest.summary = {}
+
+---Open the summary window
+---<pre>
+--->
+---lua require("neotest").summary.open()
+---</pre>
+function neotest.summary.open() end
+
+---Close the summary window
+---<pre>
+--->
+---lua require("neotest").summary.close()
+---</pre>
+function neotest.summary.close() end
+
+---Toggle the summary window
+---<pre>
+--->
+---lua require("neotest").summary.toggle()
+---</pre>
+function neotest.summary.toggle() end
+
+neotest.summary = setmetatable(neotest.summary, {
+  __call = function(_, ...)
+    return init(...)
+  end,
+})
+
+return neotest.summary

@@ -42,12 +42,12 @@ Each consumer can be accessed as a property of the neotest module
 neotest.setup({user_config})                                 *neotest.setup()*
     Configure Neotest strategies and consumers
        See: ~
-           |NeotestConfig|
+           |neotest.Config|
 
     Default values:
       {
         adapters = {},
-        diagnostics = {
+        diagnostic = {
           enabled = true
         },
         floating = {
@@ -87,6 +87,7 @@ neotest.setup({user_config})                                 *neotest.setup()*
         },
         strategies = {
           integrated = {
+            height = 40,
             width = 120
           }
         },
@@ -108,7 +109,7 @@ neotest.setup({user_config})                                 *neotest.setup()*
       }
 
     Parameters: ~
-        {user_config} (NeotestConfig)
+        {user_config} (neotest.Config)
 
 
 neotest.run({args})                                            *neotest.run()*
@@ -172,20 +173,20 @@ neotest.attach({args})                                      *neotest.attach()*
 ================================================================================
                                                                 *neotest.config*
 
-NeotestConfig                                                  *NeotestConfig*
+neotest.Config                                                *neotest.Config*
 
 
     Fields: ~
-        {adapters}   (NeotestAdapter[])
-        {icons}      (NeotestIconsConfig)
-        {highlights} (NeotestHighlightsConfig)
-        {floating}   (NeotestFloatingConfig)
-        {strategies} (NeotestStrategiesConfig)
-        {summary}    (NeotestSummaryConfig)
-        {output}     (NeotestOutputConfig)
+        {adapters}   (neotest.Adapter[])
+        {icons}      (neotest.Config.icons)
+        {highlights} (neotest.Config.highlights)
+        {floating}   (neotest.Config.floating)
+        {strategies} (neotest.Config.strategies)
+        {summary}    (neotest.Config.summary)
+        {output}     (neotest.Config.output)
 
 
-NeotestIconsConfig                                        *NeotestIconsConfig*
+neotest.Config.icons                                    *neotest.Config.icons*
 
 
     Fields: ~
@@ -198,7 +199,7 @@ NeotestIconsConfig                                        *NeotestIconsConfig*
         {expanded}  (string)
 
 
-NeotestHighlightsConfig                              *NeotestHighlightsConfig*
+neotest.Config.highlights                          *neotest.Config.highlights*
 
 
     Fields: ~
@@ -216,7 +217,7 @@ NeotestHighlightsConfig                              *NeotestHighlightsConfig*
         {adapter_name}  (string)
 
 
-NeotestFloatingConfig                                  *NeotestFloatingConfig*
+neotest.Config.floating                              *neotest.Config.floating*
 
 
     Fields: ~
@@ -227,32 +228,34 @@ NeotestFloatingConfig                                  *NeotestFloatingConfig*
                                window
 
 
-NeotestIntegratedStrategyConfig              *NeotestIntegratedStrategyConfig*
+neotest.Config.strategies.integrated    *neotest.Config.strategies.integrated*
 
 
     Fields: ~
         {width} (integer)  Width to pass to the pty runnning commands
 
 
-NeotestStrategiesConfig                              *NeotestStrategiesConfig*
+neotest.Config.strategies                          *neotest.Config.strategies*
 
 
     Fields: ~
-        {integrated} (NeotestIntegratedStrategyConfig)
+        {integrated} (neotest.Config.strategies.integrated)
 
 
-NeotestSummaryConfig                                    *NeotestSummaryConfig*
+neotest.Config.summary                                *neotest.Config.summary*
 
 
     Fields: ~
         {enabled}       (boolean)
-        {follow}        (boolean)                 Expand user's current file
-        {expand_errors} (boolean)                 Expand all failed positions
-        {mappings}      (NeotestSummaryMappings)  Buffer mappings for summary
-                                                  window
+        {follow}        (boolean)                          Expand user's
+                                                           current file
+        {expand_errors} (boolean)                          Expand all failed
+                                                           positions
+        {mappings}      (neotest.Config.summary.mappings)  Buffer mappings for
+                                                           summary window
 
 
-NeotestSummaryMappings                                *NeotestSummaryMappings*
+neotest.Config.summary.mappings              *neotest.Config.summary.mappings*
 
 
     Fields: ~
@@ -268,7 +271,7 @@ NeotestSummaryMappings                                *NeotestSummaryMappings*
         {run}        (string|string[])  Run selected position
 
 
-NeotestOutputConfig                                      *NeotestOutputConfig*
+neotest.Config.output                                  *neotest.Config.output*
 
 
     Fields: ~
@@ -276,18 +279,92 @@ NeotestOutputConfig                                      *NeotestOutputConfig*
         {open_on_run} (boolean)  Open nearest test result after running
 
 
-NeotestDiagnosticsConfig                            *NeotestDiagnosticsConfig*
+neotest.Config.diagnostic                          *neotest.Config.diagnostic*
 
 
     Fields: ~
         {enabled} (boolean)
 
 
-NeotestStatusConfig                                      *NeotestStatusConfig*
+neotest.Config.status                                  *neotest.Config.status*
 
 
     Fields: ~
         {enabled} (boolean)
+
+
+
+================================================================================
+                                                                *neotest.output*
+
+A consumer that displays the output of test results.
+
+neotest.output.open({opts})                            *neotest.output.open()*
+    Open the output of a test result
+    >
+    lua require("neotest").open({ enter = true })
+<
+
+
+    Parameters: ~
+        {opts} (table)
+
+    Fields: ~
+        {short}       (boolean)  Show shortened output
+        {enter}       (boolean)  Enter output window
+        {position_id} (string)   Open output for position with this ID, opens
+                                 nearest position if not given
+
+
+
+================================================================================
+                                                                *neotest.status*
+
+A consumer that displays the results of tests as signs beside their
+declaration. This consumer is completely passive and so has no interface.
+
+
+================================================================================
+                                                            *neotest.diagnostic*
+
+A consumer that displays error messages using the vim.diagnostic API. This
+consumer is completely passive and so has no interface.
+
+You can configure the diagnostic API for neotest using the "neotest" namespace
+   See: ~
+       |vim.diagnostic.config()|
+
+
+================================================================================
+                                                               *neotest.summary*
+
+A consumer that displays the structure of the test suite, along with results
+and allows running tests.
+   See: ~
+       |neotest.Config.summary.mappings| for all mappings in the summary window
+
+neotest.summary.open()                                *neotest.summary.open()*
+    Open the summary window
+    >
+    lua require("neotest").summary.open()
+<
+
+
+
+neotest.summary.close()                              *neotest.summary.close()*
+    Close the summary window
+    >
+    lua require("neotest").summary.close()
+<
+
+
+
+neotest.summary.toggle()                            *neotest.summary.toggle()*
+    Toggle the summary window
+    >
+    lua require("neotest").summary.toggle()
+<
+
 
 
 

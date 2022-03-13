@@ -14,16 +14,16 @@ vim.cmd([[
   hi default NeotestAdapterName ctermfg=Red guifg=#F70067
 ]])
 
----@class NeotestConfig
----@field adapters NeotestAdapter[]
----@field icons NeotestIconsConfig
----@field highlights NeotestHighlightsConfig
----@field floating NeotestFloatingConfig
----@field strategies NeotestStrategiesConfig
----@field summary NeotestSummaryConfig
----@field output NeotestOutputConfig
+---@class neotest.Config
+---@field adapters neotest.Adapter[]
+---@field icons neotest.Config.icons
+---@field highlights neotest.Config.highlights
+---@field floating neotest.Config.floating
+---@field strategies neotest.Config.strategies
+---@field summary neotest.Config.summary
+---@field output neotest.Config.output
 
----@class NeotestIconsConfig
+---@class neotest.Config.icons
 ---@field passed string
 ---@field running string
 ---@field failed string
@@ -32,7 +32,7 @@ vim.cmd([[
 ---@field collapsed string
 ---@field expanded string
 
----@class NeotestHighlightsConfig
+---@class neotest.Config.highlights
 ---@field passed string
 ---@field running string
 ---@field failed string
@@ -46,24 +46,24 @@ vim.cmd([[
 ---@field expand_marker string
 ---@field adapter_name string
 
----@class NeotestFloatingConfig
+---@class neotest.Config.floating
 ---@field border string: Border style
 ---@field max_height number: Max height of window as proportion of NeoVim window
 ---@field max_width number: Max width of window as proportion of NeoVim window
 
----@class NeotestIntegratedStrategyConfig
+---@class neotest.Config.strategies.integrated
 ---@field width integer: Width to pass to the pty runnning commands
 
----@class NeotestStrategiesConfig
----@field integrated NeotestIntegratedStrategyConfig
+---@class neotest.Config.strategies
+---@field integrated neotest.Config.strategies.integrated
 
----@class NeotestSummaryConfig
+---@class neotest.Config.summary
 ---@field enabled boolean
 ---@field follow boolean: Expand user's current file
 ---@field expand_errors boolean: Expand all failed positions
----@field mappings NeotestSummaryMappings: Buffer mappings for summary window
+---@field mappings neotest.Config.summary.mappings: Buffer mappings for summary window
 
----@class NeotestSummaryMappings
+---@class neotest.Config.summary.mappings
 ---@field expand string | string[]: Expand currently selected position
 ---@field expand_all string | string[]: Expand all positions under currently selected
 ---@field output string | string[]: Show output for position
@@ -73,17 +73,17 @@ vim.cmd([[
 ---@field stop string | string[]: Stop selected position
 ---@field run string | string[]: Run selected position
 
----@class NeotestOutputConfig
+---@class neotest.Config.output
 ---@field enabled boolean
 ---@field open_on_run boolean: Open nearest test result after running
 
----@class NeotestDiagnosticsConfig
+---@class neotest.Config.diagnostic
 ---@field enabled boolean
 
----@class NeotestStatusConfig
+---@class neotest.Config.status
 ---@field enabled boolean
 
----@type NeotestConfig
+---@type neotest.Config
 local default_config = {
   adapters = {},
   icons = {
@@ -139,7 +139,7 @@ local default_config = {
     enabled = true,
     open_on_run = "short",
   },
-  diagnostics = {
+  diagnostic = {
     enabled = true,
   },
   status = {
@@ -149,10 +149,10 @@ local default_config = {
 
 local user_config = default_config
 
----@type NeotestConfig
+---@type neotest.Config
 local NeotestConfigModule = {}
 
----@param config NeotestConfig
+---@param config neotest.Config
 function NeotestConfigModule.setup(config)
   user_config = vim.tbl_deep_extend("force", default_config, config)
 end

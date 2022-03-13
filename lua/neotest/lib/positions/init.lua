@@ -1,8 +1,8 @@
 local M = {}
 
----@param tree Tree
+---@param tree neotest.Tree
 ---@param line integer
----@return Tree
+---@return neotest.Tree
 M.nearest = function(tree, line)
   local nearest = tree
   for _, node in tree:iter_nodes() do
@@ -17,8 +17,8 @@ M.nearest = function(tree, line)
   end
   return nearest
 end
----@param parent NeotestPosition
----@param child NeotestPosition
+---@param parent neotest.Position
+---@param child neotest.Position
 ---@return boolean
 M.contains = function(parent, child)
   if parent.type == "dir" then
@@ -37,8 +37,8 @@ M.contains = function(parent, child)
   return parent.range[1] <= child.range[1] and parent.range[3] >= child.range[3]
 end
 
----@param tree Tree
----@param node Tree
+---@param tree neotest.Tree
+---@param node neotest.Tree
 local function replace_node(tree, node)
   local existing = tree:get_key(node:data().id)
 
@@ -66,8 +66,8 @@ local function replace_node(tree, node)
   end
 end
 
----@param dir_tree Tree
----@param file_tree Tree
+---@param dir_tree neotest.Tree
+---@param file_tree neotest.Tree
 local function update_file_node(dir_tree, file_tree, force)
   local existing = dir_tree:get_key(file_tree:data().id)
   if not existing then
@@ -79,8 +79,8 @@ local function update_file_node(dir_tree, file_tree, force)
   end
 end
 
----@param orig Tree Directory tree
----@param new Tree File or directory tree
+---@param orig neotest.Tree Directory tree
+---@param new neotest.Tree File or directory tree
 M.merge = function(orig, new)
   if not M.contains(orig:data(), new:data()) and not M.contains(new:data(), orig:data()) then
     error("Common root not found")

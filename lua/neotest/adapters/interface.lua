@@ -1,4 +1,4 @@
----@class NeotestAdapter
+---@class neotest.Adapter
 ---@field name string
 local NeotestAdapter = {}
 
@@ -14,16 +14,16 @@ function NeotestAdapter.is_test_file(file_path) end
 
 ---@async
 ---@param file_path string
----@return Tree | nil
+---@return neotest.Tree | nil
 function NeotestAdapter.discover_positions(file_path) end
 
----@param args NeotestRunArgs
----@return NeotestRunSpec
+---@param args neotest.RunArgs
+---@return neotest.RunSpec
 function NeotestAdapter.build_spec(args) end
 
 ---@async
----@param spec NeotestRunSpec
----@param result NeotestStrategyResult
----@param tree Tree
----@return table<string, NeotestResult>
+---@param spec neotest.RunSpec
+---@param result neotest.StrategyResult
+---@param tree neotest.Tree
+---@return table<string, neotest.Result>
 function NeotestAdapter.results(spec, result, tree) end

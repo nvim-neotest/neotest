@@ -1,4 +1,4 @@
-local async = require("plenary.async")
+local async = require("neotest.async")
 local a = async.tests
 local stub = require("luassert.stub")
 local Tree = require("neotest.types").Tree

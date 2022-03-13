@@ -1,8 +1,7 @@
-local async = require("plenary.async")
+local async = require("neotest.async")
 local types = require("neotest.types")
 local FIFOQueue = types.FIFOQueue
 local Tree = types.Tree
-local ts_parsers = require("nvim-treesitter.parsers")
 
 local M = {}
 
@@ -23,8 +22,8 @@ end
 ---@param query table
 ---@param buf integer
 ---@param root table
----@return FIFOQueue
-local function collect(file_path, query, buf, root, opts)
+---@return neotest.FIFOQueue
+local function collect(file_path, query, buf, root)
   local sep = require("neotest.lib").files.sep
   local nodes = FIFOQueue()
   local path_elems = vim.split(file_path, sep, { plain = true })
@@ -53,8 +52,8 @@ local function collect(file_path, query, buf, root, opts)
   return nodes
 end
 
----@param pos_a NeotestPosition
----@param pos_b NeotestPosition
+---@param pos_a neotest.Position
+---@param pos_b neotest.Position
 local function contains(pos_a, pos_b)
   local a_s_r, a_s_c, a_e_r, a_e_c = unpack(pos_a.range)
   local b_s_r, b_s_c, b_e_r, b_e_c = unpack(pos_b.range)
@@ -70,10 +69,10 @@ local function contains(pos_a, pos_b)
   return true
 end
 
----@param positions FIFOQueue
+---@param positions neotest.FIFOQueue
 ---@return table[] Nested lists to be parsed as a tree object
 local function parse_tree(positions, namespaces, opts)
-  ---@type NeotestPosition
+  ---@type neotest.Position
   local parent = positions:pop()
   if not parent then
     return nil
@@ -105,7 +104,7 @@ local function parse_tree(positions, namespaces, opts)
   end
 end
 
----@param pos NeotestPosition
+---@param pos neotest.Position
 ---@return string
 local function position_key(pos)
   return pos.id
@@ -114,16 +113,17 @@ end
 ---@parma file_path string
 ---@param query table | string
 ---@param buf integer
----@return Tree
+---@return neotest.Tree
 local function parse_buf_positions(file_path, query, buf, opts)
   local ft = require("neotest.lib").files.detect_filetype(file_path)
+  local ts_parsers = require("nvim-treesitter.parsers")
   local lang = ts_parsers.ft_to_lang(ft)
   local parser = ts_parsers.get_parser(buf, lang)
   local root = parser:parse()[1]:root()
   if type(query) == "string" then
     query = vim.treesitter.parse_query(ft, query)
   end
-  local positions = collect(file_path, query, buf, root, opts)
+  local positions = collect(file_path, query, buf, root)
   local structure = parse_tree(positions, {}, opts)
   local tree = Tree.from_list(structure, position_key)
   return tree
@@ -133,7 +133,7 @@ end
 ---@param file_path string
 ---@param query string | vim.treesitter.Query
 ---@param opts table
----@return Tree
+---@return neotest.Tree
 function M.parse_positions(file_path, query, opts)
   async.util.sleep(10) -- Prevent completely hogging main thread
   opts = vim.tbl_extend("force", {

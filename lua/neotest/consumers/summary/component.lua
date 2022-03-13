@@ -1,10 +1,10 @@
-local async = require("plenary.async")
+local async = require("neotest.async")
 local config = require("neotest.config")
 local hi = config.highlights
 local lib = require("neotest.lib")
 
 ---@class SummaryComponent
----@field client NeotestClient
+---@field client neotest.Client
 ---@field expanded_positions table
 ---@field child_components table<number, SummaryComponent>
 ---@field adapter_id integer
@@ -32,7 +32,7 @@ local async_func = function(f)
 end
 
 ---@param canvas Canvas
----@param tree Tree
+---@param tree neotest.Tree
 function SummaryComponent:render(canvas, tree, expanded, indent)
   indent = indent or ""
   local root_pos = tree:data()
@@ -73,7 +73,9 @@ function SummaryComponent:render(canvas, tree, expanded, indent)
               end
             end
           else
-            for _, pos in self.client:get_position(position.id, { adapter = self.adapter_id }):iter() do
+            for _, pos in
+              self.client:get_position(position.id, { adapter = self.adapter_id }):iter()
+            do
               positions[pos.id] = true
             end
           end

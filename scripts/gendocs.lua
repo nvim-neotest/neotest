@@ -6,6 +6,10 @@ docs.test = function()
   local input_files = {
     "./lua/neotest/init.lua",
     "./lua/neotest/config/init.lua",
+    "./lua/neotest/consumers/output.lua",
+    "./lua/neotest/consumers/status.lua",
+    "./lua/neotest/consumers/diagnostic.lua",
+    "./lua/neotest/consumers/summary/init.lua",
   }
 
   -- Output file

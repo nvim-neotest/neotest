@@ -2,13 +2,13 @@ local lib = require("neotest.lib")
 local logger = require("neotest.logging")
 local fu = lib.func_util
 
----@return NeotestStrategy
+---@return neotest.Strategy
 local get_strategy = fu.memoize(function(name)
   return require("neotest.client.strategies." .. name)
 end)
 
 ---@class NeotestProcessTracker
----@field _instances table<integer, NeotestProcess>
+---@field _instances table<integer, neotest.Process>
 local NeotestProcessTracker = {}
 
 function NeotestProcessTracker:new()
@@ -22,9 +22,9 @@ end
 
 ---@async
 ---@param pos_id string
----@param spec NeotestRunSpec
+---@param spec neotest.RunSpec
 ---@param args? table
----@return NeotestStrategyResult
+---@return neotest.StrategyResult
 function NeotestProcessTracker:run(pos_id, spec, args)
   local strategy = self:_get_strategy(args)
   logger.info("Starting process", pos_id, "with strategy", args.strategy)
@@ -48,7 +48,7 @@ function NeotestProcessTracker:stop(pos_id)
   return true
 end
 
----@return NeotestStrategy
+---@return neotest.Strategy
 function NeotestProcessTracker:_get_strategy(args)
   if type(args.strategy) == "string" then
     return get_strategy(args.strategy)

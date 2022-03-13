@@ -32,22 +32,22 @@
 ---
 ---@brief ]]
 local lib = require("neotest.lib")
-local async = require("plenary.async")
+local async = require("neotest.async")
 local config = require("neotest.config")
 
 ---@tag neotest
 local neotest = {}
 
----@type NeotestClient
+---@type neotest.Client
 local client
 local consumers = {}
 
 ---Configure Neotest strategies and consumers
 ---<pre>
 ---    See: ~
----        |NeotestConfig|
+---        |neotest.Config|
 ---</pre>
----@param user_config NeotestConfig
+---@param user_config neotest.Config
 ---@eval { ['description'] = require('neotest.config')._format_default() }
 function neotest.setup(user_config)
   config.setup(user_config)

@@ -1,4 +1,4 @@
-local async = require("plenary.async")
+local async = require("neotest.async")
 local consumer_name = "neotest-output"
 local lib = require("neotest.lib")
 local config = require("neotest.config")
@@ -42,8 +42,8 @@ local function open_output(result, opts)
   end)
 end
 
----@param client NeotestClient
-return function(client)
+---@param client neotest.Client
+local init = function(client)
   if config.output.open_on_run then
     client.listeners.results[consumer_name] = function(results)
       local cur_pos = async.fn.getpos(".")
@@ -101,3 +101,30 @@ return function(client)
     end,
   }
 end
+
+---@tag neotest.output
+local neotest = {}
+neotest.output = {}
+
+---@brief [[
+--- A consumer that displays the output of test results.
+---@brief ]]
+
+---Open the output of a test result
+---<pre>
+--->
+---lua require("neotest").open({ enter = true })
+---</pre>
+---@param opts table
+---@field short boolean: Show shortened output
+---@field enter boolean: Enter output window
+---@field position_id string: Open output for position with this ID, opens nearest position if not given
+function neotest.output.open(opts) end
+
+neotest.output = setmetatable(neotest.output, {
+  __call = function(_, ...)
+    return init(...)
+  end,
+})
+
+return neotest.output

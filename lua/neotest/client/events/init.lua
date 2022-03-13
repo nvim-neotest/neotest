@@ -1,4 +1,4 @@
-local async = require("plenary.async")
+local async = require("neotest.async")
 local logger = require("neotest.logging")
 
 local M = {}
@@ -18,9 +18,9 @@ local NeotestEvents = {
 M.events = NeotestEvents
 
 ---@class NeotestEventListeners
----@field discover_positions table<string, fun(adapter_id: integer, path: string, tree: Tree)>
+---@field discover_positions table<string, fun(adapter_id: integer, path: string, tree: neotest.Tree)>
 ---@field run table<string, fun(adapter_id: integer, position_ids: string[])>
----@field results table<string, fun(adapter_id: integer, results: table<string, NeotestResult>)>
+---@field results table<string, fun(adapter_id: integer, results: table<string, neotest.Result>)>
 ---@field test_file_focused table<string,fun(file_path: string)>>
 
 ---@class NeotestEventProcessor

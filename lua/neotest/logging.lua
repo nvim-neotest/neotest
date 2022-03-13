@@ -13,7 +13,7 @@ M.levels = {
 
 local log_date_format = "%FT%H:%M:%SZ%z"
 
----@class Logger
+---@class neotest.Logger
 ---@field trace function
 ---@field debug function
 ---@field info function
@@ -22,7 +22,7 @@ local log_date_format = "%FT%H:%M:%SZ%z"
 
 local Logger = {}
 
----@return Logger
+---@return neotest.Logger
 function Logger:new(filename, opts)
   opts = opts or {}
   local logger = loggers[filename]

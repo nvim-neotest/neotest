@@ -1,4 +1,4 @@
-local async = require("plenary.async")
+local async = require("neotest.async")
 local logger = require("neotest.logging")
 local M = {}
 

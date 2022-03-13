@@ -1,14 +1,14 @@
 local logger = require("neotest.logging")
-local async = require("plenary.async")
+local async = require("neotest.async")
 local consumer_name = "neotest-diagnostic"
 
----@param client NeotestClient
-return function(client)
+---@param client neotest.Client
+local function init(client)
   local api = async.api
   local diag = vim.diagnostic
 
-  local tracking_namespace = api.nvim_create_namespace("_ultest_diagnostic_tracking")
-  local diag_namespace = api.nvim_create_namespace("neotest_diagnostic")
+  local tracking_namespace = api.nvim_create_namespace("_neotest_diagnostic_tracking")
+  local diag_namespace = api.nvim_create_namespace("neotest")
 
   ---@type table<string, BufferDiagnostics>
   local buf_diags = {}
@@ -206,3 +206,24 @@ return function(client)
     end
   end
 end
+
+---@tag neotest.diagnostic
+---@brief [[
+--- A consumer that displays error messages using the vim.diagnostic API.
+--- This consumer is completely passive and so has no interface.
+---
+--- You can configure the diagnostic API for neotest using the "neotest" namespace
+---<pre>
+---    See: ~
+---        |vim.diagnostic.config()|
+---</pre>
+---@brief ]]
+local neotest = {}
+neotest.diagnostic = {}
+neotest.diagnostic = setmetatable(neotest.diagnostic, {
+  __call = function(_, ...)
+    return init(...)
+  end,
+})
+
+return neotest.diagnostic

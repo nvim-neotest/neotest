@@ -1,7 +1,7 @@
-local async = require("plenary.async")
+local async = require("neotest.async")
 
----@param spec NeotestRunSpec
----@return NeotestStrategyResult
+---@param spec neotest.RunSpec
+---@return neotest.StrategyResult
 return function(spec)
   local dap = require("dap")
 

@@ -1,4 +1,4 @@
----@class FIFOQueue
+---@class neotest.FIFOQueue
 local FIFOQueue = {}
 
 function FIFOQueue:pop()
@@ -48,7 +48,7 @@ function FIFOQueue:new()
   return queue
 end
 
----@return FIFOQueue
+---@return neotest.FIFOQueue
 return function()
   return FIFOQueue:new()
 end

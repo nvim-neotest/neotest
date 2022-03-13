@@ -1,13 +1,13 @@
-local async = require("plenary.async")
+local async = require("neotest.async")
 local api = async.api
 local config = require("neotest.config")
 
 local M = {}
 
----@type table<integer, Float>
+---@type table<integer, neotest.Float>
 local windows = {}
 
----@class Float
+---@class neotest.Float
 local Float = { win_id = nil, listeners = { close = {} }, position = {} }
 
 local function create_opts(content_width, content_height, position)
@@ -101,7 +101,7 @@ function M.open(settings)
 
   vim.api.nvim_win_set_option(win_id, "wrap", false)
 
-  ---@type Float
+  ---@type neotest.Float
   local win = Float:new(win_id, position)
   win:listen("close", function()
     windows[win] = nil

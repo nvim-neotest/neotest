@@ -1,8 +1,8 @@
-local async = require("plenary.async")
+local async = require("neotest.async")
 local config = require("neotest.config")
 local lib = require("neotest.lib")
 
----@class AdapterGroup
+---@class neotest.AdapterGroup
 local AdapterGroup = {}
 
 function AdapterGroup.adapters_with_root_dir(cwd)

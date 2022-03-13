@@ -4,11 +4,11 @@ local lib = require("neotest.lib")
 local NeotestEvents = require("neotest.client.events").events
 ---@class NeotestState
 ---@field private _focused table<integer, string>
----@field private _positions table<integer, Tree>
----@field private _results table<integer, table<string, Tree> >
+---@field private _positions table<integer, neotest.Tree>
+---@field private _results table<integer, table<string, neotest.Tree> >
 ---@field private _events NeotestEventProcessor
 ---@field private _running table<integer, table<string, string>>
----@field private _all_positions Tree
+---@field private _all_positions neotest.Tree
 local NeotestState = {}
 
 function NeotestState:new(events)
@@ -25,7 +25,7 @@ function NeotestState:new(events)
 end
 
 ---@param position_id? string
----@return Tree | nil
+---@return neotest.Tree | nil
 function NeotestState:positions(adapter_id, position_id)
   if not self._positions[adapter_id] then
     return nil
@@ -41,12 +41,12 @@ function NeotestState:running(adapter_id)
   return self._running[adapter_id] or {}
 end
 
----@return table<string, NeotestResult>
+---@return table<string, neotest.Result>
 function NeotestState:results(adapter_id)
   return self._results[adapter_id] or {}
 end
 
----@param tree Tree
+---@param tree neotest.Tree
 function NeotestState:update_positions(adapter_id, tree)
   local root_id = tree:data().id
   logger.debug("New positions at ID", root_id)
@@ -58,7 +58,7 @@ function NeotestState:update_positions(adapter_id, tree)
   self._events:emit(NeotestEvents.DISCOVER_POSITIONS, adapter_id, tree)
 end
 
----@param results table<string, NeotestResult>
+---@param results table<string, neotest.Result>
 function NeotestState:update_results(adapter_id, results)
   logger.debug("New results for adapter", adapter_id)
   logger.trace(results)

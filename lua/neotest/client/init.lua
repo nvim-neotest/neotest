@@ -1,16 +1,16 @@
-local async = require("plenary.async")
+local async = require("neotest.async")
 local config = require("neotest.config")
 local logger = require("neotest.logging")
 local lib = require("neotest.lib")
 
----@class NeotestClient
+---@class neotest.Client
 ---@field private _started boolean
 ---@field private _state NeotestState
 ---@field private _events NeotestEventProcessor
 ---@field private _processes NeotestProcessTracker
 ---@field private _files_read table<string, boolean>
----@field private _adapters table<integer, NeotestAdapter>
----@field private _adapter_group AdapterGroup
+---@field private _adapters table<integer, neotest.Adapter>
+---@field private _adapter_group neotest.AdapterGroup
 ---@field listeners NeotestEventListeners
 local NeotestClient = {}
 
@@ -37,7 +37,7 @@ end
 
 ---Run the given tree
 ---@async
----@param tree? Tree
+---@param tree? neotest.Tree
 ---@param args table
 ---@field adapter string: Adapter ID
 ---@field strategy string: Strategy to run commands with
@@ -67,7 +67,7 @@ function NeotestClient:run_tree(tree, args)
 end
 
 ---@async
----@param position Tree
+---@param position neotest.Tree
 ---@param args table
 ---@field adapter string Adapter ID
 function NeotestClient:stop(position, args)
@@ -80,7 +80,7 @@ function NeotestClient:stop(position, args)
   self._processes:stop(running_process_root)
 end
 
----@param position Tree
+---@param position neotest.Tree
 ---@return string | nil
 function NeotestClient:_get_process_key(position, args)
   local get_adapter = function(pos_id)
@@ -185,10 +185,10 @@ end
 
 ---@private
 ---@async
----@param tree Tree
+---@param tree neotest.Tree
 ---@param args table
----@param adapter NeotestAdapter
----@return table<string, NeotestResult>
+---@param adapter neotest.Adapter
+---@return table<string, neotest.Result>
 function NeotestClient:_run_tree(tree, args, adapter)
   args = args or {}
   args.strategy = args.strategy or "integrated"
@@ -260,7 +260,7 @@ function NeotestClient:_run_tree(tree, args, adapter)
 end
 
 ---Attach to the given running position.
----@param position Tree
+---@param position neotest.Tree
 ---@param args table
 ---@field adapter string Adapter ID
 ---@async
@@ -282,7 +282,7 @@ end
 ---@param row integer Zero-indexed row
 ---@param args table
 ---@field adapter string Adapter ID
----@return Tree | nil, integer | nil
+---@return neotest.Tree | nil, integer | nil
 function NeotestClient:get_nearest(file_path, row, args)
   local positions, adapter_id = self:get_position(file_path, args)
   if not positions then
@@ -330,7 +330,7 @@ end
 ---@param position_id string
 ---@param args table
 ---@field adapter string Adapter ID
----@return Tree | nil, integer | nil
+---@return neotest.Tree | nil, integer | nil
 function NeotestClient:get_position(position_id, args)
   self:ensure_started()
   args = args or {}
@@ -344,7 +344,7 @@ function NeotestClient:get_position(position_id, args)
 end
 
 ---@param adapter string Adapter ID
----@return table<string, NeotestResult>
+---@return table<string, neotest.Result>
 function NeotestClient:get_results(adapter)
   return self._state:results(adapter)
 end
@@ -375,7 +375,7 @@ function NeotestClient:_get_running_adapters(position_id)
 end
 
 ---@param file_path string
----@return string, NeotestAdapter
+---@return string, neotest.Adapter
 function NeotestClient:get_adapter(file_path)
   self:ensure_started()
   return self:_get_adapter(file_path)
@@ -429,7 +429,7 @@ end
 
 ---@private
 ---@async
----@return string | nil, NeotestAdapter | nil
+---@return string | nil, neotest.Adapter | nil
 function NeotestClient:_get_adapter(position_id, adapter_id)
   if not position_id and not adapter_id then
     adapter_id = self._adapters[1].name
@@ -542,7 +542,7 @@ end
 ---@param events? NeotestEventProcessor
 ---@param state? NeotestState
 ---@param processes? NeotestProcessTracker
----@return NeotestClient
+---@return neotest.Client
 return function(adapter_group, events, state, processes)
   return NeotestClient:new(adapter_group, events, state, processes)
 end

@@ -12,7 +12,7 @@ end
 
 ---@param lang string
 ---@param runner string
----@param position? NeotestPosition
+---@param position? neotest.Position
 function M.collect_args(lang, runner, position)
   local opts = vim.g["test#" .. lang .. "#" .. runner .. "#options"]
   if type(opts) == "string" then

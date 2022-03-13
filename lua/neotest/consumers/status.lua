@@ -1,9 +1,9 @@
-local async = require("plenary.async")
+local async = require("neotest.async")
 local consumer_name = "neotest-status"
 local config = require("neotest.config")
 
----@param client NeotestClient
-return function(client)
+---@param client neotest.Client
+local function init(client)
   vim.fn.sign_define(
     "neotest_passed",
     { text = config.icons.passed, texthl = config.highlights.passed }
@@ -96,3 +96,19 @@ return function(client)
     render_files({ file_path })
   end
 end
+
+---@tag neotest.status
+---@brief [[
+--- A consumer that displays the results of tests as signs beside their declaration.
+--- This consumer is completely passive and so has no interface.
+---@brief ]]
+--
+local neotest = {}
+neotest.status = {}
+neotest.status = setmetatable(neotest.status, {
+  __call = function(_, ...)
+    return init(...)
+  end,
+})
+
+return neotest.status

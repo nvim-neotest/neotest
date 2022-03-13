@@ -1,18 +1,18 @@
 local fu = require("neotest.lib.func_util")
----@class Tree
+---@class neotest.Tree
 ---@field private _data any
----@field private _children Tree[]
----@field private _nodes table<string, Tree>
+---@field private _children neotest.Tree[]
+---@field private _nodes table<string, neotest.Tree>
 ---@field private _key fun(data: any): string
----@field private _parent? Tree
+---@field private _parent? neotest.Tree
 --- Nested tree structure with nodes containing data and having any
 --- number of children
 local Tree = {}
 
 ---@param data any Node data
----@param children Tree[] Children of this node
+---@param children neotest.Tree[] Children of this node
 ---@param key fun(data: any): string
----@param parent? Tree
+---@param parent? neotest.Tree
 function Tree:new(data, children, key, parent, nodes)
   local tree = {
     _nodes = nodes or {},
@@ -30,7 +30,7 @@ end
 ---Parses a tree in the shape of nested lists.
 ---The head of the list is the root of the tree, and all following elements are its children.
 ---@param data any[]
----@return Tree
+---@return neotest.Tree
 function Tree.from_list(data, key)
   local nodes = {}
   local x = Tree._from_list(data, key, nil, nodes)
@@ -57,7 +57,7 @@ function Tree._from_list(data, key, parent, nodes)
 end
 
 ---@parem key any
----@param tree Tree
+---@param tree neotest.Tree
 function Tree:set_key(key, tree)
   local current = self:get_key(key)
 
@@ -85,24 +85,24 @@ function Tree:set_key(key, tree)
 end
 
 ---@param key any
----@return Tree | nil
+---@return neotest.Tree | nil
 function Tree:get_key(key)
   return self._nodes[key]
 end
 
----@return NeotestPosition
+---@return neotest.Position
 function Tree:data()
   return self._data
 end
 
----@return Tree[]
+---@return neotest.Tree[]
 function Tree:children()
   return fu.map(function(i, pos_id)
     return i, pos_id
   end, self._children)
 end
 
----@return Tree | nil
+---@return neotest.Tree | nil
 function Tree:parent()
   return self._parent
 end
@@ -118,7 +118,7 @@ function Tree:iter_parents()
   end
 end
 
----@return Tree
+---@return neotest.Tree
 function Tree:root()
   local node = self
   while node:parent() do
