@@ -51,7 +51,8 @@ local consumers = {}
 ---@eval { ['description'] = require('neotest.config')._format_default() }
 function neotest.setup(user_config)
   config.setup(user_config)
-  client = require("neotest.client")(require("neotest.adapters"))
+  local adapter_group = require("neotest.adapters")(config.adapters)
+  client = require("neotest.client")(adapter_group)
   for name, consumer in pairs(require("neotest.consumers")) do
     if config[name].enabled then
       consumers[name] = consumer(client)

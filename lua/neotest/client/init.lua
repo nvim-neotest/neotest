@@ -15,7 +15,6 @@ local lib = require("neotest.lib")
 local NeotestClient = {}
 
 function NeotestClient:new(adapters, events, state, processes)
-  adapters = adapters or require("neotest.adapters")
   events = events or require("neotest.client.events").processor()
   state = state or require("neotest.client.state")(events)
   processes = processes or require("neotest.client.strategies")()
@@ -130,7 +129,7 @@ function NeotestClient:_collect_results(adapter_id, tree, results)
   for _, node in tree:iter_nodes() do
     local pos = node:data()
 
-    if pos.type == "test" and results[pos.id] then
+    if results[pos.id] then
       for parent in node:iter_parents() do
         local parent_pos = parent:data()
         if not lib.positions.contains(root, parent_pos) then
@@ -451,7 +450,7 @@ function NeotestClient:_get_adapter(position_id, adapter_id)
     return
   end
 
-  local new_adapter = self._adapter_group.get_file_adapter(position_id)
+  local new_adapter = self._adapter_group:get_file_adapter(position_id)
   if not new_adapter then
     return
   end
@@ -514,9 +513,9 @@ end
 ---@async
 function NeotestClient:_update_adapters(path)
   local adapters_with_root = lib.files.is_dir(path)
-      and self._adapter_group.adapters_with_root_dir(path)
+      and self._adapter_group:adapters_with_root_dir(path)
     or {}
-  local adapters_with_bufs = self._adapter_group.adapters_matching_open_bufs()
+  local adapters_with_bufs = self._adapter_group:adapters_matching_open_bufs()
   local found = {}
   for _, adapter in pairs(self._adapters) do
     found[adapter.name] = true
