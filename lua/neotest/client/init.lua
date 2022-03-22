@@ -3,15 +3,14 @@ local config = require("neotest.config")
 local logger = require("neotest.logging")
 local lib = require("neotest.lib")
 
----@class neotest.Client
+---@class neotest.InternalClient
 ---@field private _started boolean
----@field private _state NeotestState
----@field private _events NeotestEventProcessor
----@field private _processes NeotestProcessTracker
+---@field private _state neotest.ClientState
+---@field private _events neotest.EventProcessor
+---@field private _processes neotest.ProcessTracker
 ---@field private _files_read table<string, boolean>
 ---@field private _adapters table<integer, neotest.Adapter>
 ---@field private _adapter_group neotest.AdapterGroup
----@field listeners NeotestEventListeners
 local NeotestClient = {}
 
 function NeotestClient:new(adapters, events, state, processes)
@@ -281,7 +280,7 @@ end
 ---@param row integer Zero-indexed row
 ---@param args table
 ---@field adapter string Adapter ID
----@return neotest.Tree | nil, integer | nil
+---@return neotest.Tree | nil, string | nil
 function NeotestClient:get_nearest(file_path, row, args)
   local positions, adapter_id = self:get_position(file_path, args)
   if not positions then
@@ -336,7 +335,7 @@ function NeotestClient:get_position(position_id, args)
   if position_id and vim.endswith(position_id, lib.files.sep) then
     position_id = string.sub(position_id, 1, #position_id - #lib.files.sep)
   end
-  local adapter_id = self:_get_adapter(position_id, args.adapter)
+  local adapter_id = self:_get_adapter(position_id, args.adapter, args.refresh)
   local positions = self._state:positions(adapter_id, position_id)
 
   return positions, adapter_id
@@ -377,7 +376,7 @@ end
 ---@return string, neotest.Adapter
 function NeotestClient:get_adapter(file_path)
   self:ensure_started()
-  return self:_get_adapter(file_path)
+  return self:_get_adapter(file_path, nil, false)
 end
 
 ---@private
@@ -386,7 +385,7 @@ end
 function NeotestClient:_update_positions(path, args)
   self:ensure_started()
   args = args or {}
-  local adapter_id, adapter = self:_get_adapter(path, args.adapter)
+  local adapter_id, adapter = self:_get_adapter(path, args.adapter, args.refresh)
   if not adapter then
     return
   end
@@ -414,7 +413,7 @@ function NeotestClient:_update_positions(path, args)
       local pos = node:data()
       if pos.type == "file" and #node:children() == 0 then
         table.insert(parse_funcs, function()
-          self:_update_positions(pos.id, { adapter = adapter_id })
+          self:_update_positions(pos.id, args)
         end)
       end
     end
@@ -429,9 +428,9 @@ end
 ---@private
 ---@async
 ---@return string | nil, neotest.Adapter | nil
-function NeotestClient:_get_adapter(position_id, adapter_id)
+function NeotestClient:_get_adapter(position_id, adapter_id, refresh)
   if not position_id and not adapter_id then
-    adapter_id = self._adapters[1].name
+    return self._adapters[1].name
   end
   if adapter_id then
     for _, adapter in ipairs(self._adapters) do
@@ -446,7 +445,7 @@ function NeotestClient:_get_adapter(position_id, adapter_id)
     end
   end
 
-  if not lib.files.exists(position_id) then
+  if not lib.files.exists(position_id) or refresh == false then
     return
   end
 
@@ -475,12 +474,24 @@ end
 
 ---@private
 ---@async
-function NeotestClient:_set_focused(path)
+function NeotestClient:_set_focused_file(path)
   local adapter_id = self:get_adapter(path)
   if not adapter_id then
     return
   end
-  self._state:update_focused(adapter_id, path)
+  self._state:update_focused_file(adapter_id, path)
+end
+
+function NeotestClient:_set_focused_position(path, row)
+  local adapter_id = self:get_adapter(path)
+  if not adapter_id then
+    return
+  end
+  local pos, pos_adapter_id = self:get_nearest(path, row)
+  if not pos then
+    return
+  end
+  self._state:update_focused_position(pos_adapter_id, pos:data().id)
 end
 
 ---@private
@@ -496,17 +507,18 @@ function NeotestClient:_start()
     vim.cmd([[
       augroup NeotestClient
         au!
-        autocmd BufAdd,BufWritePost * lua require("neotest")._update_positions(vim.fn.expand("<afile>:p"))
+        autocmd BufAdd,BufWritePost * lua require("neotest")._update_positions(vim.fn.expand("<afile>:p", { refresh = true}))
         autocmd DirChanged * lua require("neotest")._dir_changed()
         autocmd BufAdd,BufDelete * lua require("neotest")._update_files(vim.fn.expand("<afile>:p:h"))
         autocmd BufEnter * lua require("neotest")._focus_file(vim.fn.expand("<afile>:p"))
+        autocmd CursorHold,BufEnter * lua require("neotest")._focus_position(vim.fn.expand("<afile>:p"), vim.fn.line("."))
       augroup END
     ]])
   end)
   self:_update_adapters(async.fn.getcwd())
   local end_time = async.fn.localtime()
   logger.info("Initialisation finished in", end_time - start, "seconds")
-  self:_set_focused(async.fn.expand("%:p"))
+  self:_set_focused_file(async.fn.expand("%:p"))
 end
 
 ---@private
@@ -538,10 +550,10 @@ function NeotestClient:_update_adapters(path)
     self:_update_positions(root, { adapter = adapter.name })
   end
 end
----@param events? NeotestEventProcessor
----@param state? NeotestState
----@param processes? NeotestProcessTracker
----@return neotest.Client
+---@param events? neotest.EventProcessor
+---@param state? neotest.ClientState
+---@param processes? neotest.ProcessTracker
+---@return neotest.InternalClient
 return function(adapter_group, events, state, processes)
   return NeotestClient:new(adapter_group, events, state, processes)
 end

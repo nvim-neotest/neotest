@@ -1,10 +1,11 @@
 local async = require("neotest.async")
 local config = require("neotest.config")
+local icons = config.icons
 local hi = config.highlights
 local lib = require("neotest.lib")
 
 ---@class SummaryComponent
----@field client neotest.Client
+---@field client neotest.InternalClient
 ---@field expanded_positions table
 ---@field child_components table<number, SummaryComponent>
 ---@field adapter_id integer
@@ -33,10 +34,10 @@ end
 
 ---@param canvas Canvas
 ---@param tree neotest.Tree
-function SummaryComponent:render(canvas, tree, expanded, indent)
+function SummaryComponent:render(canvas, tree, expanded, focused, indent)
   indent = indent or ""
-  local root_pos = tree:data()
   local children = tree:children()
+  local neotest = require("neotest")
   for index, node in pairs(children) do
     local is_last_child = index == #children
     local position = node:data()
@@ -45,18 +46,28 @@ function SummaryComponent:render(canvas, tree, expanded, indent)
       self.expanded_positions[position.id] = true
     end
 
-    local node_indent = indent .. (is_last_child and "╰─" or "├─")
-    local chid_indent = indent .. (is_last_child and "  " or "│ ")
-    if #node_indent > 0 then
-      canvas:write(node_indent, { group = hi.indent })
+    local node_prefix = indent .. (is_last_child and icons.final_child_prefix or icons.child_prefix)
+    local chid_indent = indent .. (is_last_child and icons.final_child_indent or icons.child_indent)
+    if #node_prefix > 0 then
+      canvas:write(node_prefix, { group = hi.indent })
     end
+    local expansion_icon
+    local expandable = position.type ~= "test" and #node:children() > 0
+    if not expandable then
+      expansion_icon = icons.non_collapsible
+    elseif self.expanded_positions[position.id] then
+      expansion_icon = icons.expanded
+    else
+      expansion_icon = icons.collapsed
+    end
+    canvas:write(expansion_icon, { group = config.highlights.expand_marker })
 
-    if position.type ~= "test" then
+    if expandable then
       canvas:add_mapping(
         "expand",
         async_func(function()
           self:toggle_reference(position.id)
-          require("neotest").summary.render()
+          neotest.summary.render()
         end)
       )
 
@@ -79,7 +90,7 @@ function SummaryComponent:render(canvas, tree, expanded, indent)
               positions[pos.id] = true
             end
           end
-          require("neotest").summary.render(positions)
+          neotest.summary.render(positions)
         end)
       )
     end
@@ -98,52 +109,48 @@ function SummaryComponent:render(canvas, tree, expanded, indent)
     canvas:add_mapping(
       "attach",
       async_func(function()
-        require("neotest").attach(position.id)
+        neotest.attach(position.id)
       end)
     )
     canvas:add_mapping(
       "output",
       async_func(function()
-        require("neotest").output.open({ position_id = position.id })
+        neotest.output.open({ position_id = position.id, adapter = self.adapter_id })
       end)
     )
 
     canvas:add_mapping(
       "short",
       async_func(function()
-        require("neotest").output.open({ position_id = position.id, short = true })
+        neotest.output.open({ position_id = position.id, short = true, adapter = self.adapter_id })
       end)
     )
 
     canvas:add_mapping("stop", function()
-      require("neotest").stop(position.id)
+      neotest.stop({ position.id, adapter = self.adapter_id })
     end)
 
     canvas:add_mapping("run", function()
-      require("neotest").run(position.id)
+      neotest.run({ position.id, adapter = self.adapter_id })
     end)
 
-    local prefix = config.icons[self.expanded_positions[position.id] and "expanded" or "collapsed"]
-    canvas:write(prefix, { group = config.highlights.expand_marker })
+    local state_icon, state_icon_group = self:_state_icon(position)
+    canvas:write(" " .. state_icon .. " ", { group = state_icon_group })
 
-    local icon, icon_group = self:_position_icon(position)
-    canvas:write(" " .. icon .. " ", { group = icon_group })
-
-    canvas:write(position.name .. "\n", { group = config.highlights[position.type] })
+    local name_groups = { config.highlights[position.type] }
+    if focused == position.id then
+      table.insert(name_groups, hi.focused)
+      canvas:position_cursor()
+    end
+    canvas:write(position.name .. "\n", { group = name_groups })
 
     if self.expanded_positions[position.id] then
-      self:render(canvas, node, expanded, chid_indent)
+      self:render(canvas, node, expanded, focused, chid_indent)
     end
-  end
-  if #children == 0 and root_pos.type ~= "test" then
-    if #indent > 0 then
-      canvas:write(indent .. "  ", { group = hi.indent })
-    end
-    canvas:write("  No tests found\n", { group = hi.expand_marker })
   end
 end
 
-function SummaryComponent:_position_icon(position)
+function SummaryComponent:_state_icon(position)
   local result = self.client:get_results(self.adapter_id)[position.id]
   if not result then
     if self.client:is_running(position.id, { adapter = self.adapter_id }) then

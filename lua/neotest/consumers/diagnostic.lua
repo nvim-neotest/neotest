@@ -1,6 +1,5 @@
 local logger = require("neotest.logging")
 local async = require("neotest.async")
-local consumer_name = "neotest-diagnostic"
 
 ---@param client neotest.Client
 local function init(client)
@@ -160,11 +159,11 @@ local function init(client)
     buf_diags[path]:draw_buffer()
   end
 
-  client.listeners.test_file_focused[consumer_name] = function(adapter_id, file_path)
+  client.listeners.test_file_focused = function(adapter_id, file_path)
     draw_buffer(adapter_id, file_path)
   end
 
-  client.listeners.discover_positions[consumer_name] = function(adapter_id, tree)
+  client.listeners.discover_positions = function(adapter_id, tree)
     for _, pos in tree:iter() do
       if pos.type == "file" then
         draw_buffer(pos.path, adapter_id)
@@ -172,7 +171,7 @@ local function init(client)
     end
   end
 
-  client.listeners.run[consumer_name] = function(adapter_id, _, position_ids)
+  client.listeners.run = function(adapter_id, _, position_ids)
     local files = {}
     for _, pos_id in pairs(position_ids) do
       local node = client:get_position(pos_id, { adapter = adapter_id })
@@ -193,7 +192,7 @@ local function init(client)
     end
   end
 
-  client.listeners.results[consumer_name] = function(adapter_id, results)
+  client.listeners.results = function(adapter_id, results)
     local files = {}
     for pos_id, _ in pairs(results) do
       local node = client:get_position(pos_id, { adapter = adapter_id })

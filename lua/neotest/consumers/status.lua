@@ -21,11 +21,8 @@ local function init(client)
     { text = config.icons.running, texthl = config.highlights.running }
   )
 
-  local file_adapters = {}
-
-  local function render_files(files)
+  local function render_files(adapter_id, files)
     for _, file_path in pairs(files) do
-      local adapter_id = file_adapters[file_path]
       local results = client:get_results(adapter_id)
       async.fn.sign_unplace(consumer_name, { buffer = file_path })
       local tree = client:get_position(file_path, { adapter = adapter_id })
@@ -52,48 +49,40 @@ local function init(client)
     end
   end
 
-  client.listeners.discover_positions[consumer_name] = function(adapter_id, tree)
+  client.listeners.discover_positions = function(adapter_id, tree)
     local file_path = tree:data().id
     if tree:data().type == "file" and async.fn.bufnr(file_path) ~= -1 then
-      file_adapters[file_path] = adapter_id
-      render_files({ file_path })
+      render_files(adapter_id, { file_path })
     end
   end
 
-  client.listeners.run[consumer_name] = function(adapter_id, _, position_ids)
+  client.listeners.run = function(adapter_id, _, position_ids)
     local files = {}
     for _, pos_id in pairs(position_ids) do
       local node = client:get_position(pos_id, { adapter = adapter_id })
       if node then
         local file = node:data().path
-        if file_adapters[file] then
-          files[file] = files[file] or {}
-          table.insert(files[file], pos_id)
-        end
+        files[file] = files[file] or {}
+        table.insert(files[file], pos_id)
       end
     end
-    render_files(vim.tbl_keys(files))
+    render_files(adapter_id, vim.tbl_keys(files))
   end
 
-  client.listeners.results[consumer_name] = function(adapter_id, results)
+  client.listeners.results = function(adapter_id, results)
     local files = {}
     for pos_id, _ in pairs(results) do
       local node = client:get_position(pos_id, { adapter = adapter_id })
       if node then
         local file = node:data().path
-        if file_adapters[file] then
-          files[file] = true
-        end
+        files[file] = true
       end
     end
-    render_files(vim.tbl_keys(files))
+    render_files(adapter_id, vim.tbl_keys(files))
   end
 
-  client.listeners.test_file_focused[consumer_name] = function(adapter_id, file_path)
-    if not file_adapters[file_path] then
-      file_adapters[file_path] = adapter_id
-    end
-    render_files({ file_path })
+  client.listeners.test_file_focused = function(adapter_id, file_path)
+    render_files(adapter_id, { file_path })
   end
 end
 

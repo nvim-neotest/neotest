@@ -10,6 +10,7 @@ M.namespace = api.nvim_create_namespace("neotest-render")
 ---@field mappings table
 ---@field valid boolean
 ---@field config table
+---@field position table
 local Canvas = {}
 
 ---@return Canvas
@@ -40,12 +41,21 @@ function Canvas:write(text, opts)
     local cur_line = self.lines[#self.lines]
     self.lines[#self.lines] = cur_line .. line
     if opts.group and #line > 0 then
-      self.matches[#self.matches + 1] = { opts.group, { #self.lines, #cur_line + 1, #line } }
+      if type(opts.group) == "string" then
+        opts.group = { opts.group }
+      end
+      for _, group in ipairs(opts.group) do
+        self.matches[#self.matches + 1] = { group, { #self.lines, #cur_line + 1, #line } }
+      end
     end
     if i < #lines then
       table.insert(self.lines, "")
     end
   end
+end
+
+function Canvas:position_cursor(line, col)
+  self.position = { line = line or self:length(), col = col or 1 }
 end
 
 --- Remove the last line from canvas
@@ -103,7 +113,7 @@ function Canvas:render_buffer(buffer)
   if buffer < 0 then
     return false, "Invalid buffer"
   end
-  local win = vim.fn.bufwinnr(buffer)
+  local win = vim.fn.bufwinid(buffer)
   if win == -1 then
     return false, "Window not found"
   end
@@ -145,6 +155,9 @@ function Canvas:render_buffer(buffer)
   end
   api.nvim_buf_set_option(buffer, "modifiable", false)
   api.nvim_buf_set_option(buffer, "buftype", "nofile")
+  if self.position then
+    api.nvim_win_set_cursor(win, { self.position.line, self.position.col - 1 })
+  end
   return true
 end
 

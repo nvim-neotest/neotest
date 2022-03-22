@@ -1,7 +1,7 @@
 local events = require("neotest.client.events")
 
 describe("events processor", function()
-  ---@type NeotestEventProcessor
+  ---@type neotest.EventProcessor
   local processor
   before_each(function()
     processor = events.processor()

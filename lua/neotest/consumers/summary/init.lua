@@ -1,6 +1,4 @@
----@param client neotest.Client
 local logger = require("neotest.logging")
-local consumer_name = "neotest-summary"
 local config = require("neotest.config")
 ---@param client neotest.Client
 local function init(client)
@@ -50,6 +48,7 @@ local function init(client)
 
   local components = {}
 
+  local focused
   local render
   render = function(expanded)
     if not is_open() then
@@ -78,7 +77,7 @@ local function init(client)
           canvas:write(root_dir .. "\n", { group = config.highlights.dir })
         end
         components[adapter_id] = components[adapter_id] or SummaryComponent(client, adapter_id)
-        components[adapter_id]:render(canvas, tree, expanded or {})
+        components[adapter_id]:render(canvas, tree, expanded or {}, focused)
         canvas:write("\n")
       end
       if canvas:length() > 1 then
@@ -97,9 +96,9 @@ local function init(client)
   local listener = function()
     render()
   end
-  client.listeners.discover_positions[consumer_name] = listener
-  client.listeners.run[consumer_name] = listener
-  client.listeners.results[consumer_name] = function(adapter_id, results)
+  client.listeners.discover_positions = listener
+  client.listeners.run = listener
+  client.listeners.results = function(adapter_id, results)
     if not config.summary.expand_errors then
       render()
     end
@@ -115,7 +114,7 @@ local function init(client)
     end
     render(expanded)
   end
-  local function expand(pos_id, recursive)
+  local function expand(pos_id, recursive, focus)
     local tree = client:get_position(pos_id)
     if not tree then
       return
@@ -133,12 +132,18 @@ local function init(client)
     for parent in tree:iter_parents() do
       expanded[parent:data().id] = true
     end
+    if focus then
+      focused = pos_id
+    end
     render(expanded)
   end
 
   if config.summary.follow then
-    client.listeners.test_file_focused[consumer_name] = function(_, file_path)
+    client.listeners.test_file_focused = function(_, file_path)
       expand(file_path, true)
+    end
+    client.listeners.test_focused = function(_, pos_id)
+      expand(pos_id, false, true)
     end
   end
   local function open()
@@ -180,6 +185,7 @@ local function init(client)
         expand(pos_id, recursive)
       end)
     end,
+    focus = function() end,
   }
 end
 

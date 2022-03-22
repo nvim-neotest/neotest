@@ -1,5 +1,4 @@
 local async = require("neotest.async")
-local consumer_name = "neotest-output"
 local lib = require("neotest.lib")
 local config = require("neotest.config")
 
@@ -45,7 +44,7 @@ end
 ---@param client neotest.Client
 local init = function(client)
   if config.output.open_on_run then
-    client.listeners.results[consumer_name] = function(results)
+    client.listeners.results = function(results)
       local cur_pos = async.fn.getpos(".")
       local line = cur_pos[2] - 1
       local buf_path = vim.fn.expand("%:p")
@@ -83,9 +82,9 @@ local init = function(client)
         if not opts.position_id then
           local file_path = vim.fn.expand("%:p")
           local row = vim.fn.getbufinfo(file_path)[1].lnum - 1
-          tree, adapter_id = client:get_nearest(file_path, row)
+          tree, adapter_id = client:get_nearest(file_path, row, opts)
         else
-          tree, adapter_id = client:get_position(opts.position_id)
+          tree, adapter_id = client:get_position(opts.position_id, opts)
         end
         if not tree then
           lib.notify("No tests found in file", "warn")
@@ -119,6 +118,7 @@ neotest.output = {}
 ---@field short boolean: Show shortened output
 ---@field enter boolean: Enter output window
 ---@field position_id string: Open output for position with this ID, opens nearest position if not given
+---@field adapter string: Adapter ID, defaults to first found with matching position
 function neotest.output.open(opts) end
 
 neotest.output = setmetatable(neotest.output, {

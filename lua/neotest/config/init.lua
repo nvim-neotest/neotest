@@ -7,6 +7,7 @@ vim.cmd([[
   hi default NeotestSkipped ctermfg=Cyan guifg=#00f1f5
   hi link NeotestTest Normal 
   hi default NeotestNamespace ctermfg=Magenta guifg=#D484FF
+  hi default NeotestFocused guifg=#F70067 ctermfg=Red gui=bold cterm=bold
   hi default NeotestFile ctermfg=Cyan guifg=#00f1f5
   hi default NeotestDir ctermfg=Cyan guifg=#00f1f5
   hi default NeotestIndent ctermfg=Grey guifg=#8B8B8B
@@ -16,35 +17,12 @@ vim.cmd([[
 
 ---@class neotest.Config
 ---@field adapters neotest.Adapter[]
----@field icons neotest.Config.icons
----@field highlights neotest.Config.highlights
+---@field icons table<string, string>
+---@field highlights table<string, string>
 ---@field floating neotest.Config.floating
 ---@field strategies neotest.Config.strategies
 ---@field summary neotest.Config.summary
 ---@field output neotest.Config.output
-
----@class neotest.Config.icons
----@field passed string
----@field running string
----@field failed string
----@field skipped string
----@field unknown string
----@field collapsed string
----@field expanded string
-
----@class neotest.Config.highlights
----@field passed string
----@field running string
----@field failed string
----@field skipped string
----@field test string
----@field namespace string
----@field file string
----@field dir string
----@field border string
----@field indent string
----@field expand_marker string
----@field adapter_name string
 
 ---@class neotest.Config.floating
 ---@field border string: Border style
@@ -92,8 +70,13 @@ local default_config = {
     failed = "✖",
     skipped = "ﰸ",
     unknown = "?",
+    non_collapsible = "─",
     collapsed = "─",
     expanded = "╮",
+    child_prefix = "├",
+    final_child_prefix = "╰",
+    child_indent = "│",
+    final_child_indent = " ",
   },
   highlights = {
     passed = "NeotestPassed",
@@ -102,6 +85,7 @@ local default_config = {
     skipped = "NeotestSkipped",
     test = "NeotestTest",
     namespace = "NeotestNamespace",
+    focused = "NeotestFocused",
     file = "NeotestFile",
     dir = "NeotestDir",
     border = "NeotestBorder",

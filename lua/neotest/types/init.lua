@@ -40,6 +40,16 @@
 ---@field context? table Arbitrary data to preserve state between running and result collection
 ---@field strategy? table Arguments for strategy
 
+---@class neotest.ConsumerListeners
+---@field discover_positions fun(adapter_id: string, path: string, tree: neotest.Tree)
+---@field run fun(adapter_id: string, position_ids: string[])
+---@field results fun(adapter_id: string, results: table<string, neotest.Result>)
+---@field test_file_focused fun(adapter_id: string, file_path: string)>
+---@field test_focused fun(adapter_id: string, position_id: string)>
+
+---@class neotest.Client : neotest.InternalClient
+---@field listeners neotest.ConsumerListeners
+
 local M = {}
 
 M.Tree = require("neotest.types.tree")

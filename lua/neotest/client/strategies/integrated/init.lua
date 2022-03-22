@@ -1,6 +1,5 @@
 local async = require("neotest.async")
-
-local uv = vim.loop
+local lib = require("neotest.lib")
 
 ---@class integratedStrategyConfig
 ---@field height integer
@@ -64,23 +63,13 @@ return function(spec)
             async.api.nvim_chan_send(job, data)
           end,
         })
-      attach_win = vim.api.nvim_open_win(attach_buf, true, {
-        relative = "cursor",
-        row = 1,
-        col = 1,
-        width = spec.strategy.width,
+      attach_win = lib.ui.float.open({
         height = spec.strategy.height,
-        style = "minimal",
-        border = "rounded",
+        width = spec.strategy.width,
+        buffer = attach_buf,
       })
-      async.api.nvim_buf_set_keymap(
-        attach_buf,
-        "n",
-        "q",
-        "<cmd>lua pcall(vim.api.nvim_win_close, " .. attach_win .. ", true)<CR>",
-        { noremap = true, silent = true }
-      )
-      vim.cmd("autocmd WinLeave * lua pcall(vim.api.nvim_win_close, " .. attach_win .. ", true)")
+      attach_win:jump_to()
+
       if unread_data ~= "" then
         async.api.nvim_chan_send(attach_chan, unread_data)
         unread_data = ""
@@ -92,7 +81,7 @@ return function(spec)
       output_file:close()
       if attach_win then
         vim.schedule(function()
-          pcall(vim.api.nvim_win_close, attach_win, true)
+          attach_win:close(true)
           pcall(vim.api.nvim_buf_delete, attach_buf, { force = true })
           pcall(vim.fn.chanclose, attach_chan)
         end)

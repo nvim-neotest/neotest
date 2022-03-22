@@ -38,9 +38,42 @@ local config = require("neotest.config")
 ---@tag neotest
 local neotest = {}
 
----@type neotest.Client
+---@type neotest.InternalClient
 local client
 local consumers = {}
+
+local consumer_client = function(name)
+  local consumer_listeners = {}
+
+  setmetatable(consumer_listeners, {
+    __index = function()
+      error("Cannot access existing listeners")
+    end,
+    __newindex = function(_, key, value)
+      if not client.listeners[key] then
+        error("Invalid event name for client: " .. key)
+      end
+      client.listeners[key][name] = value
+    end,
+  })
+
+  local consumer_client = { listeners = consumer_listeners }
+  setmetatable(consumer_client, {
+    __index = function(_, key)
+      local value = client[key]
+      if type(value) ~= "function" then
+        return value
+      end
+      return function(maybe_client, ...)
+        if maybe_client == consumer_client then
+          return value(client, ...)
+        end
+        return value(...)
+      end
+    end,
+  })
+  return consumer_client
+end
 
 ---Configure Neotest strategies and consumers
 ---<pre>
@@ -55,7 +88,7 @@ function neotest.setup(user_config)
   client = require("neotest.client")(adapter_group)
   for name, consumer in pairs(require("neotest.consumers")) do
     if config[name].enabled then
-      consumers[name] = consumer(client)
+      consumers[name] = consumer(consumer_client(name))
     end
   end
 end
@@ -174,7 +207,13 @@ end
 
 function neotest._focus_file(path)
   async.run(function()
-    client:_set_focused(path)
+    client:_set_focused_file(path)
+  end)
+end
+
+function neotest._focus_position(path, line)
+  async.run(function()
+    client:_set_focused_position(path, line - 1)
   end)
 end
 

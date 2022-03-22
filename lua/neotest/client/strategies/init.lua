@@ -7,7 +7,7 @@ local get_strategy = fu.memoize(function(name)
   return require("neotest.client.strategies." .. name)
 end)
 
----@class NeotestProcessTracker
+---@class neotest.ProcessTracker
 ---@field _instances table<integer, neotest.Process>
 local NeotestProcessTracker = {}
 

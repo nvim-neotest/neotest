@@ -62,6 +62,7 @@ neotest.setup({user_config})                                 *neotest.setup()*
           expand_marker = "NeotestExpandMarker",
           failed = "NeotestFailed",
           file = "NeotestFile",
+          focused = "NeotestFocused",
           indent = "NeotestIndent",
           namespace = "NeotestNamespace",
           passed = "NeotestPassed",
@@ -70,9 +71,14 @@ neotest.setup({user_config})                                 *neotest.setup()*
           test = "NeotestTest"
         },
         icons = {
+          child_indent = "│",
+          child_prefix = "├",
           collapsed = "─",
           expanded = "╮",
           failed = "✖",
+          final_child_indent = " ",
+          final_child_prefix = "╰",
+          non_collapsible = "─",
           passed = "✔",
           running = "🗘",
           skipped = "ﰸ",
@@ -178,43 +184,12 @@ neotest.Config                                                *neotest.Config*
 
     Fields: ~
         {adapters}   (neotest.Adapter[])
-        {icons}      (neotest.Config.icons)
-        {highlights} (neotest.Config.highlights)
+        {icons}      (table<string, string>)
+        {highlights} (table<string, string>)
         {floating}   (neotest.Config.floating)
         {strategies} (neotest.Config.strategies)
         {summary}    (neotest.Config.summary)
         {output}     (neotest.Config.output)
-
-
-neotest.Config.icons                                    *neotest.Config.icons*
-
-
-    Fields: ~
-        {passed}    (string)
-        {running}   (string)
-        {failed}    (string)
-        {skipped}   (string)
-        {unknown}   (string)
-        {collapsed} (string)
-        {expanded}  (string)
-
-
-neotest.Config.highlights                          *neotest.Config.highlights*
-
-
-    Fields: ~
-        {passed}        (string)
-        {running}       (string)
-        {failed}        (string)
-        {skipped}       (string)
-        {test}          (string)
-        {namespace}     (string)
-        {file}          (string)
-        {dir}           (string)
-        {border}        (string)
-        {indent}        (string)
-        {expand_marker} (string)
-        {adapter_name}  (string)
 
 
 neotest.Config.floating                              *neotest.Config.floating*
@@ -314,6 +289,8 @@ neotest.output.open({opts})                            *neotest.output.open()*
         {enter}       (boolean)  Enter output window
         {position_id} (string)   Open output for position with this ID, opens
                                  nearest position if not given
+        {adapter}     (string)   Adapter ID, defaults to first found with
+                                 matching position
 
 
 

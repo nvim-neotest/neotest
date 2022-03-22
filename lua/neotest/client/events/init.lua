@@ -3,28 +3,27 @@ local logger = require("neotest.logging")
 
 local M = {}
 
----@alias NeotestEvent "discover_positions" | "run" | "results"
----@class NeotestEvents
----@field DISCOVER_POSITIONS "discover_positions"
----@field RUN "run"
----@field RESULTS "results"
+---@alias neotest.Event "discover_positions" | "run" | "results" | "test_file_focused" | "test_focused"
+---@class neotest.Events
 local NeotestEvents = {
   DISCOVER_POSITIONS = "discover_positions",
   RUN = "run",
   RESULTS = "results",
   TEST_FILE_FOCUSED = "test_file_focused",
+  TEST_FOCUSED = "test_focused",
 }
 
 M.events = NeotestEvents
 
----@class NeotestEventListeners
+---@class neotest.InternalClientListeners
 ---@field discover_positions table<string, fun(adapter_id: integer, path: string, tree: neotest.Tree)>
 ---@field run table<string, fun(adapter_id: integer, position_ids: string[])>
 ---@field results table<string, fun(adapter_id: integer, results: table<string, neotest.Result>)>
 ---@field test_file_focused table<string,fun(file_path: string)>>
+---@field test_focused table<string,fun(pos_id: string)>>
 
----@class NeotestEventProcessor
----@field listeners NeotestEventListeners
+---@class neotest.EventProcessor
+---@field listeners neotest.InternalClientListeners
 local NeotestEventProcessor = {}
 
 function NeotestEventProcessor:new()
@@ -39,7 +38,7 @@ function NeotestEventProcessor:new()
   return events
 end
 
----@param event NeotestEvent
+---@param event neotest.Event
 ---@vararg any Arguments for the event
 function NeotestEventProcessor:emit(event, ...)
   local args = { ... }
@@ -55,7 +54,7 @@ function NeotestEventProcessor:emit(event, ...)
   end)
 end
 
----@return NeotestEventProcessor
+---@return neotest.EventProcessor
 function M.processor()
   return NeotestEventProcessor:new()
 end
