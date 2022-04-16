@@ -4,9 +4,6 @@ local config = require("neotest.config")
 
 local M = {}
 
----@type table<integer, neotest.Float>
-local windows = {}
-
 ---@class neotest.Float
 local Float = { win_id = nil, listeners = { close = {} }, position = {} }
 
@@ -103,34 +100,16 @@ function M.open(settings)
 
   ---@type neotest.Float
   local win = Float:new(win_id, position)
-  win:listen("close", function()
-    windows[win] = nil
-  end)
-  windows[win_id] = win
 
   if opts.auto_close ~= false then
-    vim.cmd(
-      "au WinEnter,CursorMoved * ++once lua require('neotest.lib.ui.float')._auto_close("
-        .. win_id
-        .. ")"
-    )
+    local function auto_close()
+      if not win:close(false) then
+        vim.api.nvim_create_autocmd("WinEnter,CursorMoved", { callback = auto_close, once = true })
+      end
+    end
+    vim.api.nvim_create_autocmd("WinEnter,CursorMoved", { callback = auto_close, once = true })
   end
   return win
-end
-
-function M._auto_close(win)
-  if not M.close(win, false) then
-    vim.cmd(
-      "au WinEnter,CursorMoved * ++once lua require('neotest.lib.ui.float')._auto_close("
-        .. win
-        .. ")"
-    )
-  end
-end
-
-function M.close(win, force)
-  local win = windows[win]
-  return win:close(force)
 end
 
 return M

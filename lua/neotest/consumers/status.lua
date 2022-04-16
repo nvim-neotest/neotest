@@ -1,5 +1,5 @@
 local async = require("neotest.async")
-local consumer_name = "neotest-status"
+local sign_group = "neotest-status"
 local config = require("neotest.config")
 
 ---@param client neotest.Client
@@ -24,7 +24,7 @@ local function init(client)
   local function render_files(adapter_id, files)
     for _, file_path in pairs(files) do
       local results = client:get_results(adapter_id)
-      async.fn.sign_unplace(consumer_name, { buffer = file_path })
+      async.fn.sign_unplace(sign_group, { buffer = file_path })
       local tree = client:get_position(file_path, { adapter = adapter_id })
       for _, pos in tree:iter() do
         if pos.type ~= "file" then
@@ -38,7 +38,7 @@ local function init(client)
           if icon then
             async.fn.sign_place(
               0,
-              consumer_name,
+              sign_group,
               icon,
               pos.path,
               { lnum = pos.range[1] + 1, priority = 1000 }
@@ -60,7 +60,7 @@ local function init(client)
     local files = {}
     for _, pos_id in pairs(position_ids) do
       local node = client:get_position(pos_id, { adapter = adapter_id })
-      if node then
+      if node and node:data().type ~= "dir" then
         local file = node:data().path
         files[file] = files[file] or {}
         table.insert(files[file], pos_id)
@@ -73,7 +73,7 @@ local function init(client)
     local files = {}
     for pos_id, _ in pairs(results) do
       local node = client:get_position(pos_id, { adapter = adapter_id })
-      if node then
+      if node and node:data().type ~= "dir" then
         local file = node:data().path
         files[file] = true
       end

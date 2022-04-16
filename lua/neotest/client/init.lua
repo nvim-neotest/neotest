@@ -503,18 +503,56 @@ function NeotestClient:_start()
   logger.info("Initialising client")
   local start = async.fn.localtime()
   self._started = true
-  vim.schedule(function()
-    vim.cmd([[
-      augroup NeotestClient
-        au!
-        autocmd BufAdd,BufWritePost * lua require("neotest")._update_positions(vim.fn.expand("<afile>:p", { refresh = true}))
-        autocmd DirChanged * lua require("neotest")._dir_changed()
-        autocmd BufAdd,BufDelete * lua require("neotest")._update_files(vim.fn.expand("<afile>:p:h"))
-        autocmd BufEnter * lua require("neotest")._focus_file(vim.fn.expand("<afile>:p"))
-        autocmd CursorHold,BufEnter * lua require("neotest")._focus_position(vim.fn.expand("<afile>:p"), vim.fn.line("."))
-      augroup END
-    ]])
+  local augroup = async.api.nvim_create_augroup("NeotestClient", { clear = true })
+  local function async_autocmd(event, callback)
+    async.api.nvim_create_autocmd(event, {
+      callback = callback,
+      group = augroup,
+    })
+  end
+
+  async_autocmd("BufAdd,BufWritePost", function()
+    local file_path = vim.fn.expand("<afile>:p")
+    async.run(function()
+      local adapter_id = self:get_adapter(file_path)
+      if not self:get_position(file_path, { adapter = adapter_id }) then
+        if not adapter_id then
+          return
+        end
+        self:_update_positions(lib.files.parent(file_path), { adapter = adapter_id })
+      end
+      self:_update_positions(file_path, { adapter = adapter_id })
+    end)
   end)
+
+  async_autocmd("DirChanged", function()
+    local dir = vim.fn.getcwd()
+    async.run(function()
+      self:_update_adapters(dir)
+    end)
+  end)
+
+  async_autocmd("BufAdd,BufDelete", function()
+    local updated_dir = vim.fn.expand("<afile>:p:h")
+    async.run(function()
+      self:_update_positions(updated_dir)
+    end)
+  end)
+
+  async_autocmd("BufEnter", function()
+    local path = vim.fn.expand("<afile>:p")
+    async.run(function()
+      self:_set_focused_file(path)
+    end)
+  end)
+
+  async_autocmd("CursorHold,BufEnter", function()
+    local path, line = vim.fn.expand("<afile>:p"), vim.fn.line(".")
+    async.run(function()
+      self:_set_focused_position(path, line - 1)
+    end)
+  end)
+
   self:_update_adapters(async.fn.getcwd())
   local end_time = async.fn.localtime()
   logger.info("Initialisation finished in", end_time - start, "seconds")

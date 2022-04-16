@@ -178,45 +178,6 @@ function neotest.attach(args)
   end)
 end
 
-function neotest._update_positions(file_path)
-  pcall(function()
-    async.run(function()
-      local adapter_id = client:get_adapter(file_path)
-      if not client:get_position(file_path, { adapter = adapter_id }) then
-        if not adapter_id then
-          return
-        end
-        client:_update_positions(lib.files.parent(file_path), { adapter = adapter_id })
-      end
-      client:_update_positions(file_path, { adapter = adapter_id })
-    end)
-  end)
-end
-
-function neotest._update_files(path)
-  async.run(function()
-    client:_update_positions(path)
-  end)
-end
-
-function neotest._dir_changed()
-  async.run(function()
-    client:_update_adapters(async.fn.getcwd())
-  end)
-end
-
-function neotest._focus_file(path)
-  async.run(function()
-    client:_set_focused_file(path)
-  end)
-end
-
-function neotest._focus_position(path, line)
-  async.run(function()
-    client:_set_focused_position(path, line - 1)
-  end)
-end
-
 setmetatable(neotest, {
   __index = function(_, key)
     return consumers[key]

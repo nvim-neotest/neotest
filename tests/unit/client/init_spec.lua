@@ -10,7 +10,7 @@ A = function(...)
 end
 
 describe("neotest client", function()
-  local mock_adapter, mock_adapters, mock_strategy, client
+  local mock_adapter, mock_strategy, client
   local dir = async.fn.getcwd()
   local files
   before_each(function()
@@ -58,10 +58,10 @@ describe("neotest client", function()
           return pos.id
         end)
       end,
-      build_spec = function(args)
+      build_spec = function()
         return {}
       end,
-      results = function(spec, _, tree)
+      results = function(_, _, tree)
         local results = {}
         for _, pos in tree:iter() do
           if pos.type == "file" or pos.type == "test" then
