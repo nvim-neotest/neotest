@@ -155,7 +155,7 @@ function Canvas:render_buffer(buffer)
   end
   api.nvim_buf_set_option(buffer, "modifiable", false)
   api.nvim_buf_set_option(buffer, "buftype", "nofile")
-  if self.position then
+  if self.position and vim.api.nvim_get_current_win() ~= win then
     api.nvim_win_set_cursor(win, { self.position.line, self.position.col - 1 })
   end
   return true
