@@ -2,6 +2,8 @@
 ---@field name string
 local NeotestAdapter = {}
 
+---Find the project root directory given a current directory to work from.
+---Should no root be found, the adapter can still be used in a non-project context if a test file matches.
 ---@async
 ---@param dir string @Directory to treat as cwd
 ---@return string | nil @Absolute root dir of test suite
@@ -12,8 +14,9 @@ function NeotestAdapter.root(dir) end
 ---@return boolean
 function NeotestAdapter.is_test_file(file_path) end
 
+---Given a file path, parse all the tests within it.
 ---@async
----@param file_path string
+---@param file_path string Absolute file path
 ---@return neotest.Tree | nil
 function NeotestAdapter.discover_positions(file_path) end
 

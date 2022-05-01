@@ -1,5 +1,5 @@
 ---@brief [[
----A NeoVim plugin to run tests and analyse results
+---A framework to interact with tests within NeoVim.
 ---
 ---There are three main components to this plugin's architecture.
 --- - Adapters: Generally language specific objects to parse tests, build commands and parse results
@@ -125,7 +125,7 @@ end
 ---</pre>
 ---@param args string | table: Position ID to run or args. If args then args[1] should be the position ID.
 ---@field adapter string: Adapter ID, if not given the first adapter found with chosen position is used.
----@field strategy string: Strategy to run commands with
+---@field strategy string | neotest.Strategy: Strategy to run commands with
 ---@field extra_args string[]: Extra arguments for test command
 function neotest.run(args)
   args = args or {}
@@ -183,26 +183,5 @@ setmetatable(neotest, {
     return consumers[key]
   end,
 })
-
-function neotest._P()
-  for adapter, pos in pairs(client._state._positions) do
-    PP({ [adapter] = pos })
-  end
-end
-
-function neotest._C()
-  for adapter, pos in pairs(client._state._positions) do
-    local l = {
-      test = 0,
-      namespace = 0,
-      file = 0,
-      dir = 0,
-    }
-    for _, node in pairs(pos._nodes) do
-      l[node:data().type] = l[node:data().type] + 1
-    end
-    P({ [adapter] = l })
-  end
-end
 
 return neotest
