@@ -27,13 +27,13 @@ local function open_output(result, opts)
     buffer = buf,
     enter = opts.enter,
   })
-  async.api.nvim_buf_set_keymap(
-    buf,
-    "n",
-    "q",
-    "<cmd>lua pcall(vim.api.nvim_win_close, " .. win.win_id .. ", true)<CR>",
-    { noremap = true, silent = true }
-  )
+  async.api.nvim_buf_set_keymap(buf, "n", "q", "", {
+    noremap = true,
+    silent = true,
+    callback = function()
+      pcall(vim.api.nvim_win_close, win.win_id, true)
+    end,
+  })
   win:listen("close", function()
     pcall(vim.api.nvim_buf_delete, buf, { force = true })
     pcall(vim.fn.chanclose, chan)

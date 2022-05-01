@@ -1,8 +1,7 @@
 local M = {}
 
-local _mappings = {}
 local api = vim.api
-M.namespace = api.nvim_create_namespace("neotest-render")
+M.namespace = api.nvim_create_namespace("neotest-canvas")
 
 ---@class Canvas
 ---@field lines table
@@ -118,20 +117,21 @@ function Canvas:render_buffer(buffer)
     return false, "Window not found"
   end
 
-  _mappings[buffer] = self.mappings
-  for action, _ in pairs(self.mappings) do
-    local mappings = self.config.mappings[action]
-    if type(mappings) ~= "table" then
-      mappings = { mappings }
+  for action, mappings in pairs(self.mappings) do
+    local action_keys = self.config.mappings[action]
+    if type(action_keys) ~= "table" then
+      action_keys = { action_keys }
     end
-    for _, key in pairs(mappings) do
-      vim.api.nvim_buf_set_keymap(
-        buffer,
-        "n",
-        key,
-        "<cmd>lua require('neotest.consumers.summary.canvas')._mapping('" .. action .. "')<CR>",
-        { noremap = true }
-      )
+
+    for _, key in ipairs(action_keys) do
+      vim.api.nvim_buf_set_keymap(buffer, "n", key, "", {
+        noremap = true,
+        callback = function()
+          for _, callback in pairs(mappings[vim.fn.line(".")] or {}) do
+            callback()
+          end
+        end,
+      })
     end
   end
 
@@ -164,18 +164,6 @@ end
 --- @return Canvas
 function M.new(config)
   return Canvas:new(config)
-end
-
-function M._mapping(action)
-  local buffer = api.nvim_get_current_buf()
-  local line = vim.fn.line(".")
-  local callbacks = _mappings[buffer][action] and _mappings[buffer][action][line] or nil
-  if not callbacks then
-    return
-  end
-  for _, callback in pairs(callbacks) do
-    callback()
-  end
 end
 
 return M

@@ -68,6 +68,13 @@ return function(spec)
         width = spec.strategy.width,
         buffer = attach_buf,
       })
+      async.api.nvim_buf_set_keymap(attach_buf, "n", "q", "", {
+        noremap = true,
+        silent = true,
+        callback = function()
+          pcall(vim.api.nvim_win_close, attach_win.win_id, true)
+        end,
+      })
       attach_win:jump_to()
 
       if unread_data ~= "" then
