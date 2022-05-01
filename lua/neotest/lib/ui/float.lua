@@ -104,10 +104,16 @@ function M.open(settings)
   if opts.auto_close ~= false then
     local function auto_close()
       if not win:close(false) then
-        vim.api.nvim_create_autocmd("WinEnter,CursorMoved", { callback = auto_close, once = true })
+        vim.api.nvim_create_autocmd(
+          { "WinEnter", "CursorMoved" },
+          { callback = auto_close, once = true }
+        )
       end
     end
-    vim.api.nvim_create_autocmd("WinEnter,CursorMoved", { callback = auto_close, once = true })
+    vim.api.nvim_create_autocmd(
+      { "WinEnter", "CursorMoved" },
+      { callback = auto_close, once = true }
+    )
   end
   return win
 end
