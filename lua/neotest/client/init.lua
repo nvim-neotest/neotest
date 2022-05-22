@@ -214,6 +214,7 @@ function NeotestClient:_run_tree(tree, args, adapter)
       end
       return vim.tbl_extend("error", {}, unpack(all_results))
     end
+
     if position.type == "dir" then
       logger.warn("Adapter doesn't support running directories, attempting files")
       results = run_pos_types("file")
@@ -391,6 +392,19 @@ function NeotestClient:_update_positions(path, args)
   end
   local success, positions = pcall(function()
     if lib.files.is_dir(path) then
+      -- If existing tree then we have to find the point to merge the trees and update that path rather than trying to
+      -- merge an orphan. This happens when a whole new directory is found (e.g. renamed an existing one).
+      local existing_root = self:get_position()
+      while
+        existing_root
+        and vim.startswith(path, existing_root:data().path)
+        and not self:get_position(path, { adapter = adapter_id })
+      do
+        path = lib.files.parent(path)
+        if not vim.startswith(path, existing_root:data().path) then
+          return
+        end
+      end
       local files = lib.func_util.filter_list(adapter.is_test_file, lib.files.find({ path }))
       return lib.files.parse_dir_from_files(path, files)
     else
@@ -504,14 +518,14 @@ function NeotestClient:_start()
   local start = async.fn.localtime()
   self._started = true
   local augroup = async.api.nvim_create_augroup("NeotestClient", { clear = true })
-  local function async_autocmd(event, callback)
+  local function autocmd(event, callback)
     async.api.nvim_create_autocmd(event, {
       callback = callback,
       group = augroup,
     })
   end
 
-  async_autocmd({ "BufAdd", "BufWritePost" }, function()
+  autocmd({ "BufAdd", "BufWritePost" }, function()
     local file_path = vim.fn.expand("<afile>:p")
     async.run(function()
       local adapter_id = self:get_adapter(file_path)
@@ -525,28 +539,28 @@ function NeotestClient:_start()
     end)
   end)
 
-  async_autocmd("DirChanged", function()
+  autocmd("DirChanged", function()
     local dir = vim.fn.getcwd()
     async.run(function()
       self:_update_adapters(dir)
     end)
   end)
 
-  async_autocmd({ "BufAdd", "BufDelete" }, function()
+  autocmd({ "BufAdd", "BufDelete" }, function()
     local updated_dir = vim.fn.expand("<afile>:p:h")
     async.run(function()
       self:_update_positions(updated_dir)
     end)
   end)
 
-  async_autocmd("BufEnter", function()
+  autocmd("BufEnter", function()
     local path = vim.fn.expand("<afile>:p")
     async.run(function()
       self:_set_focused_file(path)
     end)
   end)
 
-  async_autocmd({ "CursorHold", "BufEnter" }, function()
+  autocmd({ "CursorHold", "BufEnter" }, function()
     local path, line = vim.fn.expand("<afile>:p"), vim.fn.line(".")
     async.run(function()
       self:_set_focused_position(path, line - 1)

@@ -13,11 +13,13 @@ describe("neotest client", function()
   local mock_adapter, mock_strategy, client
   local dir = async.fn.getcwd()
   local files
+  local dirs = { dir }
   before_each(function()
+    dirs = { dir }
     files = { dir .. "/test_file_1", dir .. "/test_file_2" }
     stub(lib.files, "find", files)
     stub(lib.files, "is_dir", function(path)
-      return path == dir
+      return vim.tbl_contains(dirs, path)
     end)
     require("neotest.config").setup({ adapters = { mock_adapter } })
     mock_adapter = {
@@ -123,6 +125,17 @@ describe("neotest client", function()
         client:_update_positions(dir)
         client:_update_positions(dir .. "/test_file_3")
         local file_tree = client:get_position(dir .. "/test_file_3")
+        assert.Not.same(file_tree:children(), {})
+      end)
+    end)
+
+    describe("when looking for new directory", function()
+      a.it("it reads the new directory", function()
+        dirs = { dir, dir .. "/new_dir" }
+        client:_update_positions(dir)
+        files[#files + 1] = dir .. "/new_dir/test_file_3"
+        client:_update_positions(dir .. "/new_dir")
+        local file_tree = client:get_position(dir .. "/new_dir")
         assert.Not.same(file_tree:children(), {})
       end)
     end)
