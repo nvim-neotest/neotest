@@ -1,7 +1,7 @@
 ================================================================================
                                                                        *neotest*
 
-A NeoVim plugin to run tests and analyse results
+A framework to interact with tests within NeoVim.
 
 There are three main components to this plugin's architecture.
 - Adapters: Generally language specific objects to parse tests, build commands
@@ -14,11 +14,10 @@ There are three main components to this plugin's architecture.
 In order to use neotest, you must use an adapter for your language of choice.
 You can supply them in the setup function.
 
-Once you have setup an adapter, you can use neotest module functions to run and
-interact with tests.
-
-For most users, the bulk of relevant features will be in the consumers. There
-are multiple consumers:
+Once you have setup an adapter, you can use neotest consumers to run and
+interact with tests. For most users, the bulk of relevant features will be in
+the consumers. There are multiple consumers:
+- run: Allows running, debugging and stopping tests.
 
 - summary: Shows all known tests in a tree structure, along with their current
   state.
@@ -88,6 +87,9 @@ neotest.setup({user_config})                                 *neotest.setup()*
           enabled = true,
           open_on_run = "short"
         },
+        run = {
+          enabled = true
+        },
         status = {
           enabled = true
         },
@@ -116,63 +118,6 @@ neotest.setup({user_config})                                 *neotest.setup()*
 
     Parameters: ~
         {user_config} (neotest.Config)
-
-
-neotest.run({args})                                            *neotest.run()*
-    Run the given position or the nearest position if not given. All arguments
-    are optional
-
-    Run the current file
-    >
-    lua require("neotest").run(vim.fn.expand("%"))
-<
-
-    Run the nearest test
-    >
-    lua require("neotest").run()
-<
-
-    Debug the current file with nvim-dap
-    >
-    lua require("neotest").run({vim.fn.expand("%"), strategy = "dap"})
-<
-
-
-    Parameters: ~
-        {args} (string|table)  Position ID to run or args. If args then
-                               args[1] should be the position ID.
-
-    Fields: ~
-        {adapter}    (string)    Adapter ID, if not given the first adapter
-                                 found with chosen position is used.
-        {strategy}   (string)    Strategy to run commands with
-        {extra_args} (string[])  Extra arguments for test command
-
-
-neotest.stop({args})                                          *neotest.stop()*
-    Stop a running process
-
-
-    Parameters: ~
-        {args} (string|table)  Position ID to stop or args. If args then
-                               args[1] should be the position ID.
-
-    Fields: ~
-        {adapter} (string)  Adapter ID, if not given the first adapter found
-                            with chosen position is used.
-
-
-neotest.attach({args})                                      *neotest.attach()*
-    Attach to a running process for the given position.
-
-
-    Parameters: ~
-        {args} (string|table)  Position ID to attach to or args. If args then
-                               args[1] should be the position ID.
-
-    Fields: ~
-        {adapter} (string)  Adapter ID, if not given the first adapter found
-                            with chosen position is used.
 
 
 
@@ -291,6 +236,71 @@ neotest.output.open({opts})                            *neotest.output.open()*
                                  nearest position if not given
         {adapter}     (string)   Adapter ID, defaults to first found with
                                  matching position
+
+
+
+================================================================================
+                                                                   *neotest.run*
+
+A consumer providing a simple interface to run tests.
+
+neotest.run.run({args})                                    *neotest.run.run()*
+    Run the given position or the nearest position if not given. All arguments
+    are optional
+
+    Run the current file
+    >
+    lua require("neotest").run(vim.fn.expand("%"))
+<
+
+    Run the nearest test
+    >
+    lua require("neotest").run()
+<
+
+    Debug the current file with nvim-dap
+    >
+    lua require("neotest").run({vim.fn.expand("%"), strategy = "dap"})
+<
+
+
+    Parameters: ~
+        {args} (string|table)  Position ID to run or args. If args then
+                               args[1] should be the position ID.
+
+    Fields: ~
+        {adapter}    (string)                   Adapter ID, if not given the
+                                                first adapter found with
+                                                chosen position is used.
+        {strategy}   (string|neotest.Strategy)  Strategy to run commands with
+        {extra_args} (string[])                 Extra arguments for test
+                                                command
+
+
+neotest.run.stop({args})                                  *neotest.run.stop()*
+    Stop a running process
+
+
+    Parameters: ~
+        {args} (string|table)  Position ID to stop or args. If args then
+                               args[1] should be the position ID.
+
+    Fields: ~
+        {adapter} (string)  Adapter ID, if not given the first adapter found
+                            with chosen position is used.
+
+
+neotest.run.attach({args})                              *neotest.run.attach()*
+    Attach to a running process for the given position.
+
+
+    Parameters: ~
+        {args} (string|table)  Position ID to attach to or args. If args then
+                               args[1] should be the position ID.
+
+    Fields: ~
+        {adapter} (string)  Adapter ID, if not given the first adapter found
+                            with chosen position is used.
 
 
 

@@ -129,6 +129,9 @@ local default_config = {
   status = {
     enabled = true,
   },
+  run = {
+    enabled = true,
+  },
 }
 
 local user_config = default_config

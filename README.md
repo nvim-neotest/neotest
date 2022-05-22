@@ -108,33 +108,33 @@ The interface for using neotest is very simple.
 Run the nearest test
 
 ```lua
-require("neotest").run()
+require("neotest").run.run()
 ```
 
 Run the current file
 
 ```lua
-require("neotest").run(vim.fn.expand("%"))
+require("neotest").run.run(vim.fn.expand("%"))
 ```
 
 Debug the nearest test (requires nvim-dap and adapter support)
 
 ```lua
-require("neotest").run({strategy = "dap"})
+require("neotest").run.run({strategy = "dap"})
 ```
 
-See `:h neotest.run()` for parameters.
+See `:h neotest.run.run()` for parameters.
 
-Stop the nearest test, see `:h neotest.stop()`
+Stop the nearest test, see `:h neotest.run.stop()`
 
 ```lua
-require("neotest").stop()
+require("neotest").run.stop()
 ```
 
-Attach to the nearest test, see `:h neotest.attach()`
+Attach to the nearest test, see `:h neotest.run.attach()`
 
 ```lua
-require("neotest").attach()
+require("neotest").run.attach()
 ```
 
 ## Consumers

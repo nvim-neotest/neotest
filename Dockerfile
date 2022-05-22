@@ -4,16 +4,14 @@ FROM ubuntu
 ARG NEOVIM_RELEASE
 
 RUN apt-get update
-RUN apt-get -y install git curl tar gcc g++
+RUN apt-get -y install git curl tar gcc g++ make
 RUN mkdir /neovim
 RUN curl -sL ${NEOVIM_RELEASE} | tar xzf - --strip-components=1 -C "/neovim"
 RUN git clone --depth 1 https://github.com/nvim-lua/plenary.nvim
 RUN git clone --depth 1 https://github.com/tjdevries/tree-sitter-lua
 
 WORKDIR tree-sitter-lua
-RUN mkdir -p build parser; \
-    cc -o ./build/parser.so -I ./src src/parser.c src/scanner.cc -shared -Os -lstdc++ -fPIC; \
-    ln -s ../build/parser.so parser/lua.so;
+RUN make dist
 
 RUN mkdir /notify
 WORKDIR /notify
