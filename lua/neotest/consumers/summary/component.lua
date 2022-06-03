@@ -109,7 +109,7 @@ function SummaryComponent:render(canvas, tree, expanded, focused, indent)
     canvas:add_mapping(
       "attach",
       async_func(function()
-        neotest.attach(position.id)
+        neotest.run.attach(position.id)
       end)
     )
     canvas:add_mapping(
@@ -127,11 +127,11 @@ function SummaryComponent:render(canvas, tree, expanded, focused, indent)
     )
 
     canvas:add_mapping("stop", function()
-      neotest.stop({ position.id, adapter = self.adapter_id })
+      neotest.run.stop({ position.id, adapter = self.adapter_id })
     end)
 
     canvas:add_mapping("run", function()
-      neotest.run({ position.id, adapter = self.adapter_id })
+      neotest.run.run({ position.id, adapter = self.adapter_id })
     end)
 
     local state_icon, state_icon_group = self:_state_icon(position)
