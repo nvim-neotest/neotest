@@ -12,7 +12,6 @@
 ---Once you have setup an adapter, you can use neotest consumers to run and interact with tests.
 ---For most users, the bulk of relevant features will be in the consumers.
 ---There are multiple consumers:
---
 --- - run: Allows running, debugging and stopping tests.
 ---
 --- - summary: Shows all known tests in a tree structure, along with their current state.
