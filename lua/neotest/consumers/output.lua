@@ -44,7 +44,7 @@ end
 ---@param client neotest.Client
 local init = function(client)
   if config.output.open_on_run then
-    client.listeners.results = function(results)
+    client.listeners.results = function(_, results)
       local cur_pos = async.fn.getpos(".")
       local line = cur_pos[2] - 1
       local buf_path = vim.fn.expand("%:p")
