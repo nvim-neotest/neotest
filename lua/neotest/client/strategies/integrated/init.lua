@@ -27,7 +27,7 @@ return function(spec)
     height = spec.strategy.height,
     width = spec.strategy.width,
     on_stdout = function(_, data)
-      data = table.concat(data, "\r\n")
+      data = table.concat(data, "\n")
       unread_data = unread_data .. data
       output_file:write(data)
       if attach_chan then
