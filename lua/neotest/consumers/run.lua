@@ -73,19 +73,19 @@ neotest.run = {}
 ---Run the current file
 ---<pre>
 --->
----lua require("neotest").run(vim.fn.expand("%"))
+---lua require("neotest").run.run(vim.fn.expand("%"))
 ---</pre>
 ---
 ---Run the nearest test
 ---<pre>
 --->
----lua require("neotest").run()
+---lua require("neotest").run.run()
 ---</pre>
 ---
 ---Debug the current file with nvim-dap
 ---<pre>
 --->
----lua require("neotest").run({vim.fn.expand("%"), strategy = "dap"})
+---lua require("neotest").run.run({vim.fn.expand("%"), strategy = "dap"})
 ---</pre>
 ---@param args string | table: Position ID to run or args. If args then args[1] should be the position ID.
 ---@field adapter string: Adapter ID, if not given the first adapter found with chosen position is used.

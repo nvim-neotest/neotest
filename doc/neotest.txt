@@ -250,17 +250,17 @@ neotest.run.run({args})                                    *neotest.run.run()*
 
     Run the current file
     >
-    lua require("neotest").run(vim.fn.expand("%"))
+    lua require("neotest").run.run(vim.fn.expand("%"))
 <
 
     Run the nearest test
     >
-    lua require("neotest").run()
+    lua require("neotest").run.run()
 <
 
     Debug the current file with nvim-dap
     >
-    lua require("neotest").run({vim.fn.expand("%"), strategy = "dap"})
+    lua require("neotest").run.run({vim.fn.expand("%"), strategy = "dap"})
 <
 
 
