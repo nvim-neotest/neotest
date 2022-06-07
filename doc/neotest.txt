@@ -222,7 +222,7 @@ A consumer that displays the output of test results.
 neotest.output.open({opts})                            *neotest.output.open()*
     Open the output of a test result
     >
-    lua require("neotest").open({ enter = true })
+    lua require("neotest").output.open({ enter = true })
 <
 
 

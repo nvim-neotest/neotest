@@ -112,7 +112,7 @@ neotest.output = {}
 ---Open the output of a test result
 ---<pre>
 --->
----lua require("neotest").open({ enter = true })
+---lua require("neotest").output.open({ enter = true })
 ---</pre>
 ---@param opts table
 ---@field short boolean: Show shortened output
