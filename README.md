@@ -18,7 +18,7 @@ A framework for interacting with tests within NeoVim.
   - [Status Signs](#status-signs)
 - [Strategies](#strategies)
 - [Writing Adapters](#writing-adapters)
-  - [Parsing tests in a directory](#parsing-tests-in-a-directory)
+  - [Parsing tests in a directory](#parsing-tests)
   - [Collecting results](#collecting-results)
 
 ## Introduction
