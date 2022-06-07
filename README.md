@@ -6,20 +6,20 @@ A framework for interacting with tests within NeoVim.
 
 **This is early stage software.**
 
-- [Introduction](##introduction)
-- [Installation](##installation)
-  - [Supported Runners](###supported-runners)
-- [Configuration](##configuration)
-- [Usage](##usage)
-- [Consumers](##consumers)
-  - [Output Window](###output-window)
-  - [Summary Window](###summary-window)
-  - [Diagnostic Messages](###diagnostic-messages)
-  - [Status Signs](###status-signs)
-- [Strategies](##strategies)
-- [Writing Adapters](##writing-adapters)
-  - [Parsing tests in a directory](###parsing-tests-in-a-directory)
-  - [Collecting results](###collecting-results)
+- [Introduction](#introduction)
+- [Installation](#installation)
+  - [Supported Runners](#supported-runners)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [Consumers](#consumers)
+  - [Output Window](#output-window)
+  - [Summary Window](#summary-window)
+  - [Diagnostic Messages](#diagnostic-messages)
+  - [Status Signs](#status-signs)
+- [Strategies](#strategies)
+- [Writing Adapters](#writing-adapters)
+  - [Parsing tests in a directory](#parsing-tests)
+  - [Collecting results](#collecting-results)
 
 ## Introduction
 
