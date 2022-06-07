@@ -38,6 +38,7 @@ local function create_opts(content_width, content_height, position)
     height = height,
     style = "minimal",
     border = border,
+    noautocmd = true,
   }
 end
 
