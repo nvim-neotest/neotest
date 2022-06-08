@@ -394,7 +394,7 @@ function NeotestClient:_update_positions(path, args)
     if lib.files.is_dir(path) then
       -- If existing tree then we have to find the point to merge the trees and update that path rather than trying to
       -- merge an orphan. This happens when a whole new directory is found (e.g. renamed an existing one).
-      local existing_root = self:get_position()
+      local existing_root = self:get_position(nil, { adapter = adapter_id })
       while
         existing_root
         and vim.startswith(path, existing_root:data().path)
