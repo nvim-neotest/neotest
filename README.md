@@ -51,7 +51,7 @@ call dein#add("rcarriga/neotest")
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-treesitter/nvim-treesitter'
 Plug 'antoinemadec/FixCursorHold.nvim'
-Plug 'rcarriga/nvim-dap-ui'
+Plug 'rcarriga/neotest'
 ```
 
 [packer.nvim](https://github.com/wbthomason/packer.nvim)
@@ -76,6 +76,7 @@ To get started you will also need to install an adapter for your test runner.
 | pytest          |  [neotest-python](https://github.com/rcarriga/neotest-python)  |
 | python-unittest |  [neotest-python](https://github.com/rcarriga/neotest-python)  |
 | plenary         | [neotest-plenary](https://github.com/rcarriga/neotest-plenary) |
+| go              |      [neotest-go](https://github.com/akinsho/neotest-go)       |
 
 For any runner without an adapter you can use [neotest-vim-test](https://github.com/rcarriga/neotest-vim-test) which supports any runner that vim-test supports.
 The vim-test adapter does not support some of the more advanced features such as error locations or per-test output.
