@@ -23,28 +23,32 @@ local log_date_format = "%FT%H:%M:%SZ%z"
 local Logger = {}
 
 ---@return neotest.Logger
-function Logger:new(filename, opts)
+function Logger.new(filename, opts)
   opts = opts or {}
   local logger = loggers[filename]
   if logger then
     return logger
   end
   logger = {}
-  setmetatable(logger, self)
+  setmetatable(logger, { __index = Logger })
   loggers[filename] = logger
   local path_sep = vim.loop.os_uname().sysname == "Windows" and "\\" or "/"
   local function path_join(...)
     return table.concat(vim.tbl_flatten({ ... }), path_sep)
   end
-  self._level = opts.level or M.levels.DEBUG
-  self._filename = path_join(vim.fn.stdpath("cache"), filename .. ".log")
+  logger._level = opts.level or M.levels.DEBUG
+  local ok, logpath = pcall(vim.fn.stdpath, "log")
+  if not ok then
+    logpath = vim.fn.stdpath("cache")
+  end
+  logger._filename = path_join(logpath, filename .. ".log")
 
-  vim.fn.mkdir(vim.fn.stdpath("cache"), "p")
-  local logfile = assert(io.open(self._filename, "a+"))
+  vim.fn.mkdir(logpath, "p")
+  local logfile = assert(io.open(logger._filename, "a+"))
   for level, levelnr in pairs(M.levels) do
     logger[level:lower()] = function(...)
       local argc = select("#", ...)
-      if levelnr < self._level then
+      if levelnr < logger._level then
         return false
       end
       if argc == 0 then
@@ -84,4 +88,4 @@ function Logger:get_filename()
   return self._filename
 end
 
-return Logger:new("neotest")
+return Logger.new("neotest")
