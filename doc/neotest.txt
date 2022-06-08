@@ -277,6 +277,33 @@ neotest.run.run({args})                                    *neotest.run.run()*
                                                 command
 
 
+neotest.run.run_last({args})                          *neotest.run.run_last()*
+    Re-run the last position that was run. Arguments are optional
+
+    Run the last position that was run with the same arguments and strategy
+    >
+    lua require("neotest").run.run_last()
+<
+
+    Run the last position that was run with the same arguments but debug with
+    nvim-dap
+    >
+    lua require("neotest").run.run_last({ strategy = "dap" })
+<
+
+
+    Parameters: ~
+        {args} (table)  Arguments to run with
+
+    Fields: ~
+        {adapter}    (string)                   Adapter ID, if not given the
+                                                same adapter as the last run
+                                                is used.
+        {strategy}   (string|neotest.Strategy)  Strategy to run commands with
+        {extra_args} (string[])                 Extra arguments for test
+                                                command
+
+
 neotest.run.stop({args})                                  *neotest.run.stop()*
     Stop a running process
 
