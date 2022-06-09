@@ -83,8 +83,10 @@ return function(spec)
       end
     end,
     result = function()
-      finish_cond:wait()
-      async.fn.chanclose(job)
+      if result_code == nil then
+        finish_cond:wait()
+      end
+      pcall(async.fn.chanclose, job)
       output_file:close()
       if attach_win then
         vim.schedule(function()
