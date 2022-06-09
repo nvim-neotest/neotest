@@ -213,6 +213,36 @@ neotest.Config.status                                  *neotest.Config.status*
         {enabled} (boolean)
 
 
+================================================================================
+                                                                *neotest.Adapter*
+
+neotest.Adapter({opts})                                         *neotest.Adapter
+    Set-up adapter with optional arguments to be passed to the test runner.
+
+    You can either pass a list of strings (options) or a function that 
+    accepts two arguments – runner and test position.
+
+    An example which arguments to pass dependening on the test runner:
+    >
+    require("neotest-python")({
+          args = function(runner, _)
+              if runner == "pytest" then
+                  return { "-s", "--tb=short" }
+              else
+                  return {}
+              end
+          end,
+      }),
+<
+
+    Depending on the adapter it can also accept additional fields, for more
+    info check adapter docs.
+
+    Parameters: ~
+        {opts} (table)
+    Fields: ~
+        {args}   (string[]|function)
+
 
 ================================================================================
                                                                 *neotest.output*
