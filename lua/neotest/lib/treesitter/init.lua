@@ -115,13 +115,13 @@ end
 ---@param buf integer
 ---@return neotest.Tree
 local function parse_buf_positions(file_path, query, buf, opts)
-  local ft = require("neotest.lib").files.detect_filetype(file_path)
+  local ft = vim.api.nvim_buf_get_option(buf, "filetype")
   local ts_parsers = require("nvim-treesitter.parsers")
   local lang = ts_parsers.ft_to_lang(ft)
   local parser = ts_parsers.get_parser(buf, lang)
   local root = parser:parse()[1]:root()
   if type(query) == "string" then
-    query = vim.treesitter.parse_query(ft, query)
+    query = vim.treesitter.parse_query(lang, query)
   end
   local positions = collect(file_path, query, buf, root)
   local structure = parse_tree(positions, {}, opts)
@@ -140,14 +140,9 @@ function M.parse_positions(file_path, query, opts)
     nested_tests = false, -- Allow nested namespaces
     require_namespaces = false, -- Only allow tests within namespaces
   }, opts or {})
-  local lines = require("neotest.lib").files.read_lines(file_path)
-  if #lines == 0 then
-    return
-  end
-  local temp_buf = async.api.nvim_create_buf(false, true)
-  async.api.nvim_buf_set_lines(temp_buf, 0, -1, false, lines)
-  local result = parse_buf_positions(file_path, query, temp_buf, opts)
-  async.api.nvim_buf_delete(temp_buf, { force = true })
+  local bufnr = vim.fn.bufadd(file_path)
+  vim.fn.bufload(bufnr)
+  local result = parse_buf_positions(file_path, query, bufnr, opts)
   return result
 end
 
