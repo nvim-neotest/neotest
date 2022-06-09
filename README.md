@@ -77,6 +77,7 @@ To get started you will also need to install an adapter for your test runner.
 | python-unittest |  [neotest-python](https://github.com/rcarriga/neotest-python)  |
 | plenary         | [neotest-plenary](https://github.com/rcarriga/neotest-plenary) |
 | go              |      [neotest-go](https://github.com/akinsho/neotest-go)       |
+| jest            |    [neotest-jest](https://github.com/haydenmeade/neotest-jest) |
 
 For any runner without an adapter you can use [neotest-vim-test](https://github.com/rcarriga/neotest-vim-test) which supports any runner that vim-test supports.
 The vim-test adapter does not support some of the more advanced features such as error locations or per-test output.
