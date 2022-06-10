@@ -117,6 +117,7 @@ end
 local function parse_positions(file_path, query, content, opts)
   local ft = require("neotest.lib").files.detect_filetype(file_path)
   local lang = require("nvim-treesitter.parsers").ft_to_lang(ft)
+  async.util.scheduler()
   local parser = vim.treesitter.get_string_parser(content, lang)
   if type(query) == "string" then
     query = vim.treesitter.parse_query(lang, query)
