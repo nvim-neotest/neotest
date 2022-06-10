@@ -42,7 +42,7 @@ function SummaryComponent:render(canvas, tree, expanded, focused, indent)
     local is_last_child = index == #children
     local position = node:data()
 
-    if expanded[position.id] and position.type ~= "test" then
+    if expanded[position.id] then
       self.expanded_positions[position.id] = true
     end
 
@@ -52,7 +52,7 @@ function SummaryComponent:render(canvas, tree, expanded, focused, indent)
       canvas:write(node_prefix, { group = hi.indent })
     end
     local expansion_icon
-    local expandable = position.type ~= "test" and #node:children() > 0
+    local expandable = #node:children() > 0
     if not expandable then
       expansion_icon = icons.non_collapsible
     elseif self.expanded_positions[position.id] then
