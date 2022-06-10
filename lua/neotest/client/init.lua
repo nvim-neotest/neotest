@@ -528,7 +528,7 @@ function NeotestClient:_start()
   autocmd({ "BufAdd", "BufWritePost" }, function()
     local file_path = vim.fn.expand("<afile>:p")
     async.run(function()
-      local adapter_id = self:get_adapter(file_path)
+      local adapter_id = self:_get_adapter(file_path, nil, true)
       if not self:get_position(file_path, { adapter = adapter_id }) then
         if not adapter_id then
           return
