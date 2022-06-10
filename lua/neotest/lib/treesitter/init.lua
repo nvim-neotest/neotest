@@ -77,12 +77,11 @@ local function parse_tree(positions, namespaces, opts)
   if not parent then
     return nil
   end
-  parent.id = parent.type == "file" and parent.path
-    or table.concat(vim.tbl_flatten({ parent.path, namespaces, parent.name }), "::")
+  parent.id = parent.type == "file" and parent.path or opts.position_id(parent, namespaces)
   local current_level = { parent }
   local child_namespaces = vim.list_extend({}, namespaces)
   if parent.type == "namespace" then
-    child_namespaces[#child_namespaces + 1] = parent.name
+    child_namespaces[#child_namespaces + 1] = parent
   end
   while true do
     local next_pos = positions:peek()
@@ -139,6 +138,20 @@ function M.parse_positions(file_path, query, opts)
   opts = vim.tbl_extend("force", {
     nested_tests = false, -- Allow nested namespaces
     require_namespaces = false, -- Only allow tests within namespaces
+    ---@param position neotest.Position The position to return an ID for
+    ---@param namespaces neotest.Position[] Any namespaces the position is within
+    position_id = function(position, namespaces)
+      return table.concat(
+        vim.tbl_flatten({
+          position.path,
+          vim.tbl_map(function(pos)
+            return pos.name
+          end, namespaces),
+          position.name,
+        }),
+        "::"
+      )
+    end,
   }, opts or {})
   local content = require("neotest.lib").files.read(file_path)
   local results = parse_positions(file_path, query, content, opts)
