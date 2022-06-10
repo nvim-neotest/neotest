@@ -20,10 +20,10 @@ end
 
 ---@param file_path string
 ---@param query table
----@param buf integer
+---@param source string
 ---@param root table
 ---@return neotest.FIFOQueue
-local function collect(file_path, query, buf, root)
+local function collect(file_path, query, source, root)
   local sep = require("neotest.lib").files.sep
   local nodes = FIFOQueue()
   local path_elems = vim.split(file_path, sep, { plain = true })
@@ -34,11 +34,11 @@ local function collect(file_path, query, buf, root)
     range = { root:range() },
   })
   pcall(vim.tbl_add_reverse_lookup, query.captures)
-  for _, match in query:iter_matches(root, buf) do
+  for _, match in query:iter_matches(root, source) do
     local type = get_query_type(query, match)
     if type then
       ---@type string
-      local name = vim.treesitter.get_node_text(match[query.captures[type .. ".name"]], buf)
+      local name = vim.treesitter.get_node_text(match[query.captures[type .. ".name"]], source)
       local definition = match[query.captures[type .. ".definition"]]
 
       nodes:push({
@@ -112,18 +112,17 @@ end
 
 ---@parma file_path string
 ---@param query table | string
----@param buf integer
+---@param content string
 ---@return neotest.Tree
-local function parse_buf_positions(file_path, query, buf, opts)
+local function parse_positions(file_path, query, content, opts)
   local ft = require("neotest.lib").files.detect_filetype(file_path)
-  local ts_parsers = require("nvim-treesitter.parsers")
-  local lang = ts_parsers.ft_to_lang(ft)
-  local parser = ts_parsers.get_parser(buf, lang)
-  local root = parser:parse()[1]:root()
+  local lang = require("nvim-treesitter.parsers").ft_to_lang(ft)
+  local parser = vim.treesitter.get_string_parser(content, lang)
   if type(query) == "string" then
-    query = vim.treesitter.parse_query(ft, query)
+    query = vim.treesitter.parse_query(lang, query)
   end
-  local positions = collect(file_path, query, buf, root)
+  local root = parser:parse()[1]:root()
+  local positions = collect(file_path, query, content, root)
   local structure = parse_tree(positions, {}, opts)
   local tree = Tree.from_list(structure, position_key)
   return tree
@@ -140,15 +139,9 @@ function M.parse_positions(file_path, query, opts)
     nested_tests = false, -- Allow nested namespaces
     require_namespaces = false, -- Only allow tests within namespaces
   }, opts or {})
-  local lines = require("neotest.lib").files.read_lines(file_path)
-  if #lines == 0 then
-    return
-  end
-  local temp_buf = async.api.nvim_create_buf(false, true)
-  async.api.nvim_buf_set_lines(temp_buf, 0, -1, false, lines)
-  local result = parse_buf_positions(file_path, query, temp_buf, opts)
-  async.api.nvim_buf_delete(temp_buf, { force = true })
-  return result
+  local content = require("neotest.lib").files.read(file_path)
+  local results = parse_positions(file_path, query, content, opts)
+  return results
 end
 
 return M
