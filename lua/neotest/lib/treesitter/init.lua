@@ -80,9 +80,7 @@ local function parse_tree(positions, namespaces, opts)
   parent.id = parent.type == "file" and parent.path or opts.position_id(parent, namespaces)
   local current_level = { parent }
   local child_namespaces = vim.list_extend({}, namespaces)
-  if parent.type == "namespace" then
-    child_namespaces[#child_namespaces + 1] = parent
-  end
+  child_namespaces[#child_namespaces + 1] = parent
   while true do
     local next_pos = positions:peek()
     if not next_pos or not contains(parent, next_pos) then
