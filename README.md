@@ -42,7 +42,7 @@ Install with your favourite package manager alongside nvim-dap
 call dein#add("nvim-lua/plenary.nvim")
 call dein#add("nvim-treesitter/nvim-treesitter")
 call dein#add("antoinemadec/FixCursorHold.nvim")
-call dein#add("rcarriga/neotest")
+call dein#add("nvim-neotest/neotest")
 ```
 
 [**vim-plug**](https://github.com/junegunn/vim-plug)
@@ -51,14 +51,14 @@ call dein#add("rcarriga/neotest")
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-treesitter/nvim-treesitter'
 Plug 'antoinemadec/FixCursorHold.nvim'
-Plug 'rcarriga/neotest'
+Plug 'nvim-neotest/neotest'
 ```
 
 [packer.nvim](https://github.com/wbthomason/packer.nvim)
 
 ```lua
 use {
-  "rcarriga/neotest",
+  "nvim-neotest/neotest",
   requires = {
     "nvim-lua/plenary.nvim",
     "nvim-treesitter/nvim-treesitter",
@@ -73,13 +73,13 @@ To get started you will also need to install an adapter for your test runner.
 
 | Test Runner     |                            Adapter                             |
 | :-------------- | :------------------------------------------------------------: |
-| pytest          |  [neotest-python](https://github.com/rcarriga/neotest-python)  |
-| python-unittest |  [neotest-python](https://github.com/rcarriga/neotest-python)  |
-| plenary         | [neotest-plenary](https://github.com/rcarriga/neotest-plenary) |
+| pytest          |  [neotest-python](https://github.com/nvim-neotest/neotest-python)  |
+| python-unittest |  [neotest-python](https://github.com/nvim-neotest/neotest-python)  |
+| plenary         | [neotest-plenary](https://github.com/nvim-neotest/neotest-plenary) |
 | go              |      [neotest-go](https://github.com/akinsho/neotest-go)       |
 | jest            |    [neotest-jest](https://github.com/haydenmeade/neotest-jest) |
 
-For any runner without an adapter you can use [neotest-vim-test](https://github.com/rcarriga/neotest-vim-test) which supports any runner that vim-test supports.
+For any runner without an adapter you can use [neotest-vim-test](https://github.com/nvim-neotest/neotest-vim-test) which supports any runner that vim-test supports.
 The vim-test adapter does not support some of the more advanced features such as error locations or per-test output.
 If you're using the vim-test adapter then install [vim-test](https://github.com/vim-test/vim-test/) too.
 
@@ -201,7 +201,7 @@ Please raise issues with any problems understanding or using the this doc.
 The best place to figure out how to create an adapter is by looking at the existing ones.
 
 Adapters must fulfill an interface to run (defined
-[here](https://github.com/rcarriga/neotest/blob/master/lua/neotest/adapters/interface.lua)).
+[here](https://github.com/nvim-neotest/neotest/blob/master/lua/neotest/adapters/interface.lua)).
 
 Much of the functionality is built around using a custom tree object that defines the structure of the test suite.
 There are helpers that adapters can use within their code (all defined under `neotest.lib`)
