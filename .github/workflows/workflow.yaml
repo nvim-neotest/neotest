@@ -1,0 +1,72 @@
+name: neotest Workflow
+on:
+  push:
+    branches:
+      - master
+  pull_request: ~
+jobs:
+  style:
+    name: style
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: JohnnyMorganz/stylua-action@1.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --check lua/ tests/
+
+  tests:
+    name: tests
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-20.04
+            url: https://github.com/neovim/neovim/releases/download/v0.7.0/nvim-linux64.tar.gz
+    steps:
+      - uses: actions/checkout@v2
+      - run: date +%F > todays-date
+      - name: Restore cache for today's nightly.
+        uses: actions/cache@v2
+        with:
+          path: _neovim
+          key: ${{ runner.os }}-x64-${{ hashFiles('todays-date') }}
+
+      - name: Prepare dependencies
+        run: |
+          test -d _neovim || {
+            mkdir -p _neovim
+            curl -sL ${{ matrix.url }} | tar xzf - --strip-components=1 -C "${PWD}/_neovim"
+          }
+          mkdir -p ~/.local/share/nvim/site/pack/vendor/start
+          git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
+          ln -s $(pwd) ~/.local/share/nvim/site/pack/vendor/start
+
+      - name: Run tests
+        run: |
+          export PATH="${PWD}/_neovim/bin:${PATH}"
+          export VIM="${PWD}/_neovim/share/nvim/runtime"
+          nvim --version
+          ./scripts/test
+
+  release:
+    name: release
+    if: ${{ github.ref == 'refs/heads/master' }}
+    needs:
+      - style
+      - tests
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
