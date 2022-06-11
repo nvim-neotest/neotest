@@ -88,7 +88,7 @@ local function parse_tree(positions, namespaces, opts)
       if #current_level == 1 and parent.type == "namespace" then
         return nil
       end
-      if opts.require_namespaces and parent.type == "test" and #namespaces == 0 then
+      if opts.require_namespaces and parent.type == "test" and #namespaces == 1 then
         return nil
       end
       return current_level
@@ -126,6 +126,7 @@ local function parse_positions(file_path, query, content, opts)
   return tree
 end
 
+---Read a file's contents from disk and parse test positions using the given query.
 ---@async
 ---@param file_path string
 ---@param query string | vim.treesitter.Query
@@ -133,15 +134,20 @@ end
 ---@return neotest.Tree
 function M.parse_positions(file_path, query, opts)
   async.util.sleep(10) -- Prevent completely hogging main thread
+  local content = require("neotest.lib").files.read(file_path)
+  return M.parse_positions_from_string(file_path, content, query, opts)
+end
+
+---Same as `parse_positions` but uses the provided content instead of reading file.
+function M.parse_positions_from_string(file_path, content, query, opts)
   opts = vim.tbl_extend("force", {
-    nested_tests = false, -- Allow nested namespaces
+    nested_tests = false, -- Allow nested tests
     require_namespaces = false, -- Only allow tests within namespaces
     ---@param position neotest.Position The position to return an ID for
-    ---@param namespaces neotest.Position[] Any namespaces the position is within
+    ---@param parents neotest.Position[] Parent positions for the position
     position_id = function(position, namespaces)
       return table.concat(
         vim.tbl_flatten({
-          position.path,
           vim.tbl_map(function(pos)
             return pos.name
           end, namespaces),
@@ -151,7 +157,6 @@ function M.parse_positions(file_path, query, opts)
       )
     end,
   }, opts or {})
-  local content = require("neotest.lib").files.read(file_path)
   local results = parse_positions(file_path, query, content, opts)
   return results
 end

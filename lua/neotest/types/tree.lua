@@ -37,6 +37,17 @@ function Tree.from_list(data, key)
   return x
 end
 
+function Tree:to_list()
+  if #self._children == 0 then
+    return { self._data }
+  end
+  local children = fu.map(function(i, t)
+    return i, t:to_list()
+  end, self._children)
+  table.insert(children, 1, self._data)
+  return children
+end
+
 function Tree._from_list(data, key, parent, nodes)
   local node_key
   local node
