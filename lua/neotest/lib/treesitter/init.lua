@@ -80,7 +80,9 @@ local function parse_tree(positions, namespaces, opts)
   parent.id = parent.type == "file" and parent.path or opts.position_id(parent, namespaces)
   local current_level = { parent }
   local child_namespaces = vim.list_extend({}, namespaces)
-  child_namespaces[#child_namespaces + 1] = parent
+  if parent.type == "namespace" or (opts.nested_tests and parent.type == "test") then
+    child_namespaces[#child_namespaces + 1] = parent
+  end
   while true do
     local next_pos = positions:peek()
     if not next_pos or not contains(parent, next_pos) then
@@ -88,7 +90,7 @@ local function parse_tree(positions, namespaces, opts)
       if #current_level == 1 and parent.type == "namespace" then
         return nil
       end
-      if opts.require_namespaces and parent.type == "test" and #namespaces == 1 then
+      if opts.require_namespaces and parent.type == "test" and #namespaces == 0 then
         return nil
       end
       return current_level
@@ -148,6 +150,7 @@ function M.parse_positions_from_string(file_path, content, query, opts)
     position_id = function(position, namespaces)
       return table.concat(
         vim.tbl_flatten({
+          position.path,
           vim.tbl_map(function(pos)
             return pos.name
           end, namespaces),
