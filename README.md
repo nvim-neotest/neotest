@@ -78,6 +78,7 @@ To get started you will also need to install an adapter for your test runner.
 | plenary         | [neotest-plenary](https://github.com/nvim-neotest/neotest-plenary) |
 | go              |      [neotest-go](https://github.com/akinsho/neotest-go)       |
 | jest            |    [neotest-jest](https://github.com/haydenmeade/neotest-jest) |
+| rspec           |    [neotest-rspec](https://github.com/olimorris/neotest-rspec) |
 
 For any runner without an adapter you can use [neotest-vim-test](https://github.com/nvim-neotest/neotest-vim-test) which supports any runner that vim-test supports.
 The vim-test adapter does not support some of the more advanced features such as error locations or per-test output.
