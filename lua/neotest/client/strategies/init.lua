@@ -1,4 +1,5 @@
 local lib = require("neotest.lib")
+local async = require("neotest.async")
 local logger = require("neotest.logging")
 local fu = lib.func_util
 
@@ -30,6 +31,12 @@ function NeotestProcessTracker:run(pos_id, spec, args)
   logger.info("Starting process", pos_id, "with strategy", args.strategy)
   logger.debug("Strategy spec", spec)
   local instance = strategy(spec)
+  if not instance then
+    lib.notify("Adapter doesn't support chosen strategy.", vim.log.levels.ERROR)
+    local output_path = async.fn.tempname()
+    assert(io.open(output_path, "w")):close()
+    return { code = 1, output = output_path }
+  end
   self._instances[pos_id] = instance
   local code = instance.result()
   logger.info("Process for position", pos_id, "exited with code", code)

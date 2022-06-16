@@ -3,6 +3,9 @@ local async = require("neotest.async")
 ---@param spec neotest.RunSpec
 ---@return neotest.StrategyResult
 return function(spec)
+  if vim.tbl_isempty(spec.strategy) then
+    return
+  end
   local dap = require("dap")
 
   local handler_id = "neotest_" .. async.fn.localtime()
