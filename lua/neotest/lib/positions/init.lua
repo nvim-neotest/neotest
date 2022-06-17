@@ -1,3 +1,5 @@
+local Path = require("plenary.path")
+local Tree = require("neotest.types").Tree
 local M = {}
 
 ---@param tree neotest.Tree
@@ -37,10 +39,55 @@ M.contains = function(parent, child)
   return parent.range[1] <= child.range[1] and parent.range[3] >= child.range[3]
 end
 
+---@param position neotest.Position
+---@return neotest.Position
+local function get_parent(position)
+  if position.type ~= "dir" and position.type ~= "file" then
+    error(string.format("Cannot get the parent of %s position", position.type))
+  end
+  if position.path == Path.path.root(position.path) then
+    return position
+  end
+  local pieces = vim.split(position.path, Path.path.sep)
+  table.remove(pieces)
+  local parent_path = table.concat(pieces, Path.path.sep)
+
+  return {
+    type = "dir",
+    id = parent_path,
+    path = parent_path,
+    name = pieces[#pieces],
+    range = nil,
+  }
+end
+
+---@param dir_tree neotest.Tree
+---@param new_tree neotest.Tree
+---@return neotest.Tree
+local function get_or_create_parent_node(dir_tree, new_tree)
+  local parent = get_parent(new_tree:data())
+  local parent_tree = dir_tree:get_key(parent.id)
+  if not parent_tree then
+    parent_tree = Tree.from_list({ parent }, function(pos)
+      return pos.id
+    end)
+    local grandparent_tree = get_or_create_parent_node(dir_tree, parent_tree)
+    grandparent_tree:add_child(new_tree:data().id, parent_tree)
+    parent_tree = dir_tree:get_key(parent.id)
+    assert(parent_tree ~= nil)
+  end
+  return parent_tree
+end
+
 ---@param tree neotest.Tree
 ---@param node neotest.Tree
 local function replace_node(tree, node)
   local existing = tree:get_key(node:data().id)
+  if not existing then
+    local parent = get_or_create_parent_node(tree, node)
+    parent:add_child(node:data().id, node)
+    return
+  end
 
   -- Find parent node and replace child reference
   local parent = existing:parent()
@@ -70,10 +117,7 @@ end
 ---@param file_tree neotest.Tree
 local function update_file_node(dir_tree, file_tree, force)
   local existing = dir_tree:get_key(file_tree:data().id)
-  if not existing then
-    error("File " .. file_tree:data().id .. " not in tree")
-  end
-  if force or (#existing:children() == 0 and #file_tree:children() > 0) then
+  if force or not existing or (#existing:children() == 0 and #file_tree:children() > 0) then
     replace_node(dir_tree, file_tree)
   end
 end

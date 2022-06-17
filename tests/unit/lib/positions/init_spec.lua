@@ -244,4 +244,37 @@ describe("merge", function()
     }
     assert.are.same(expected, ret:to_list())
   end)
+
+  it("merge(dir, file) adds new file", function()
+    local dir = create_tree({
+      { type = "dir", id = "/root", path = "/root" },
+    })
+    local file = create_tree({
+      { type = "file", id = "/root/file", path = "/root/file" },
+      { type = "test", id = "test-2", path = "/root/file" },
+    })
+    local ret = positions.merge(dir, file)
+    local expected = {
+      {
+        id = "/root",
+        path = "/root",
+        type = "dir",
+      },
+      {
+        {
+          id = "/root/file",
+          path = "/root/file",
+          type = "file",
+        },
+        {
+          {
+            id = "test-2",
+            path = "/root/file",
+            type = "test",
+          },
+        },
+      },
+    }
+    assert.are.same(expected, ret:to_list())
+  end)
 end)
