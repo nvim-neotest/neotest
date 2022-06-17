@@ -304,4 +304,41 @@ describe("merge", function()
     }
     assert.are.same(expected, ret:to_list())
   end)
+
+  it("merge(dir, dir) merges unrelated dirs at common ancestor", function()
+    local dir = create_tree({
+      { type = "dir", id = "/root/sub1", path = "/root/sub1" },
+      {
+        { type = "file", id = "/root/sub1/file", path = "/root/sub1/file" },
+        { { type = "test", id = "test-1", path = "/root/sub1/file" } },
+      },
+    })
+    local new_dir = create_tree({
+      { type = "dir", id = "/root/sub2", path = "/root/sub2" },
+      {
+        { type = "file", id = "/root/sub2/file", path = "/root/sub2/file" },
+        { { type = "test", id = "test-2", path = "/root/sub2/file" } },
+      },
+    })
+    local ret = positions.merge(dir, new_dir)
+    local expected = {
+      { type = "dir", id = "/root", name = "root", path = "/root" },
+      {
+        { type = "dir", id = "/root/sub1", path = "/root/sub1" },
+        {
+          { type = "file", id = "/root/sub1/file", path = "/root/sub1/file" },
+          { { type = "test", id = "test-1", path = "/root/sub1/file" } },
+        },
+      },
+      {
+        { type = "dir", id = "/root/sub2", path = "/root/sub2" },
+        {
+          { type = "file", id = "/root/sub2/file", path = "/root/sub2/file" },
+          { { type = "test", id = "test-2", path = "/root/sub2/file" } },
+        },
+      },
+    }
+    print(string.format("ret: %s", vim.inspect(ret:to_list())))
+    assert.are.same(expected, ret:to_list())
+  end)
 end)

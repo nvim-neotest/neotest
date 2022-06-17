@@ -61,6 +61,17 @@ local function get_parent(position)
   }
 end
 
+---@param tree neotest.Tree
+---@return neotest.Tree
+local function wrap_with_parent(tree)
+  local parent = get_parent(tree:data())
+  local parent_tree = Tree.from_list({ parent }, function(pos)
+    return pos.id
+  end)
+  parent_tree:add_child(tree:data().id, tree)
+  return parent_tree
+end
+
 ---@param dir_tree neotest.Tree
 ---@param new_tree neotest.Tree
 ---@return neotest.Tree
@@ -133,7 +144,9 @@ end
 ---@param new neotest.Tree File or directory tree
 M.merge = function(orig, new)
   if not M.contains(orig:data(), new:data()) and not M.contains(new:data(), orig:data()) then
-    error("Common root not found")
+    while not M.contains(orig:data(), new:data()) do
+      orig = wrap_with_parent(orig)
+    end
   end
 
   local new_type = new:data().type
