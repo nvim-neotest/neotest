@@ -91,12 +91,19 @@ local function replace_node(tree, node)
 
   -- Find parent node and replace child reference
   local parent = existing:parent()
-  if parent then
-    for i, child in pairs(parent._children) do
-      if node:data().id == child:data().id then
-        parent._children[i] = node
-        break
-      end
+  if not parent then
+    -- If there is no parent, then the tree describes the same position as node,
+    -- and is replaced in its entirety
+    tree._children = node._children
+    tree._nodes = node._nodes
+    tree._data = node._data
+    return
+  end
+
+  for i, child in pairs(parent._children) do
+    if node:data().id == child:data().id then
+      parent._children[i] = node
+      break
     end
   end
   node._parent = parent

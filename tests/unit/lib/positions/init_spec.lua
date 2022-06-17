@@ -277,4 +277,31 @@ describe("merge", function()
     }
     assert.are.same(expected, ret:to_list())
   end)
+
+  it("merge(file, file) updates tests in file", function()
+    local file = create_tree({
+      { type = "file", id = "file", path = "/root/file" },
+      { { type = "test", id = "test-1", path = "/root/file" } },
+    })
+    local new_file = create_tree({
+      { type = "file", id = "file", path = "/root/file" },
+      { { type = "test", id = "test-2", path = "/root/file" } },
+    })
+    local ret = positions.merge(file, new_file)
+    local expected = {
+      {
+        id = "file",
+        path = "/root/file",
+        type = "file",
+      },
+      {
+        {
+          id = "test-2",
+          path = "/root/file",
+          type = "test",
+        },
+      },
+    }
+    assert.are.same(expected, ret:to_list())
+  end)
 end)
