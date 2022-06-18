@@ -11,6 +11,7 @@ docs.test = function()
     "./lua/neotest/consumers/status.lua",
     "./lua/neotest/consumers/diagnostic.lua",
     "./lua/neotest/consumers/summary/init.lua",
+    "./lua/neotest/consumers/jump.lua",
   }
 
   -- Output file

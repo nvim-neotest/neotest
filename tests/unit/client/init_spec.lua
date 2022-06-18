@@ -5,9 +5,6 @@ local Tree = require("neotest.types").Tree
 local lib = require("neotest.lib")
 local NeotestClient = require("neotest.client")
 local AdapterGroup = require("neotest.adapters")
-A = function(...)
-  print(vim.inspect(...))
-end
 
 describe("neotest client", function()
   local mock_adapter, mock_strategy, client

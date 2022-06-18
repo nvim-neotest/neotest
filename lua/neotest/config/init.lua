@@ -132,6 +132,9 @@ local default_config = {
   run = {
     enabled = true,
   },
+  jump = {
+    enabled = true,
+  },
 }
 
 local user_config = default_config

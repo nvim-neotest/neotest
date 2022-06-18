@@ -83,6 +83,9 @@ neotest.setup({user_config})                                 *neotest.setup()*
           skipped = "ﰸ",
           unknown = "?"
         },
+        jump = {
+          enabled = true
+        },
         output = {
           enabled = true,
           open_on_run = "short"
@@ -385,6 +388,40 @@ neotest.summary.toggle()                            *neotest.summary.toggle()*
     lua require("neotest").summary.toggle()
 <
 
+
+
+
+================================================================================
+                                                                  *neotest.jump*
+
+A consumer that allows jumping between tests
+
+Example mappings to jump between test failures
+>
+ nnoremap <silent>[n <cmd>lua require("neotest").jump.prev({ status = "failed" })<CR>
+ nnoremap <silent>]n <cmd>lua require("neotest").jump.next({ status = "failed" })<CR>
+<
+
+neotest.jump.next({args})                                *neotest.jump.next()*
+    Jump to the position after the cursor position in the current file
+
+
+    Parameters: ~
+        {args} (table)  Optionals arguments
+
+    Fields: ~
+        {status} (string)  Only jump to positions with given status
+
+
+neotest.jump.prev({args})                                *neotest.jump.prev()*
+    Jump to the position after the cursor position in the current file
+
+
+    Parameters: ~
+        {args} (table)  Optionals arguments
+
+    Fields: ~
+        {status} (string)  Only jump to positions with given status
 
 
 
