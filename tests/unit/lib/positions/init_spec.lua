@@ -338,7 +338,6 @@ describe("merge", function()
         },
       },
     }
-    print(string.format("ret: %s", vim.inspect(ret:to_list())))
     assert.are.same(expected, ret:to_list())
   end)
 end)
