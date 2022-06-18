@@ -115,6 +115,7 @@ neotest.run = {}
 ---@field adapter string: Adapter ID, if not given the first adapter found with chosen position is used.
 ---@field strategy string | neotest.Strategy: Strategy to run commands with
 ---@field extra_args string[]: Extra arguments for test command
+---@field env table<string, string>: Extra environment variables to add to the environment of tests
 function neotest.run.run(args) end
 
 ---Re-run the last position that was run.
@@ -135,6 +136,7 @@ function neotest.run.run(args) end
 ---@field adapter string: Adapter ID, if not given the same adapter as the last run is used.
 ---@field strategy string | neotest.Strategy: Strategy to run commands with
 ---@field extra_args string[]: Extra arguments for test command
+---@field env table<string, string>: Extra environment variables to add to the environment of tests
 function neotest.run.run_last(args) end
 
 ---Stop a running process

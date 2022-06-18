@@ -228,6 +228,10 @@ function NeotestClient:_run_tree(tree, args, adapter)
       spec.strategy or {},
       config.strategies[args.strategy] or {}
     )
+    spec.env = vim.tbl_extend("force", spec.env or {}, args.env or {})
+    if vim.tbl_isempty(spec.env) then
+      spec.env = nil
+    end
     local process_result = self._processes:run(
       self:_create_process_key(adapter.name, position.id),
       spec,
@@ -602,6 +606,7 @@ function NeotestClient:_update_adapters(path)
     self:_update_positions(root, { adapter = adapter.name })
   end
 end
+
 ---@param events? neotest.EventProcessor
 ---@param state? neotest.ClientState
 ---@param processes? neotest.ProcessTracker

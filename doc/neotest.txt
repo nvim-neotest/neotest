@@ -275,6 +275,9 @@ neotest.run.run({args})                                    *neotest.run.run()*
         {strategy}   (string|neotest.Strategy)  Strategy to run commands with
         {extra_args} (string[])                 Extra arguments for test
                                                 command
+        {env}        (table<string, string>)    Extra environment variables to
+                                                add to the environment of
+                                                tests
 
 
 neotest.run.run_last({args})                          *neotest.run.run_last()*
@@ -302,6 +305,9 @@ neotest.run.run_last({args})                          *neotest.run.run_last()*
         {strategy}   (string|neotest.Strategy)  Strategy to run commands with
         {extra_args} (string[])                 Extra arguments for test
                                                 command
+        {env}        (table<string, string>)    Extra environment variables to
+                                                add to the environment of
+                                                tests
 
 
 neotest.run.stop({args})                                  *neotest.run.stop()*
