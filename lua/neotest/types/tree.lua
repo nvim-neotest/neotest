@@ -69,6 +69,17 @@ end
 
 ---@parem key any
 ---@param tree neotest.Tree
+function Tree:add_child(key, tree)
+  local current = self:get_key(key)
+  if not current then
+    tree._parent = self
+    table.insert(self._children, tree)
+  end
+  self:set_key(key, tree)
+end
+
+---@parem key any
+---@param tree neotest.Tree
 function Tree:set_key(key, tree)
   local current = self:get_key(key)
 
