@@ -28,6 +28,7 @@ vim.cmd([[
 ---@field border string: Border style
 ---@field max_height number: Max height of window as proportion of NeoVim window
 ---@field max_width number: Max width of window as proportion of NeoVim window
+---@field options table: Window local options to set on floating windows (e.g. winblend)
 
 ---@class neotest.Config.strategies.integrated
 ---@field width integer: Width to pass to the pty runnning commands
@@ -97,6 +98,7 @@ local default_config = {
     border = "rounded",
     max_height = 0.6,
     max_width = 0.6,
+    options = {},
   },
   strategies = {
     integrated = {

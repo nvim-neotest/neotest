@@ -98,6 +98,9 @@ function M.open(settings)
   local win_id = api.nvim_open_win(content_buffer, settings.enter or false, opts)
 
   vim.api.nvim_win_set_option(win_id, "wrap", false)
+  for name, val in pairs(config.floating.options) do
+    vim.api.nvim_win_set_option(win_id, name, val)
+  end
 
   ---@type neotest.Float
   local win = Float:new(win_id, position)

@@ -52,7 +52,8 @@ neotest.setup({user_config})                                 *neotest.setup()*
         floating = {
           border = "rounded",
           max_height = 0.6,
-          max_width = 0.6
+          max_width = 0.6,
+          options = {}
         },
         highlights = {
           adapter_name = "NeotestAdapterName",
@@ -149,6 +150,8 @@ neotest.Config.floating                              *neotest.Config.floating*
                                window
         {max_width}  (number)  Max width of window as proportion of NeoVim
                                window
+        {options}    (table)   Window local options to set on floating windows
+                               (e.g. winblend)
 
 
 neotest.Config.strategies.integrated    *neotest.Config.strategies.integrated*
