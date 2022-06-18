@@ -94,9 +94,9 @@ function neotest.jump.next(args)
       return
     end
     local predicate = args.status and match_status(args.status, adapter_id)
-        or function()
-          return true
-        end
+      or function()
+        return true
+      end
 
     if not jump_to_next(pos, predicate) then
       lib.notify("No tests below cursor", vim.log.levels.WARN)
@@ -115,9 +115,9 @@ function neotest.jump.prev(args)
       return
     end
     local predicate = args.status and match_status(args.status, adapter_id)
-        or function()
-          return true
-        end
+      or function()
+        return true
+      end
 
     if not jump_to_prev(pos, predicate) then
       lib.notify("No tests above cursor", vim.log.levels.WARN)
