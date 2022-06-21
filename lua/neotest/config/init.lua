@@ -17,12 +17,16 @@ vim.cmd([[
 
 ---@class neotest.Config
 ---@field adapters neotest.Adapter[]
+---@field discovery neotest.Config.discovery
 ---@field icons table<string, string>
 ---@field highlights table<string, string>
 ---@field floating neotest.Config.floating
 ---@field strategies neotest.Config.strategies
 ---@field summary neotest.Config.summary
 ---@field output neotest.Config.output
+--
+---@class neotest.Config.discovery
+---@field enabled boolean
 
 ---@class neotest.Config.floating
 ---@field border string: Border style
@@ -65,6 +69,9 @@ vim.cmd([[
 ---@type neotest.Config
 local default_config = {
   adapters = {},
+  discovery = {
+    enabled = true,
+  },
   icons = {
     passed = "✔",
     running = "🗘",

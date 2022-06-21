@@ -136,6 +136,37 @@ describe("neotest client", function()
         assert.Not.same(file_tree:children(), {})
       end)
     end)
+
+    describe("discovery.enabled = false", function()
+      a.it("doesn't scan directories by default", function()
+        require("neotest.config").setup({
+          adapters = { mock_adapter },
+          discovery = { enabled = false },
+        })
+        local tree = client:get_position(dir)
+        assert.Nil(tree)
+        tree = client:get_position(dir .. "/test_file_1")
+        assert.Nil(tree)
+      end)
+
+      a.it("only scans buffers that are open when client starts", function()
+        require("neotest.config").setup({
+          adapters = { mock_adapter },
+          discovery = { enabled = false },
+        })
+        local bufnr = async.fn.bufadd(dir .. "/test_file_1")
+        async.fn.bufload(bufnr)
+        local tree = client:get_position(dir)
+        assert.Not.Nil(tree)
+        assert.Not.same(tree, {})
+        tree = client:get_position(dir .. "/test_file_1")
+        assert.Not.Nil(tree)
+        assert.Not.same(tree, {})
+        tree = client:get_position(dir .. "/test_file_2")
+        assert.Nil(tree)
+        async.api.nvim_buf_delete(bufnr, {})
+      end)
+    end)
   end)
 
   describe("running tests", function()

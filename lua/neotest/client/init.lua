@@ -537,7 +537,9 @@ function NeotestClient:_start()
         if not adapter_id then
           return
         end
-        self:_update_positions(lib.files.parent(file_path), { adapter = adapter_id })
+        if config.discovery.enabled then
+          self:_update_positions(lib.files.parent(file_path), { adapter = adapter_id })
+        end
       end
       self:_update_positions(file_path, { adapter = adapter_id })
     end)
@@ -552,9 +554,11 @@ function NeotestClient:_start()
 
   autocmd({ "BufAdd", "BufDelete" }, function()
     local updated_dir = vim.fn.expand("<afile>:p:h")
-    async.run(function()
-      self:_update_positions(updated_dir)
-    end)
+    if config.discovery.enabled then
+      async.run(function()
+        self:_update_positions(updated_dir)
+      end)
+    end
   end)
 
   autocmd("BufEnter", function()
@@ -572,6 +576,14 @@ function NeotestClient:_start()
   end)
 
   self:_update_adapters(async.fn.getcwd())
+  -- If discovery is not enabled, we need to update positions for all open
+  -- buffers on startup
+  if not config.discovery.enabled then
+    for _, bufnr in ipairs(async.api.nvim_list_bufs()) do
+      local file_path = async.api.nvim_buf_get_name(bufnr)
+      self:_update_positions(file_path)
+    end
+  end
   local end_time = async.fn.localtime()
   logger.info("Initialisation finished in", end_time - start, "seconds")
   self:_set_focused_file(async.fn.expand("%:p"))
@@ -595,7 +607,9 @@ function NeotestClient:_update_adapters(path)
       table.insert(self._adapters, adapter)
       found[adapter.name] = true
     end
-    self:_update_positions(root, { adapter = adapter.name })
+    if config.discovery.enabled then
+      self:_update_positions(root, { adapter = adapter.name })
+    end
   end
   local root = lib.files.is_dir(path) and path or async.fn.getcwd()
   for _, adapter in ipairs(adapters_with_bufs) do
@@ -603,7 +617,9 @@ function NeotestClient:_update_adapters(path)
       table.insert(self._adapters, adapter)
       found[adapter.name] = true
     end
-    self:_update_positions(root, { adapter = adapter.name })
+    if config.discovery.enabled then
+      self:_update_positions(root, { adapter = adapter.name })
+    end
   end
 end
 

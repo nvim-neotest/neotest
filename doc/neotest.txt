@@ -49,6 +49,9 @@ neotest.setup({user_config})                                 *neotest.setup()*
         diagnostic = {
           enabled = true
         },
+        discovery = {
+          enabled = true
+        },
         floating = {
           border = "rounded",
           max_height = 0.6,
@@ -133,12 +136,20 @@ neotest.Config                                                *neotest.Config*
 
     Fields: ~
         {adapters}   (neotest.Adapter[])
+        {discovery}  (neotest.Config.discovery)
         {icons}      (table<string, string>)
         {highlights} (table<string, string>)
         {floating}   (neotest.Config.floating)
         {strategies} (neotest.Config.strategies)
         {summary}    (neotest.Config.summary)
         {output}     (neotest.Config.output)
+
+
+neotest.Config.discovery                            *neotest.Config.discovery*
+
+
+    Fields: ~
+        {enabled} (boolean)
 
 
 neotest.Config.floating                              *neotest.Config.floating*
