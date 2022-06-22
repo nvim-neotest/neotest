@@ -16,7 +16,7 @@ return function(spec)
   local finish_cond = async.control.Condvar.new()
   local result_code
 
-  dap.run(spec.strategy, {
+  dap.run(vim.tbl_extend("keep", spec.strategy, { env = spec.env, cwd = spec.cwd }), {
     before = function(config)
       dap.listeners.after.event_output[handler_id] = function(_, body)
         if vim.tbl_contains({ "stdout", "stderr" }, body.category) then
