@@ -60,7 +60,7 @@ return function(spec)
       attach_chan = attach_chan
         or vim.api.nvim_open_term(attach_buf, {
           on_input = function(_, _, _, data)
-            async.api.nvim_chan_send(job, data)
+            pcall(async.api.nvim_chan_send, job, data)
           end,
         })
       attach_win = lib.ui.float.open({
@@ -86,11 +86,10 @@ return function(spec)
       if result_code == nil then
         finish_cond:wait()
       end
-      pcall(async.fn.chanclose, job)
       output_file:close()
+      pcall(async.fn.chanclose, job)
       if attach_win then
-        vim.schedule(function()
-          attach_win:close(true)
+        attach_win:listen("close", function()
           pcall(vim.api.nvim_buf_delete, attach_buf, { force = true })
           pcall(vim.fn.chanclose, attach_chan)
         end)
