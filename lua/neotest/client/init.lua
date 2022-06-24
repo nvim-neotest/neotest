@@ -228,8 +228,7 @@ function NeotestClient:_run_tree(tree, args, adapter)
       spec.strategy or {},
       config.strategies[args.strategy] or {}
     )
-    spec.env = vim.tbl_extend("force", spec.env or {}, args.env or {})
-    if vim.tbl_isempty(spec.env) then
+    if vim.tbl_isempty(spec.env or {}) then
       spec.env = nil
     end
     local process_result = self._processes:run(
