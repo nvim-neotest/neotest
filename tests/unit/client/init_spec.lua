@@ -5,6 +5,9 @@ local Tree = require("neotest.types").Tree
 local lib = require("neotest.lib")
 local NeotestClient = require("neotest.client")
 local AdapterGroup = require("neotest.adapters")
+A = function(...)
+  print(vim.inspect(...))
+end
 
 describe("neotest client", function()
   local mock_adapter, mock_strategy, client
@@ -32,21 +35,21 @@ describe("neotest client", function()
           { id = file_path, type = "file", path = file_path, name = file_path },
           {
             {
-              id = "namespace",
+              id = file_path .. "::namespace",
               type = "namespace",
               path = file_path,
               name = "namespace",
               range = { 5, 0, 50, 0 },
             },
             {
-              id = "test_a",
+              id = file_path .. "::test_a",
               type = "test",
               path = file_path,
               name = "test_a",
               range = { 10, 0, 20, 50 },
             },
             {
-              id = "test_b",
+              id = file_path .. "::test_b",
               type = "test",
               path = file_path,
               name = "test_b",
@@ -71,6 +74,7 @@ describe("neotest client", function()
             }
           end
         end
+        A(results)
         return results
       end,
     }
@@ -170,6 +174,73 @@ describe("neotest client", function()
   end)
 
   describe("running tests", function()
+    describe("with unsupported roots", function()
+      a.it("breaks up directories to files", function()
+        local positions_run = {}
+        mock_adapter.build_spec = function(args)
+          local tree = args.tree
+          local pos = tree:data()
+          if pos.type == "dir" then
+            return
+          end
+          positions_run[pos.id] = true
+          return {}
+        end
+
+        local tree = client:get_position(dir)
+        client:run_tree(tree)
+
+        assert.same({
+          [dir .. "/test_file_1"] = true,
+          [dir .. "/test_file_2"] = true,
+        }, positions_run)
+      end)
+
+      a.it("breaks up files to tests", function()
+        local positons_run = {}
+        mock_adapter.build_spec = function(args)
+          local tree = args.tree
+          local pos = tree:data()
+          if pos.type == "dir" or pos.type == "file" then
+            return
+          end
+          positons_run[pos.id] = true
+          return {}
+        end
+
+        local tree = client:get_position(dir)
+        client:run_tree(tree)
+
+        assert.same({
+          ["/home/ronan/Dev/repos/neotest/test_file_1::test_a"] = true,
+          ["/home/ronan/Dev/repos/neotest/test_file_1::test_b"] = true,
+          ["/home/ronan/Dev/repos/neotest/test_file_2::test_a"] = true,
+          ["/home/ronan/Dev/repos/neotest/test_file_2::test_b"] = true,
+        }, positons_run)
+      end)
+
+      a.it("breaks up namespaces to tests", function()
+        local positons_run = {}
+        mock_adapter.build_spec = function(args)
+          local tree = args.tree
+          local pos = tree:data()
+          if pos.type == "namespace" then
+            return
+          end
+          positons_run[pos.id] = true
+          return {}
+        end
+
+        local tree = client:get_position(dir .. "/test_file_1::namespace")
+        client:run_tree(tree)
+
+        assert.same({
+          ["/home/ronan/Dev/repos/neotest/test_file_1::test_a"] = true,
+          ["/home/ronan/Dev/repos/neotest/test_file_1::test_b"] = true,
+        }, positons_run)
+      end)
+    end)
+
     a.it("fills results for dir from child files", function()
       local tree = client:get_position(dir)
       client:run_tree(tree, { strategy = mock_strategy })
@@ -206,7 +277,7 @@ describe("neotest client", function()
       local tree = client:get_position(dir)
       client:run_tree(tree, { strategy = mock_strategy })
       local results = client:get_results(mock_adapter.name)
-      assert.equal(6, #vim.tbl_keys(results))
+      assert.equal(9, #vim.tbl_keys(results))
     end)
   end)
 end)

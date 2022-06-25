@@ -1,14 +1,7 @@
 local async = require("neotest.async")
 local a = async.tests
-local stub = require("luassert.stub")
-local Tree = require("neotest.types").Tree
 local lib = require("neotest.lib")
 local ts = lib.treesitter
-local NeotestClient = require("neotest.client")
-local AdapterGroup = require("neotest.adapters")
-A = function(...)
-  print(vim.inspect(...))
-end
 
 local plenary_queries = [[
   ;; describe blocks

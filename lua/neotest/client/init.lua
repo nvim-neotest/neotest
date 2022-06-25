@@ -216,11 +216,13 @@ function NeotestClient:_run_tree(tree, args, adapter)
     end
 
     if position.type == "dir" then
-      logger.warn("Adapter doesn't support running directories, attempting files")
+      logger.warn(("%s doesn't support running directories, attempting files"):format(adapter.name))
       results = run_pos_types("file")
-    elseif position.type == "file" then
-      logger.warn("Adapter doesn't support running files")
+    elseif position.type ~= "test" then
+      logger.warn(("%s doesn't support running %ss"):format(adapter.name, position.type))
       results = run_pos_types("test")
+    else
+      error(("%s returned no data to run tests"):format(adapter.name))
     end
   else
     spec.strategy = vim.tbl_extend(
