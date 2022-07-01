@@ -76,6 +76,9 @@ function Float:close(force)
   if not force and api.nvim_get_current_win() == self.win_id then
     return false
   end
+  if not vim.api.nvim_win_is_valid(self.win_id) then
+    return true
+  end
   local buf = self:get_buf()
   pcall(api.nvim_win_close, self.win_id, true)
   for _, listener in pairs(self.listeners.close) do
