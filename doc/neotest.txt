@@ -67,6 +67,7 @@ neotest.setup({user_config})                                 *neotest.setup()*
           file = "NeotestFile",
           focused = "NeotestFocused",
           indent = "NeotestIndent",
+          marked = "NeotestMarked",
           namespace = "NeotestNamespace",
           passed = "NeotestPassed",
           running = "NeotestRunning",
@@ -113,11 +114,14 @@ neotest.setup({user_config})                                 *neotest.setup()*
           follow = true,
           mappings = {
             attach = "a",
+            clear_marked = "M",
             expand = { "<CR>", "<2-LeftMouse>" },
             expand_all = "e",
             jumpto = "i",
+            mark = "m",
             output = "o",
             run = "r",
+            run_marked = "R",
             short = "O",
             stop = "u"
           }
@@ -403,6 +407,35 @@ neotest.summary.toggle()                            *neotest.summary.toggle()*
     lua require("neotest").summary.toggle()
 <
 
+
+
+neotest.summary.run_marked({args})              *neotest.summary.run_marked()*
+    Run all marked positions
+
+
+    Parameters: ~
+        {args} (table)
+
+    Fields: ~
+        {adapter}    (string)                   Adapter ID, if not given all
+                                                adapters are used
+        {strategy}   (string|neotest.Strategy)  Strategy to run commands with
+        {extra_args} (string[])                 Extra arguments for test
+                                                command
+        {env}        (table<string, string>)    Extra environment variables to
+                                                add to the environment of
+                                                tests
+
+
+neotest.summary.clear_marked({args})          *neotest.summary.clear_marked()*
+    Clear all marked positions
+
+
+    Parameters: ~
+        {args} (table)
+
+    Fields: ~
+        {adapter} (string)  Adapter ID, if not given all adapters are used
 
 
 

@@ -8,6 +8,7 @@ local lib = require("neotest.lib")
 ---@field client neotest.InternalClient
 ---@field expanded_positions table
 ---@field child_components table<number, SummaryComponent>
+---@field marked table<string, boolean>
 ---@field adapter_id integer
 local SummaryComponent = {}
 
@@ -16,6 +17,7 @@ function SummaryComponent:new(client, adapter_id)
     client = client,
     expanded_positions = {},
     adapter_id = adapter_id,
+    marked = {},
   }
   setmetatable(elem, self)
   self.__index = self
@@ -84,9 +86,7 @@ function SummaryComponent:render(canvas, tree, expanded, focused, indent)
               end
             end
           else
-            for _, pos in
-              self.client:get_position(position.id, { adapter = self.adapter_id }):iter()
-            do
+            for _, pos in self.client:get_position(position.id, { adapter = self.adapter_id }):iter() do
               positions[pos.id] = true
             end
           end
@@ -135,6 +135,19 @@ function SummaryComponent:render(canvas, tree, expanded, focused, indent)
       neotest.run.run({ position.id, adapter = self.adapter_id })
     end)
 
+    canvas:add_mapping("mark", function()
+      self.marked[position.id] = not self.marked[position.id]
+      neotest.summary.render()
+    end)
+
+    canvas:add_mapping("run_marked", function()
+      neotest.summary.run_marked({ adapter = self.adapter_id })
+    end)
+
+    canvas:add_mapping("clear_marked", function()
+      neotest.summary.clear_marked({ adapter = self.adapter_id })
+    end)
+
     local state_icon, state_icon_group = self:_state_icon(position)
     canvas:write(" " .. state_icon .. " ", { group = state_icon_group })
 
@@ -142,6 +155,9 @@ function SummaryComponent:render(canvas, tree, expanded, focused, indent)
     if focused == position.id then
       table.insert(name_groups, hi.focused)
       canvas:position_cursor()
+    end
+    if self.marked[position.id] then
+      table.insert(name_groups, hi.marked)
     end
     canvas:write(position.name .. "\n", { group = name_groups })
 

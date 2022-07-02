@@ -5,7 +5,7 @@ vim.cmd([[
   hi default NeotestFailed ctermfg=Red guifg=#F70067
   hi default NeotestRunning ctermfg=Yellow guifg=#FFEC63
   hi default NeotestSkipped ctermfg=Cyan guifg=#00f1f5
-  hi link NeotestTest Normal 
+  hi default link NeotestTest Normal 
   hi default NeotestNamespace ctermfg=Magenta guifg=#D484FF
   hi default NeotestFocused gui=bold,underline cterm=bold,underline
   hi default NeotestFile ctermfg=Cyan guifg=#00f1f5
@@ -14,6 +14,7 @@ vim.cmd([[
   hi default NeotestExpandMarker ctermfg=Grey guifg=#8094b4
   hi default NeotestAdapterName ctermfg=Red guifg=#F70067
   hi default NeotestWinSelect ctermfg=Cyan guifg=#00f1f5 gui=bold
+  hi default NeotestMarked ctermfg=Brown guifg=#F79000 gui=bold
 ]])
 
 ---@class neotest.Config
@@ -102,6 +103,7 @@ local default_config = {
     expand_marker = "NeotestExpandMarker",
     adapter_name = "NeotestAdapterName",
     select_win = "NeotestWinSelect",
+    marked = "NeotestMarked",
   },
   floating = {
     border = "rounded",
@@ -128,6 +130,9 @@ local default_config = {
       jumpto = "i",
       stop = "u",
       run = "r",
+      mark = "m",
+      run_marked = "R",
+      clear_marked = "M",
     },
   },
   output = {
