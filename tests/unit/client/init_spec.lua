@@ -211,10 +211,10 @@ describe("neotest client", function()
         client:run_tree(tree)
 
         assert.same({
-          ["/home/ronan/Dev/repos/neotest/test_file_1::test_a"] = true,
-          ["/home/ronan/Dev/repos/neotest/test_file_1::test_b"] = true,
-          ["/home/ronan/Dev/repos/neotest/test_file_2::test_a"] = true,
-          ["/home/ronan/Dev/repos/neotest/test_file_2::test_b"] = true,
+          [dir .. "/test_file_1::test_a"] = true,
+          [dir .. "/test_file_1::test_b"] = true,
+          [dir .. "/test_file_2::test_a"] = true,
+          [dir .. "/test_file_2::test_b"] = true,
         }, positons_run)
       end)
 
@@ -234,8 +234,8 @@ describe("neotest client", function()
         client:run_tree(tree)
 
         assert.same({
-          ["/home/ronan/Dev/repos/neotest/test_file_1::test_a"] = true,
-          ["/home/ronan/Dev/repos/neotest/test_file_1::test_b"] = true,
+          [dir .. "/test_file_1::test_a"] = true,
+          [dir .. "/test_file_1::test_b"] = true,
         }, positons_run)
       end)
     end)

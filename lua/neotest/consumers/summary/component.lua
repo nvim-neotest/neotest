@@ -97,7 +97,8 @@ function SummaryComponent:render(canvas, tree, expanded, focused, indent)
     if position.type ~= "dir" then
       canvas:add_mapping("jumpto", function()
         local buf = vim.fn.bufadd(position.path)
-        vim.fn.bufload(buf)
+        -- Fails on swap conflict
+        pcall(vim.fn.bufload, buf)
         vim.api.nvim_buf_set_option(buf, "buflisted", true)
         if position.type == "file" then
           lib.ui.open_buf(buf)
