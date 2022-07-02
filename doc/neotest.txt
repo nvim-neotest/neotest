@@ -70,6 +70,7 @@ neotest.setup({user_config})                                 *neotest.setup()*
           namespace = "NeotestNamespace",
           passed = "NeotestPassed",
           running = "NeotestRunning",
+          select_win = "NeotestWinSelect",
           skipped = "NeotestSkipped",
           test = "NeotestTest"
         },

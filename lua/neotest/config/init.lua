@@ -13,6 +13,7 @@ vim.cmd([[
   hi default NeotestIndent ctermfg=Grey guifg=#8B8B8B
   hi default NeotestExpandMarker ctermfg=Grey guifg=#8094b4
   hi default NeotestAdapterName ctermfg=Red guifg=#F70067
+  hi default NeotestWinSelect ctermfg=Cyan guifg=#00f1f5 gui=bold
 ]])
 
 ---@class neotest.Config
@@ -100,6 +101,7 @@ local default_config = {
     indent = "NeotestIndent",
     expand_marker = "NeotestExpandMarker",
     adapter_name = "NeotestAdapterName",
+    select_win = "NeotestWinSelect",
   },
   floating = {
     border = "rounded",
