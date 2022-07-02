@@ -296,6 +296,8 @@ neotest.run.run({args})                                    *neotest.run.run()*
                                args[1] should be the position ID.
 
     Fields: ~
+        {suite}      (boolean)                  Run the entire suite instead
+                                                of a single position
         {adapter}    (string)                   Adapter ID, if not given the
                                                 first adapter found with
                                                 chosen position is used.
