@@ -130,9 +130,10 @@ local function init()
     end
     local expanded = {}
     for pos_id, result in pairs(results) do
-      if result.status == "failed"
-          and client:get_position(pos_id, { refresh = false, adapter = adapter_id })
-          and #client:get_position(pos_id, { adapter = adapter_id }):children() > 0
+      if
+        result.status == "failed"
+        and client:get_position(pos_id, { refresh = false, adapter = adapter_id })
+        and #client:get_position(pos_id, { adapter = adapter_id }):children() > 0
       then
         expanded[pos_id] = true
       end

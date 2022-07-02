@@ -86,7 +86,9 @@ function SummaryComponent:render(canvas, tree, expanded, focused, indent)
               end
             end
           else
-            for _, pos in self.client:get_position(position.id, { adapter = self.adapter_id }):iter() do
+            for _, pos in
+              self.client:get_position(position.id, { adapter = self.adapter_id }):iter()
+            do
               positions[pos.id] = true
             end
           end
