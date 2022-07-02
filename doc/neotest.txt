@@ -201,16 +201,21 @@ neotest.Config.summary.mappings              *neotest.Config.summary.mappings*
 
 
     Fields: ~
-        {expand}     (string|string[])  Expand currently selected position
-        {expand_all} (string|string[])  Expand all positions under currently
-                                        selected
-        {output}     (string|string[])  Show output for position
-        {short}      (string|string[])  Show short output for position (if
-                                        exists)
-        {attach}     (string|string[])  Attach to process for position
-        {jumpto}     (string|string[])  Jump to the selected position
-        {stop}       (string|string[])  Stop selected position
-        {run}        (string|string[])  Run selected position
+        {expand}       (string|string[])  Expand currently selected position
+        {expand_all}   (string|string[])  Expand all positions under currently
+                                          selected
+        {output}       (string|string[])  Show output for position
+        {short}        (string|string[])  Show short output for position (if
+                                          exists)
+        {attach}       (string|string[])  Attach to process for position
+        {jumpto}       (string|string[])  Jump to the selected position
+        {stop}         (string|string[])  Stop selected position
+        {run}          (string|string[])  Run selected position
+        {mark}         (string|string[])  Mark the selected position
+        {run_marked}   (string|string[])  Run the marked positions for
+                                          selected suite.
+        {clear_marked} (string|string[])  Clear the marked positions for
+                                          selected suite.
 
 
 neotest.Config.output                                  *neotest.Config.output*

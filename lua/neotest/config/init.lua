@@ -57,6 +57,9 @@ vim.cmd([[
 ---@field jumpto string | string[]: Jump to the selected position
 ---@field stop string | string[]: Stop selected position
 ---@field run string | string[]: Run selected position
+---@field mark string | string[]: Mark the selected position
+---@field run_marked string | string[]: Run the marked positions for selected suite.
+---@field clear_marked string | string[]: Clear the marked positions for selected suite.
 
 ---@class neotest.Config.output
 ---@field enabled boolean
