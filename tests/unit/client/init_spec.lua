@@ -10,7 +10,9 @@ A = function(...)
 end
 
 describe("neotest client", function()
-  local mock_adapter, mock_strategy, client
+  ---@type neotest.InternalClient
+  local client
+  local mock_adapter, mock_strategy, attached, stopped, exit_test
   local dir = async.fn.getcwd()
   local files
   local dirs = { dir }
@@ -22,6 +24,9 @@ describe("neotest client", function()
       return vim.tbl_contains(dirs, path)
     end)
     require("neotest.config").setup({ adapters = { mock_adapter } })
+
+    local send_exit, await_exit = async.control.channel.oneshot()
+    exit_test = send_exit
     mock_adapter = {
       name = "adapter",
       is_test_file = function()
@@ -85,9 +90,14 @@ describe("neotest client", function()
         output = function()
           return spec.strategy.output
         end,
-        stop = function() end,
-        attach = function() end,
+        stop = function()
+          send_exit()
+        end,
+        attach = function()
+          attached = true
+        end,
         result = function()
+          await_exit()
           return spec.strategy.exit_code
         end,
       }
@@ -187,6 +197,7 @@ describe("neotest client", function()
         end
 
         local tree = client:get_position(dir)
+        exit_test()
         client:run_tree(tree)
 
         assert.same({
@@ -208,6 +219,7 @@ describe("neotest client", function()
         end
 
         local tree = client:get_position(dir)
+        exit_test()
         client:run_tree(tree)
 
         assert.same({
@@ -231,6 +243,7 @@ describe("neotest client", function()
         end
 
         local tree = client:get_position(dir .. "/test_file_1::namespace")
+        exit_test()
         client:run_tree(tree)
 
         assert.same({
@@ -240,8 +253,54 @@ describe("neotest client", function()
       end)
     end)
 
+    describe("attaching", function()
+      a.it("with position", function()
+        local tree = client:get_position(dir)
+        async.run(function()
+          client:run_tree(tree, { strategy = mock_strategy })
+        end)
+        client:attach(tree)
+        exit_test()
+        assert.True(attached)
+      end)
+
+      a.it("with child", function()
+        local tree = client:get_position(dir)
+        async.run(function()
+          client:run_tree(tree, { strategy = mock_strategy })
+        end)
+        client:attach(tree:children()[1])
+        exit_test()
+        assert.True(attached)
+      end)
+    end)
+
+    describe("stopping", function()
+      a.it("with position", function()
+        local tree = client:get_position(dir)
+        local stopped
+        async.run(function()
+          client:run_tree(tree, { strategy = mock_strategy })
+          stopped = true
+        end)
+        client:stop(tree)
+        assert(stopped)
+      end)
+
+      a.it("with child", function()
+        local tree = client:get_position(dir)
+        async.run(function()
+          client:run_tree(tree, { strategy = mock_strategy })
+          stopped = true
+        end)
+        client:stop(tree:children()[1])
+        assert(stopped)
+      end)
+    end)
+
     a.it("fills results for dir from child files", function()
       local tree = client:get_position(dir)
+      exit_test()
       client:run_tree(tree, { strategy = mock_strategy })
       local results = client:get_results(mock_adapter.name)
       for _, pos in tree:iter() do
@@ -251,6 +310,7 @@ describe("neotest client", function()
 
     a.it("fills results for namespaces from child tests", function()
       local tree = client:get_position(dir .. "/test_file_1")
+      exit_test()
       client:run_tree(tree, { strategy = mock_strategy })
       local results = client:get_results(mock_adapter.name)
       for _, pos in tree:iter() do
@@ -274,6 +334,7 @@ describe("neotest client", function()
       end
 
       local tree = client:get_position(dir)
+      exit_test()
       client:run_tree(tree, { strategy = mock_strategy })
       local results = client:get_results(mock_adapter.name)
       assert.equal(9, #vim.tbl_keys(results))

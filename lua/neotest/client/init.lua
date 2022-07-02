@@ -11,12 +11,14 @@ local lib = require("neotest.lib")
 ---@field private _files_read table<string, boolean>
 ---@field private _adapters table<integer, neotest.Adapter>
 ---@field private _adapter_group neotest.AdapterGroup
+---@field private _runner neotest.TestRunner
 local NeotestClient = {}
 
-function NeotestClient:new(adapters, events, state, processes)
-  events = events or require("neotest.client.events").processor()
-  state = state or require("neotest.client.state")(events)
-  processes = processes or require("neotest.client.strategies")()
+function NeotestClient:new(adapters)
+  local events = require("neotest.client.events").processor()
+  local state = require("neotest.client.state")(events)
+  local processes = require("neotest.client.strategies")()
+  local runner = require("neotest.client.runner")(processes)
 
   local neotest = {
     _started = false,
@@ -27,6 +29,7 @@ function NeotestClient:new(adapters, events, state, processes)
     _processes = processes,
     _files_read = {},
     listeners = events.listeners,
+    _runner = runner,
   }
   self.__index = self
   setmetatable(neotest, self)
@@ -54,9 +57,9 @@ function NeotestClient:run_tree(tree, args)
     return
   end
   self._state:update_running(adapter_id, pos.id, pos_ids)
-  local results = self:_run_tree(tree, args, adapter)
+  local results = self._runner:_run_tree(tree, args, adapter)
   if pos.type ~= "test" then
-    self:_collect_results(adapter_id, tree, results)
+    self._runner:collect_results(tree, results)
   end
   if pos.type == "test" or pos.type == "namespace" then
     results[pos.path] = nil
@@ -66,215 +69,32 @@ end
 
 ---@async
 ---@param position neotest.Tree
----@param args table
+---@param args? table
 ---@field adapter string Adapter ID
 function NeotestClient:stop(position, args)
   args = args or {}
-  local running_process_root = self:_get_process_key(position, args)
-  if not running_process_root then
+  local adapter_id = args.adapter or self:_get_running_adapters(position:data().id)[1]
+  if not adapter_id then
     lib.notify("No running process found", "warn")
     return
   end
+  local running_process_root = self._runner:get_process_key(position, adapter_id)
   self._processes:stop(running_process_root)
-end
-
----@param position neotest.Tree
----@return string | nil
-function NeotestClient:_get_process_key(position, args)
-  local get_adapter = function(pos_id)
-    if args.adapter then
-      return args.adapter
-    end
-    local running_adapters = self:_get_running_adapters(pos_id)
-    return running_adapters[1]
-  end
-
-  local get_proc_key = function(pos_id)
-    local adapter = get_adapter(pos_id)
-    return adapter and self:_create_process_key(adapter, pos_id)
-  end
-
-  local is_running = function(pos_id)
-    local proc_key = get_proc_key(pos_id)
-    return proc_key and self._processes:exists(proc_key)
-  end
-
-  local running_process_root
-
-  if not is_running(position:data().id) then
-    for parent in position:iter_parents() do
-      if is_running(parent:data().id) then
-        running_process_root = parent:data().id
-        break
-      end
-    end
-  else
-    running_process_root = position:data().id
-  end
-  if running_process_root then
-    return get_proc_key(running_process_root)
-  end
-end
-
-function NeotestClient:_create_process_key(adapter_id, pos_id)
-  return adapter_id .. "-" .. pos_id
-end
-
----@private
----@async
-function NeotestClient:_collect_results(adapter_id, tree, results)
-  local root = tree:data()
-  local running = {}
-  for _, node in tree:iter_nodes() do
-    local pos = node:data()
-
-    if results[pos.id] then
-      for parent in node:iter_parents() do
-        local parent_pos = parent:data()
-        if not lib.positions.contains(root, parent_pos) then
-          break
-        end
-
-        local parent_result = results[parent_pos.id]
-        local pos_result = results[pos.id]
-        if not parent_result then
-          parent_result = { status = "passed", output = pos_result.output }
-        end
-
-        if pos_result.status ~= "skipped" then
-          if parent_result.status == "passed" then
-            parent_result.status = pos_result.status
-          end
-        end
-
-        if pos_result.errors then
-          parent_result.errors = vim.list_extend(parent_result.errors or {}, pos_result.errors)
-        end
-
-        results[parent_pos.id] = parent_result
-      end
-    end
-  end
-
-  local root_result = results[root.id]
-  for _, node in tree:iter_nodes() do
-    local pos = node:data()
-    if pos.type ~= "dir" then
-      if pos.type == "file" then
-        -- Files not being present means that they were skipped (probably)
-        if not results[pos.id] and root_result then
-          results[pos.id] = { status = "skipped", output = root.output }
-        end
-      else
-        if self:is_running(root.id) then
-          table.insert(running, pos.id)
-        end
-        -- Tests and namespaces not being present means that they failed to even start, count as root result
-        if not results[pos.id] and root_result then
-          results[pos.id] = { status = root_result.status, output = root_result.output }
-        end
-      end
-    end
-  end
-  if not vim.tbl_isempty(running) then
-    self._state:update_running(adapter_id, root.id, running)
-  end
-end
-
----@private
----@async
----@param tree neotest.Tree
----@param args table
----@param adapter neotest.Adapter
----@return table<string, neotest.Result>
-function NeotestClient:_run_tree(tree, args, adapter)
-  args = args or {}
-  args.strategy = args.strategy or "integrated"
-  local position = tree:data()
-
-  local spec = adapter.build_spec(vim.tbl_extend("force", args, {
-    tree = tree,
-  }))
-
-  local results = {}
-
-  if not spec then
-    local function run_pos_types(pos_type)
-      local async_runners = {}
-      for _, node in tree:iter_nodes() do
-        if node:data().type == pos_type then
-          table.insert(async_runners, function()
-            return self:_run_tree(node, args, adapter)
-          end)
-        end
-      end
-      local all_results = {}
-      for i, res in ipairs(async.util.join(async_runners)) do
-        all_results[i] = res[1]
-      end
-      return vim.tbl_extend("error", {}, unpack(all_results))
-    end
-
-    if position.type == "dir" then
-      logger.warn(("%s doesn't support running directories, attempting files"):format(adapter.name))
-      results = run_pos_types("file")
-    elseif position.type ~= "test" then
-      logger.warn(("%s doesn't support running %ss"):format(adapter.name, position.type))
-      results = run_pos_types("test")
-    else
-      error(("%s returned no data to run tests"):format(adapter.name))
-    end
-  else
-    spec.strategy = vim.tbl_extend(
-      "force",
-      spec.strategy or {},
-      config.strategies[args.strategy] or {}
-    )
-    if vim.tbl_isempty(spec.env or {}) then
-      spec.env = nil
-    end
-    local process_result = self._processes:run(
-      self:_create_process_key(adapter.name, position.id),
-      spec,
-      args
-    )
-    results = adapter.results(spec, process_result, tree)
-    if vim.tbl_isempty(results) then
-      if #tree:children() ~= 0 then
-        logger.warn("Results returned were empty, setting all positions to failed")
-        for _, pos in tree:iter() do
-          results[pos.id] = {
-            status = "failed",
-            errors = {},
-            output = process_result.output,
-          }
-        end
-      else
-        results[tree:data().id] = { status = "skipped", output = process_result.output }
-      end
-    else
-      for _, result in pairs(results) do
-        if not result.output then
-          result.output = process_result.output
-        end
-      end
-    end
-  end
-  return results
 end
 
 ---Attach to the given running position.
 ---@param position neotest.Tree
----@param args table
+---@param args? table
 ---@field adapter string Adapter ID
 ---@async
 function NeotestClient:attach(position, args)
   args = args or {}
-  local running_process_root = self:_get_process_key(position, args)
-  if not running_process_root then
+  local adapter_id = args.adapter or self:_get_running_adapters(position:data().id)[1]
+  if not adapter_id then
     lib.notify("No running process found", "warn")
     return
   end
+  local running_process_root = self._runner:get_process_key(position, adapter_id)
   if self._processes:attach(running_process_root) then
     logger.debug("Attached to process", running_process_root, "for position", position:data().id)
     return
@@ -481,11 +301,11 @@ end
 ---@async
 function NeotestClient:_propagate_results_to_new_positions(adapter_id, tree)
   local new_results = {}
-  local results = self:get_results()
+  local results = self:get_results(adapter_id)
   for _, pos in tree:iter() do
     new_results[pos.id] = results[pos.id]
   end
-  self:_collect_results(adapter_id, tree, new_results)
+  self._runner:collect_results(tree, new_results)
   if not vim.tbl_isempty(new_results) then
     self._state:update_results(adapter_id, new_results)
   end

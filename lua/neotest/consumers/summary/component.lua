@@ -112,7 +112,7 @@ function SummaryComponent:render(canvas, tree, expanded, focused, indent)
     canvas:add_mapping(
       "attach",
       async_func(function()
-        neotest.run.attach(position.id)
+        neotest.run.attach(position.id, { adapter = self.adapter_id })
       end)
     )
     canvas:add_mapping(
