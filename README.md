@@ -103,7 +103,16 @@ require("neotest").setup({
 })
 ```
 
-See `neotest.Config` for configuration options.
+See `:h neotest.Config` for configuration options and `:h neotest.setup()` for the default values.
+
+If you are using [lua-dev.nvim](https://github.com/folke/lua-dev.nvim), you can enable type checking for neotest to get
+autocomplete for the setup table.
+```lua
+require("lua-dev").setup({
+  library = { plugins = { "neotest" }, types = true },
+  ...
+})
+```
 
 ## Usage
 

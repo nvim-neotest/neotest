@@ -74,7 +74,6 @@ describe("neotest client", function()
             }
           end
         end
-        A(results)
         return results
       end,
     }
