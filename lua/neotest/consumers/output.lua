@@ -2,12 +2,13 @@ local async = require("neotest.async")
 local lib = require("neotest.lib")
 local config = require("neotest.config")
 
-local win
+local win, short_opened
 
 local function open_output(result, opts)
   local buf = async.api.nvim_create_buf(false, true)
   local chan = async.api.nvim_open_term(buf, {})
   local output = opts.short and result.short or lib.files.read(result.output)
+  short_opened = opts.short
   -- See https://github.com/neovim/neovim/issues/14557
   local dos_newlines = string.find(output, "\r\n") ~= nil
   async.api.nvim_chan_send(chan, dos_newlines and output or output:gsub("\n", "\r\n"))
@@ -72,10 +73,14 @@ local init = function(client)
     open = function(opts)
       opts = opts or {}
       if win then
-        if pcall(win.jump_to, win) then
-          return
+        if opts.short ~= short_opened then
+          win:close()
+        else
+          if pcall(win.jump_to, win) then
+            return
+          end
+          opts.enter = true
         end
-        opts.enter = true
       end
       async.run(function()
         local tree, adapter_id

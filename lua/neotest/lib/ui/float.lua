@@ -96,6 +96,7 @@ function M.open(settings)
   local opts = create_opts(settings.width, settings.height, position)
   local content_buffer = settings.buffer or api.nvim_create_buf(false, true)
   local win_id = api.nvim_open_win(content_buffer, settings.enter or false, opts)
+  api.nvim_exec("redraw", false)
 
   vim.api.nvim_win_set_option(win_id, "wrap", false)
   for name, val in pairs(config.floating.options) do
