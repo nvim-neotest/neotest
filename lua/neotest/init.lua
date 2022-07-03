@@ -82,9 +82,10 @@ function neotest.setup(user_config)
   config.setup(user_config)
   local adapter_group = require("neotest.adapters")(config.adapters)
   local client = require("neotest.client")(adapter_group)
-  for name, consumer in pairs(require("neotest.consumers")) do
-    if config[name].enabled then
-      consumers[name] = consumer(consumer_client(client, name))
+  local all_consumers = vim.tbl_extend("error", require("neotest.consumers"), config.consumers)
+  for name, consumer in pairs(all_consumers) do
+    if not config[name] or config[name].enabled then
+      consumers[name] = consumer(consumer_client(client, name)) or {}
     end
   end
 end

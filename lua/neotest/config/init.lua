@@ -19,6 +19,7 @@ vim.cmd([[
 
 ---@class neotest.Config
 ---@field adapters neotest.Adapter[]
+---@field consumers table<string, neotest.Consumer>
 ---@field discovery neotest.Config.discovery
 ---@field icons table<string, string>
 ---@field highlights table<string, string>
@@ -29,6 +30,8 @@ vim.cmd([[
 --
 ---@class neotest.Config.discovery
 ---@field enabled boolean
+
+---@alias neotest.Consumer fun(client: neotest.Client): table
 
 ---@class neotest.Config.floating
 ---@field border string: Border style
@@ -77,6 +80,7 @@ local default_config = {
   discovery = {
     enabled = true,
   },
+  consumers = {},
   icons = {
     passed = "✔",
     running = "🗘",
@@ -177,7 +181,7 @@ end
 
 setmetatable(NeotestConfigModule, {
   __index = function(_, key)
-    return user_config[key] or "woops"
+    return user_config[key]
   end,
 })
 
