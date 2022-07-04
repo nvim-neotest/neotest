@@ -7,7 +7,6 @@ local lib = require("neotest.lib")
 ---@field private _started boolean
 ---@field private _state neotest.ClientState
 ---@field private _events neotest.EventProcessor
----@field private _processes neotest.ProcessTracker
 ---@field private _files_read table<string, boolean>
 ---@field private _adapters table<integer, neotest.Adapter>
 ---@field private _adapter_group neotest.AdapterGroup
@@ -26,7 +25,6 @@ function NeotestClient:new(adapters)
     _events = events,
     _adapter_group = adapters,
     _state = state,
-    _processes = processes,
     _files_read = {},
     listeners = events.listeners,
     _runner = runner,
@@ -78,8 +76,7 @@ function NeotestClient:stop(position, args)
     lib.notify("No running process found", "warn")
     return
   end
-  local running_process_root = self._runner:get_process_key(position, adapter_id)
-  self._processes:stop(running_process_root)
+  self._runner:stop(position, adapter_id)
 end
 
 ---Attach to the given running position.
@@ -94,11 +91,7 @@ function NeotestClient:attach(position, args)
     lib.notify("No running process found", "warn")
     return
   end
-  local running_process_root = self._runner:get_process_key(position, adapter_id)
-  if self._processes:attach(running_process_root) then
-    logger.debug("Attached to process", running_process_root, "for position", position:data().id)
-    return
-  end
+  self._runner:attach(position, adapter_id)
 end
 
 ---@async
@@ -220,11 +213,9 @@ function NeotestClient:_update_positions(path, args)
       -- If existing tree then we have to find the point to merge the trees and update that path rather than trying to
       -- merge an orphan. This happens when a whole new directory is found (e.g. renamed an existing one).
       local existing_root = self:get_position(nil, { adapter = adapter_id })
-      while
-        existing_root
-        and vim.startswith(path, existing_root:data().path)
-        and not self:get_position(path, { adapter = adapter_id })
-      do
+      while existing_root
+          and vim.startswith(path, existing_root:data().path)
+          and not self:get_position(path, { adapter = adapter_id }) do
         path = lib.files.parent(path)
         if not vim.startswith(path, existing_root:data().path) then
           return
@@ -415,7 +406,7 @@ end
 function NeotestClient:_update_adapters(path)
   local adapters_with_root = lib.files.is_dir(path)
       and self._adapter_group:adapters_with_root_dir(path)
-    or {}
+      or {}
   local adapters_with_bufs = self._adapter_group:adapters_matching_open_bufs()
   local found = {}
   for _, adapter in pairs(self._adapters) do
@@ -444,10 +435,7 @@ function NeotestClient:_update_adapters(path)
   end
 end
 
----@param events? neotest.EventProcessor
----@param state? neotest.ClientState
----@param processes? neotest.ProcessTracker
 ---@return neotest.InternalClient
-return function(adapter_group, events, state, processes)
-  return NeotestClient:new(adapter_group, events, state, processes)
+return function(adapter_group)
+  return NeotestClient:new(adapter_group)
 end

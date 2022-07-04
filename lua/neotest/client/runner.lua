@@ -125,6 +125,26 @@ function TestRunner:get_process_key(position, adapter_id)
   end
 end
 
+function TestRunner:stop(position, adapter_id)
+  local running_process_root = self:get_process_key(position, adapter_id)
+  if not running_process_root then
+    return
+  end
+  if self._processes:stop(running_process_root) then
+    logger.debug("Stopped process", running_process_root, "for position", position:data().id)
+  end
+end
+
+function TestRunner:attach(position, adapter_id)
+  local running_process_root = self:get_process_key(position, adapter_id)
+  if not running_process_root then
+    return
+  end
+  if self._processes:attach(running_process_root) then
+    logger.debug("Attached to process", running_process_root, "for position", position:data().id)
+  end
+end
+
 ---@async
 function TestRunner:collect_results(tree, results)
   local root = tree:data()
