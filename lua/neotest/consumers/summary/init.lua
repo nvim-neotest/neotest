@@ -90,6 +90,7 @@ local function render(expanded)
   if not rendered then
     logger.error("Couldn't render buffer", err)
   end
+  async.api.nvim_exec("redraw", false)
 end
 
 local function expand(pos_id, recursive, focus)
