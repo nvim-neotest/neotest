@@ -18,8 +18,8 @@ return function(spec)
   local unread_data = ""
   local attach_win, attach_buf, attach_chan
   local output_path = async.fn.tempname()
-  -- TODO: Resolve permissions issues with opening file with luv
-  local output_file = assert(io.open(output_path, "w"))
+  local open_err, output_fd = async.uv.fs_open(output_path, "w", 438)
+  assert(not open_err, open_err)
   local success, job = pcall(async.fn.jobstart, command, {
     cwd = cwd,
     env = env,
@@ -27,13 +27,16 @@ return function(spec)
     height = spec.strategy.height,
     width = spec.strategy.width,
     on_stdout = function(_, data)
-      data = table.concat(data, "\n")
-      unread_data = unread_data .. data
-      output_file:write(data)
-      if attach_chan then
-        async.api.nvim_chan_send(attach_chan, unread_data)
-        unread_data = ""
-      end
+      async.run(function()
+        data = table.concat(data, "\n")
+        unread_data = unread_data .. data
+        local write_err, _ = async.uv.fs_write(output_fd, data)
+        assert(not write_err, write_err)
+        if attach_chan then
+          async.api.nvim_chan_send(attach_chan, unread_data)
+          unread_data = ""
+        end
+      end)
     end,
     on_exit = function(_, code)
       result_code = code
@@ -41,7 +44,8 @@ return function(spec)
     end,
   })
   if not success then
-    output_file:write(job)
+    local write_err, _ = async.uv.fs_write(output_fd, job)
+    assert(not write_err, write_err)
     result_code = 1
     finish_cond:notify_all()
   end
@@ -86,7 +90,8 @@ return function(spec)
       if result_code == nil then
         finish_cond:wait()
       end
-      output_file:close()
+      local close_err = async.uv.fs_close(output_fd)
+      assert(not close_err, close_err)
       pcall(async.fn.chanclose, job)
       if attach_win then
         attach_win:listen("close", function()
