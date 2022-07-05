@@ -290,12 +290,16 @@ neotest.output.open({opts})                            *neotest.output.open()*
         {opts} (table)
 
     Fields: ~
-        {short}       (boolean)  Show shortened output
-        {enter}       (boolean)  Enter output window
-        {position_id} (string)   Open output for position with this ID, opens
-                                 nearest position if not given
-        {adapter}     (string)   Adapter ID, defaults to first found with
-                                 matching position
+        {open_win}    (function)  Function that takes a table with width and
+                                  height keys and opens a window for the
+                                  output. If a window ID is not returned, the
+                                  current window will be used
+        {short}       (boolean)   Show shortened output
+        {enter}       (boolean)   Enter output window
+        {position_id} (string)    Open output for position with this ID, opens
+                                  nearest position if not given
+        {adapter}     (string)    Adapter ID, defaults to first found with
+                                  matching position
 
 
 
