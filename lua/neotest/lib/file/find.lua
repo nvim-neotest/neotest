@@ -48,6 +48,7 @@ function M.find(search_dirs)
     stdio = { stdin, stdout, stderr },
     detached = true,
     args = #find_command > 1 and vim.list_slice(find_command, 2, #find_command) or nil,
+    hide = true,
   }, function(code, _)
     result_code = code
     stdin:close()
