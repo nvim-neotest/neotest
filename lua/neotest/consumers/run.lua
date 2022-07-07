@@ -145,6 +145,14 @@ function neotest.run.attach(args)
   end)
 end
 
+---Get the list of all known adapter IDs.
+function neotest.run.adapters()
+  if not client:has_started() then
+    return {}
+  end
+  return client:get_adapters()
+end
+
 neotest.run = setmetatable(neotest.run, {
   __call = function(_, client_)
     client = client_

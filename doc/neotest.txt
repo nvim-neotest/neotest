@@ -402,6 +402,11 @@ neotest.run.attach({args})                              *neotest.run.attach()*
                             with chosen position is used.
 
 
+neotest.run.adapters()                                *neotest.run.adapters()*
+    Get the list of all known adapter IDs.
+
+
+
 
 ================================================================================
                                                                 *neotest.status*
