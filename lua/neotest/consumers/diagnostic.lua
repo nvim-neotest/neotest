@@ -39,10 +39,8 @@ local function init(client)
   end
 
   function BufferDiagnostics:draw_buffer()
-    local positions = client:get_position(
-      self.file_path,
-      { refresh = false, adapter = self.adapter_id }
-    )
+    local positions =
+      client:get_position(self.file_path, { refresh = false, adapter = self.adapter_id })
     if not positions then
       return
     end

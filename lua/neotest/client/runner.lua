@@ -58,19 +58,13 @@ function TestRunner:_run_tree(tree, args, adapter)
       error(("%s returned no data to run tests"):format(adapter.name))
     end
   else
-    spec.strategy = vim.tbl_extend(
-      "force",
-      spec.strategy or {},
-      config.strategies[args.strategy] or {}
-    )
+    spec.strategy =
+      vim.tbl_extend("force", spec.strategy or {}, config.strategies[args.strategy] or {})
     if vim.tbl_isempty(spec.env or {}) then
       spec.env = nil
     end
-    local process_result = self._processes:run(
-      self:_create_process_key(adapter.name, position.id),
-      spec,
-      args
-    )
+    local process_result =
+      self._processes:run(self:_create_process_key(adapter.name, position.id), spec, args)
     results = adapter.results(spec, process_result, tree)
     if vim.tbl_isempty(results) then
       if #tree:children() ~= 0 then
