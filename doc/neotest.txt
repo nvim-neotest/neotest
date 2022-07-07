@@ -101,7 +101,9 @@ neotest.setup({user_config})                                 *neotest.setup()*
           enabled = true
         },
         status = {
-          enabled = true
+          enabled = true,
+          signs = true,
+          virtual_text = false
         },
         strategies = {
           integrated = {
@@ -150,6 +152,7 @@ neotest.Config                                                *neotest.Config*
         {strategies} (neotest.Config.strategies)
         {summary}    (neotest.Config.summary)
         {output}     (neotest.Config.output)
+        {status}     (neotest.Config.status)
 
 
 neotest.Config.discovery                            *neotest.Config.discovery*
@@ -239,7 +242,9 @@ neotest.Config.status                                  *neotest.Config.status*
 
 
     Fields: ~
-        {enabled} (boolean)
+        {enabled}      (boolean)
+        {virtual_text} (boolean)  Display status using virtual text
+        {signs}        (boolean)  Display status using signs
 
 
 

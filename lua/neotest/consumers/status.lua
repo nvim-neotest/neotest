@@ -4,46 +4,56 @@ local config = require("neotest.config")
 
 ---@param client neotest.Client
 local function init(client)
-  vim.fn.sign_define(
-    "neotest_passed",
-    { text = config.icons.passed, texthl = config.highlights.passed }
-  )
-  vim.fn.sign_define(
-    "neotest_skipped",
-    { text = config.icons.skipped, texthl = config.highlights.skipped }
-  )
-  vim.fn.sign_define(
-    "neotest_failed",
-    { text = config.icons.failed, texthl = config.highlights.failed }
-  )
-  vim.fn.sign_define(
-    "neotest_running",
-    { text = config.icons.running, texthl = config.highlights.running }
-  )
+  local statuses = {
+    passed = { text = config.icons.passed, texthl = config.highlights.passed },
+    skipped = { text = config.icons.skipped, texthl = config.highlights.skipped },
+    failed = { text = config.icons.failed, texthl = config.highlights.failed },
+    running = { text = config.icons.running, texthl = config.highlights.running },
+  }
+  for status, conf in pairs(statuses) do
+    async.fn.sign_define("neotest_" .. status, conf)
+  end
+
+  local namespace = async.api.nvim_create_namespace(sign_group)
+
+  local function place_sign(buf, pos, adapter_id, results)
+    local status
+    if client:is_running(pos.id, { adapter = adapter_id }) then
+      status = "running"
+    elseif results[pos.id] then
+      local result = results[pos.id]
+      status = result.status
+    end
+    if not status then
+      return
+    end
+    if config.status.signs then
+      async.fn.sign_place(0, sign_group, "neotest_" .. status, pos.path, {
+        lnum = pos.range[1] + 1,
+        priority = 1000,
+      })
+    end
+    if config.status.virtual_text then
+      async.api.nvim_buf_set_extmark(buf, namespace, pos.range[1], 0, {
+        virt_text = {
+          { statuses[status].text, statuses[status].texthl },
+        },
+      })
+    end
+  end
 
   local function render_files(adapter_id, files)
     for _, file_path in pairs(files) do
       local results = client:get_results(adapter_id)
       async.fn.sign_unplace(sign_group, { buffer = file_path })
+      async.api.nvim_buf_clear_namespace(async.fn.bufnr(file_path), namespace, 0, -1)
       local tree = client:get_position(file_path, { adapter = adapter_id })
+      if not tree then
+        return
+      end
       for _, pos in tree:iter() do
         if pos.type ~= "file" then
-          local icon
-          if client:is_running(pos.id, { adapter = adapter_id }) then
-            icon = "neotest_running"
-          elseif results[pos.id] then
-            local result = results[pos.id]
-            icon = "neotest_" .. result.status
-          end
-          if icon then
-            async.fn.sign_place(
-              0,
-              sign_group,
-              icon,
-              pos.path,
-              { lnum = pos.range[1] + 1, priority = 1000 }
-            )
-          end
+          place_sign(async.fn.bufnr(file_path), pos, adapter_id, results)
         end
       end
     end

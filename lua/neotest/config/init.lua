@@ -27,6 +27,7 @@ vim.cmd([[
 ---@field strategies neotest.Config.strategies
 ---@field summary neotest.Config.summary
 ---@field output neotest.Config.output
+---@field status neotest.Config.status
 --
 ---@class neotest.Config.discovery
 ---@field enabled boolean
@@ -73,6 +74,8 @@ vim.cmd([[
 
 ---@class neotest.Config.status
 ---@field enabled boolean
+---@field virtual_text boolean: Display status using virtual text
+---@field signs boolean: Display status using signs
 
 ---@type neotest.Config
 local default_config = {
@@ -151,6 +154,8 @@ local default_config = {
   },
   status = {
     enabled = true,
+    virtual_text = false,
+    signs = true,
   },
   run = {
     enabled = true,
