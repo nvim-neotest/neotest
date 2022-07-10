@@ -19,7 +19,7 @@ function M.run(command, args)
   local result_code
   local send_exit, await_exit = async.control.channel.oneshot()
 
-  local handle, _ = vim.loop.spawn(command[1], {
+  local handle, pid = vim.loop.spawn(command[1], {
     stdio = { stdin, stdout, stderr },
     detached = false,
     args = #command > 1 and vim.list_slice(command, 2, #command) or nil,
@@ -27,6 +27,10 @@ function M.run(command, args)
     result_code = code
     send_exit()
   end)
+
+  if not handle then
+    error(pid)
+  end
 
   await_exit()
   handle:close()
