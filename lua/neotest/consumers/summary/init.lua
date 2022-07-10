@@ -1,3 +1,4 @@
+local lib = require("neotest.lib")
 local logger = require("neotest.logging")
 local config = require("neotest.config")
 local Canvas = require("neotest.consumers.summary.canvas")
@@ -245,6 +246,18 @@ function neotest.summary.clear_marked(args)
       component.marked = {}
     end
   end
+  render()
+end
+
+---Set the target for an adapter tree
+---@param adapter_id string
+---@param position_id string | nil: Position ID to target, nil to reset target
+function neotest.summary.target(adapter_id, position_id)
+  local component = components[adapter_id]
+  if not component then
+    lib.notify(("No tree found for adapter %s"):format(adapter_id))
+  end
+  component.target = position_id
   render()
 end
 

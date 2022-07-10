@@ -10,11 +10,13 @@ local lib = require("neotest.lib")
 ---@field child_components table<number, SummaryComponent>
 ---@field marked table<string, boolean>
 ---@field adapter_id integer
+---@field target string?
 local SummaryComponent = {}
 
 function SummaryComponent:new(client, adapter_id)
   local elem = {
     client = client,
+    target = nil,
     expanded_positions = {},
     adapter_id = adapter_id,
     marked = {},
@@ -37,6 +39,20 @@ end
 ---@param canvas Canvas
 ---@param tree neotest.Tree
 function SummaryComponent:render(canvas, tree, expanded, focused, indent)
+  if self.target then
+    tree = tree:get_key(self.target)
+    if not tree then
+      return
+    end
+    canvas:add_mapping("clear_target", function()
+      require("neotest").summary.target(self.adapter_id)
+    end)
+    canvas:write(tree:data().name .. "\n", { group = config.highlights.target })
+  end
+  self:_render(canvas, tree, expanded, focused, indent)
+end
+
+function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
   indent = indent or ""
   local children = tree:children()
   local neotest = require("neotest")
@@ -95,7 +111,14 @@ function SummaryComponent:render(canvas, tree, expanded, focused, indent)
           neotest.summary.render(positions)
         end)
       )
+
+      canvas:add_mapping("target", function()
+        neotest.summary.target(self.adapter_id, position.id)
+      end)
     end
+    canvas:add_mapping("clear_target", function()
+      neotest.summary.target(self.adapter_id)
+    end)
     if position.type ~= "dir" then
       canvas:add_mapping("jumpto", function()
         local buf = vim.fn.bufadd(position.path)
@@ -164,7 +187,7 @@ function SummaryComponent:render(canvas, tree, expanded, focused, indent)
     canvas:write(position.name .. "\n", { group = name_groups })
 
     if self.expanded_positions[position.id] then
-      self:render(canvas, node, expanded, focused, chid_indent)
+      self:_render(canvas, node, expanded, focused, chid_indent)
     end
   end
 end

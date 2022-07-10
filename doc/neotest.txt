@@ -74,6 +74,7 @@ neotest.setup({user_config})                                 *neotest.setup()*
           running = "NeotestRunning",
           select_win = "NeotestWinSelect",
           skipped = "NeotestSkipped",
+          target = "NeotestTarget",
           test = "NeotestTest"
         },
         icons = {
@@ -118,6 +119,7 @@ neotest.setup({user_config})                                 *neotest.setup()*
           mappings = {
             attach = "a",
             clear_marked = "M",
+            clear_target = "T",
             expand = { "<CR>", "<2-LeftMouse>" },
             expand_all = "e",
             jumpto = "i",
@@ -126,7 +128,8 @@ neotest.setup({user_config})                                 *neotest.setup()*
             run = "r",
             run_marked = "R",
             short = "O",
-            stop = "u"
+            stop = "u",
+            target = "t"
           }
         }
       }
@@ -490,6 +493,15 @@ neotest.summary.clear_marked({args})          *neotest.summary.clear_marked()*
 
     Fields: ~
         {adapter} (string)  Adapter ID, if not given all adapters are used
+
+
+neotest.summary.target({adapter_id}, {position_id}) *neotest.summary.target()*
+    Set the target for an adapter tree
+
+
+    Parameters: ~
+        {adapter_id}  (string)
+        {position_id} (string|nil)  Position ID to target, nil to reset target
 
 
 
