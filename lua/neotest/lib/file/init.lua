@@ -129,11 +129,33 @@ function M.parse_dir_from_files(root, files)
     paths[elem.path] = elem
   end
   local sorted_paths = { { path = "", type = "dir" } }
+
+  ---We use a custom string compare because it allows us to keep children under their directories
+  ---For example with default string compare "x", "x/y", "x.z" would be sorted to "x", "x.z", "x/y" which then breaks
+  ---paths_to_positions function because it assumes children are directly after their parents.
+  ---@param x string
+  ---@param y string
+  local function path_compare(x, y)
+    local target = string.byte("/")
+    for i = 1, math.min(#x, #y) do
+      local xe, ye = x:byte(i), y:byte(i)
+      if xe ~= ye then
+        if xe == target then
+          return true
+        elseif ye == target then
+          return false
+        end
+        return xe < ye
+      end
+    end
+    return #x < #y
+  end
+
   for _, elem in pairs(paths) do
     table.insert(sorted_paths, elem)
   end
   table.sort(sorted_paths, function(a, b)
-    return a.path < b.path
+    return path_compare(a.path, b.path)
   end)
   return Tree.from_list(parse_tree(paths_to_positions(sorted_paths)), function(pos)
     return pos.id
