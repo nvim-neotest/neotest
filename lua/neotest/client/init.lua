@@ -55,7 +55,7 @@ function NeotestClient:run_tree(tree, args)
     return
   end
   self._state:update_running(adapter_id, pos.id, pos_ids)
-  local success, results = pcall(self._runner._run_tree, self, tree, args, adapter)
+  local success, results = pcall(self._runner._run_tree, self._runner, tree, args, adapter)
   if not success then
     lib.notify(("%s: %s"):format(adapter.name, results), "warn")
     results = {}
