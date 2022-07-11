@@ -326,10 +326,10 @@ function NeotestClient:_start()
     local file_path = vim.fn.expand("<afile>:p")
     async.run(function()
       local adapter_id = self:_get_adapter(file_path, nil, true)
+      if not adapter_id then
+        return
+      end
       if not self:get_position(file_path, { adapter = adapter_id }) then
-        if not adapter_id then
-          return
-        end
         if config.discovery.enabled then
           self:_update_positions(lib.files.parent(file_path), { adapter = adapter_id })
         end
