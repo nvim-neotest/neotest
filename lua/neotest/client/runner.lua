@@ -42,6 +42,9 @@ function TestRunner:_run_tree(tree, args, adapter)
         end
       end
       local all_results = {}
+      if #async_runners == 0 then
+        return {}
+      end
       for i, res in ipairs(async.util.join(async_runners)) do
         all_results[i] = res[1]
       end

@@ -55,7 +55,14 @@ function NeotestClient:run_tree(tree, args)
     return
   end
   self._state:update_running(adapter_id, pos.id, pos_ids)
-  local results = self._runner:_run_tree(tree, args, adapter)
+  local success, results = pcall(self._runner._run_tree, self, tree, args, adapter)
+  if not success then
+    lib.notify(("%s: %s"):format(adapter.name, results), "warn")
+    results = {}
+    for _, pos in tree:iter() do
+      results[pos.id] = { status = "skipped" }
+    end
+  end
   if pos.type ~= "test" then
     self._runner:collect_results(tree, results)
   end
