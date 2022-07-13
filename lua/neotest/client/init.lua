@@ -274,11 +274,12 @@ function NeotestClient:_get_adapter(position_id, adapter_id, refresh)
       end
     end
   end
-  if not lib.files.is_dir(position_id) then
-    for _, adapter in ipairs(self._adapters) do
-      if self._state:positions(adapter.name, position_id) or adapter.is_test_file(position_id) then
-        return adapter.name, adapter
-      end
+  for _, adapter in ipairs(self._adapters) do
+    if
+      self._state:positions(adapter.name, position_id)
+      or (not lib.files.is_dir(position_id) and adapter.is_test_file(position_id))
+    then
+      return adapter.name, adapter
     end
   end
 
