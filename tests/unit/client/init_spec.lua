@@ -12,7 +12,7 @@ end
 describe("neotest client", function()
   ---@type neotest.InternalClient
   local client
-  local mock_adapter, mock_strategy, attached, stopped, exit_test
+  local mock_adapter, mock_strategy, attached, stopped, exit_test, provided_spec
   local dir = async.fn.getcwd()
   local files
   local dirs = { dir }
@@ -83,6 +83,7 @@ describe("neotest client", function()
       end,
     }
     mock_strategy = function(spec)
+      provided_spec = spec
       return {
         is_complete = function()
           return true
@@ -183,6 +184,21 @@ describe("neotest client", function()
   end)
 
   describe("running tests", function()
+    describe("using args", function()
+      a.it("provides env", function()
+        local tree = client:get_position(dir)
+        exit_test()
+        client:run_tree(tree, { strategy = mock_strategy, env = { TEST = "test" } })
+        assert.equal(provided_spec.env.TEST, "test")
+      end)
+
+      a.it("provides cwd", function()
+        local tree = client:get_position(dir)
+        exit_test()
+        client:run_tree(tree, { strategy = mock_strategy, cwd = "new_cwd" })
+        assert.equal(provided_spec.cwd, "new_cwd")
+      end)
+    end)
     describe("with unsupported roots", function()
       a.it("breaks up directories to files", function()
         local positions_run = {}

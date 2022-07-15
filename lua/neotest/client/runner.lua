@@ -63,6 +63,9 @@ function TestRunner:_run_tree(tree, args, adapter)
   else
     spec.strategy =
       vim.tbl_extend("force", spec.strategy or {}, config.strategies[args.strategy] or {})
+
+    spec.env = vim.tbl_extend("force", spec.env or {}, args.env or {})
+    spec.cwd = args.cwd or spec.cwd
     if vim.tbl_isempty(spec.env or {}) then
       spec.env = nil
     end
