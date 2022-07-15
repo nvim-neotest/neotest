@@ -26,7 +26,8 @@ end
 ---@param spec neotest.RunSpec
 ---@param args? table
 ---@return neotest.StrategyResult
-function NeotestProcessTracker:run(pos_id, spec, args)
+function NeotestProcessTracker:run(pos_id, spec, args, process_stream)
+  --TODO Break this up so we can use instance.output_stream before awaiting finish
   local strategy = self:_get_strategy(args)
   logger.info("Starting process", pos_id, "with strategy", args.strategy)
   logger.debug("Strategy spec", spec)
@@ -38,6 +39,13 @@ function NeotestProcessTracker:run(pos_id, spec, args)
     return { code = 1, output = output_path }
   end
   self._instances[pos_id] = instance
+  if process_stream then
+    async.run(function()
+      for data in instance.output_stream() do
+        process_stream(data)
+      end
+    end)
+  end
   local code = instance.result()
   logger.info("Process for position", pos_id, "exited with code", code)
   local output = instance.output()

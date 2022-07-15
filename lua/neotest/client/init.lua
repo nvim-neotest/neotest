@@ -36,7 +36,7 @@ end
 
 ---Run the given tree
 ---@async
----@param tree? neotest.Tree
+---@param tree neotest.Tree
 ---@param args table
 ---@field adapter string: Adapter ID
 ---@field strategy string: Strategy to run commands with
@@ -48,28 +48,41 @@ function NeotestClient:run_tree(tree, args)
     table.insert(pos_ids, pos.id)
   end
 
-  local pos = tree:data()
-  local adapter_id, adapter = self:_get_adapter(pos.id, args.adapter)
-  if not adapter_id then
-    logger.error("Adapter not found for position", pos.id)
+  local root = tree:data()
+  local adapter_id, adapter = self:_get_adapter(root.id, args.adapter)
+  if not adapter_id or not adapter then
+    logger.error("Adapter not found for position", root.id)
     return
   end
-  self._state:update_running(adapter_id, pos.id, pos_ids)
-  local success, results = pcall(self._runner._run_tree, self._runner, tree, args, adapter)
+  self._state:update_running(adapter_id, root.id, pos_ids)
+  local all_results = {}
+  local success, error = pcall(
+    self._runner.run_tree,
+    self._runner,
+    tree,
+    args,
+    adapter,
+    function(results)
+      for pos_id, result in pairs(results) do
+        all_results[pos_id] = result
+      end
+      self._state:update_results(adapter_id, results)
+    end
+  )
   if not success then
-    lib.notify(("%s: %s"):format(adapter.name, results), "warn")
-    results = {}
+    lib.notify(("%s: %s"):format(adapter.name, error), "warn")
+    all_results = {}
     for _, pos in tree:iter() do
-      results[pos.id] = { status = "skipped" }
+      all_results[pos.id] = { status = "skipped" }
     end
   end
-  if pos.type ~= "test" then
-    self._runner:collect_results(tree, results)
+  if root.type ~= "test" then
+    self._runner:fill_results(tree, all_results)
   end
-  if pos.type == "test" or pos.type == "namespace" then
-    results[pos.path] = nil
+  if root.type == "test" or root.type == "namespace" then
+    all_results[root.path] = nil
   end
-  self._state:update_results(adapter_id, results)
+  self._state:update_results(adapter_id, all_results)
 end
 
 ---@async
