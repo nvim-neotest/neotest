@@ -16,11 +16,12 @@
 ---@field line? integer
 
 ---@class neotest.Process
----@field output async fun():string Output data
----@field is_complete fun(): boolean Is process complete
----@field result async fun(): integer Get result code of process (async)
+---@field output async fun()string Output data
+---@field is_complete fun() boolean Is process complete
+---@field result async fun() integer Get result code of process (async)
 ---@field attach async fun() Attach to the running process for user input
 ---@field stop async fun() Stop the running process
+---@field output_stream fun(): string | nil Async iterator of process output
 
 ---@alias neotest.Strategy async fun(spec: neotest.RunSpec): neotest.Process
 
@@ -39,6 +40,7 @@
 ---@field cwd? string
 ---@field context? table Arbitrary data to preserve state between running and result collection
 ---@field strategy? table Arguments for strategy
+---@field stream fun(output_stream: fun(): string[]): fun(): table<string, neotest.Result>
 
 ---@class neotest.ConsumerListeners
 ---@field discover_positions fun(adapter_id: string, path: string, tree: neotest.Tree)
@@ -54,5 +56,6 @@ local M = {}
 
 M.Tree = require("neotest.types.tree")
 M.FIFOQueue = require("neotest.types.queue")
+M.FanoutAccum = require("neotest.types.fanout_accum")
 
 return M

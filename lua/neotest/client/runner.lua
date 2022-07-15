@@ -19,81 +19,144 @@ end
 ---@param tree neotest.Tree
 ---@param args table
 ---@param adapter neotest.Adapter
----@return table<string, neotest.Result>
-function TestRunner:_run_tree(tree, args, adapter)
-  args = args or {}
-  args.strategy = args.strategy or "integrated"
-  local position = tree:data()
-
-  local spec = adapter.build_spec(vim.tbl_extend("force", args, {
-    tree = tree,
-  }))
-
+function TestRunner:run_tree(tree, args, adapter, on_results)
   local results = {}
+  local results_callback = function(results_)
+    on_results(results_)
+    for pos_id, result in ipairs(results_) do
+      results[pos_id] = result
+    end
+  end
+
+  args = vim.tbl_extend("keep", args or {}, { strategy = "integrated" })
+
+  self:_run_tree(tree, args, adapter, results_callback)
+  on_results(results)
+end
+
+function TestRunner:_run_tree(tree, args, adapter, results_callback)
+  local spec = adapter.build_spec(vim.tbl_extend("force", args, { tree = tree }))
 
   if not spec then
-    local function run_pos_types(pos_type)
-      local async_runners = {}
-      for _, node in tree:iter_nodes() do
-        if node:data().type == pos_type then
-          table.insert(async_runners, function()
-            return self:_run_tree(node, args, adapter)
-          end)
-        end
-      end
-      local all_results = {}
-      if #async_runners == 0 then
-        return {}
-      end
-      for i, res in ipairs(async.util.join(async_runners)) do
-        all_results[i] = res[1]
-      end
-      return vim.tbl_extend("error", {}, unpack(all_results))
-    end
+    self:_run_broken_down_tree(tree, args, adapter, results_callback)
+    return
+  end
+  self:_run_spec(spec, tree, args, adapter, results_callback)
+end
 
-    if position.type == "dir" then
-      logger.warn(("%s doesn't support running directories, attempting files"):format(adapter.name))
-      results = run_pos_types("file")
-    elseif position.type ~= "test" then
-      logger.warn(("%s doesn't support running %ss"):format(adapter.name, position.type))
-      results = run_pos_types("test")
-    else
-      error(("%s returned no data to run tests"):format(adapter.name))
-    end
-  else
-    spec.strategy =
-      vim.tbl_extend("force", spec.strategy or {}, config.strategies[args.strategy] or {})
+function TestRunner:_stream_queue()
+  local sender, receiver = async.control.channel.mpsc()
 
+  local producer = function(output_stream)
+    local orig = ""
+    local pending_data = nil
+    for data in output_stream do
+      orig = orig .. data
+      local ends_with_newline = vim.endswith(data, "\n")
+      local next_lines = vim.split(data, "\n", { plain = true, trimempty = true })
+      if pending_data then
+        next_lines[1] = pending_data .. next_lines[1]
+        pending_data = nil
+      end
+      if not ends_with_newline then
+        pending_data = table.remove(next_lines, #next_lines)
+      end
+      for _, line in ipairs(next_lines) do
+        sender.send(line)
+      end
+    end
+  end
+
+  local consumer = function()
+    return receiver.recv()
+  end
+  return producer, consumer
+end
+
+---@param spec neotest.RunSpec
+---@param adapter neotest.Adapter
+function TestRunner:_run_spec(spec, tree, args, adapter, results_callback)
+  local position = tree:data()
+  spec.strategy =
+    vim.tbl_extend("force", spec.strategy or {}, config.strategies[args.strategy] or {})
     spec.env = vim.tbl_extend("force", spec.env or {}, args.env or {})
     spec.cwd = args.cwd or spec.cwd
     if vim.tbl_isempty(spec.env or {}) then
       spec.env = nil
     end
-    local process_result =
-      self._processes:run(self:_create_process_key(adapter.name, position.id), spec, args)
-    results = adapter.results(spec, process_result, tree)
-    if vim.tbl_isempty(results) then
-      if #tree:children() ~= 0 then
-        logger.warn("Results returned were empty, setting all positions to failed")
-        for _, pos in tree:iter() do
-          results[pos.id] = {
-            status = "failed",
-            errors = {},
-            output = process_result.output,
-          }
-        end
-      else
-        results[tree:data().id] = { status = "skipped", output = process_result.output }
+
+
+  local proc_key = self:_create_process_key(adapter.name, position.id)
+  local producer, consumer = self:_stream_queue()
+
+  local process_result = self._processes:run(proc_key, spec, args, spec.stream and producer)
+  if spec.stream then
+    async.run(function()
+      for stream_results in spec.stream(consumer) do
+        results_callback(stream_results)
       end
-    else
-      for _, result in pairs(results) do
-        if not result.output then
-          result.output = process_result.output
-        end
-      end
+    end)
+  end
+
+  local results = adapter.results(spec, process_result, tree)
+
+  if vim.tbl_isempty(results) then
+    results_callback(self:_fill_empty_results(tree, process_result.output))
+    return
+  end
+
+  self:fill_results(tree, results)
+
+  for _, result in pairs(results) do
+    if not result.output then
+      result.output = process_result.output
     end
   end
+
+  results_callback(results)
+end
+
+function TestRunner:_fill_empty_results(tree, output_path)
+  if #tree:children() == 0 then
+    return { [tree:data().id] = { status = "skipped", output = output_path } }
+  end
+  local results = {}
+  logger.warn("Results returned were empty, setting all positions to failed")
+  for _, pos in tree:iter() do
+    results[pos.id] = {
+      status = "failed",
+      errors = {},
+      output = output_path,
+    }
+  end
   return results
+end
+
+function TestRunner:_run_broken_down_tree(tree, args, adapter, results_callback)
+  local position = tree:data()
+  local function run_pos_types(pos_type)
+    local async_runners = {}
+    for _, node in tree:iter_nodes() do
+      if node:data().type == pos_type then
+        table.insert(async_runners, function()
+          self:_run_tree(node, args, adapter, results_callback)
+        end)
+      end
+    end
+    if #async_runners == 0 then
+      return {}
+    end
+    async.util.join(async_runners)
+  end
+
+  if position.type == "dir" then
+    logger.warn(("%s doesn't support running directories, attempting files"):format(adapter.name))
+    return run_pos_types("file")
+  elseif position.type ~= "test" then
+    logger.warn(("%s doesn't support running %ss"):format(adapter.name, position.type))
+    return run_pos_types("test")
+  end
+  error(("%s returned no data to run tests"):format(adapter.name))
 end
 
 function TestRunner:_create_process_key(adapter_id, pos_id)
@@ -146,8 +209,11 @@ function TestRunner:attach(position, adapter_id)
 end
 
 ---@async
-function TestRunner:collect_results(tree, results)
+---@param tree neotest.Tree
+---@param results table<string, neotest.Result>
+function TestRunner:fill_results(tree, results)
   local root = tree:data()
+  local missing_tests = {}
   for _, node in tree:iter_nodes() do
     local pos = node:data()
 
@@ -176,6 +242,10 @@ function TestRunner:collect_results(tree, results)
 
         results[parent_pos.id] = parent_result
       end
+    else
+      if pos.type == "test" then
+        missing_tests[#missing_tests + 1] = pos.id
+      end
     end
   end
 
@@ -186,7 +256,7 @@ function TestRunner:collect_results(tree, results)
       if pos.type == "file" then
         -- Files not being present means that they were skipped (probably)
         if not results[pos.id] and root_result then
-          results[pos.id] = { status = "skipped", output = root.output }
+          results[pos.id] = { status = "skipped", output = root_result.output }
         end
       else
         -- Tests and namespaces not being present means that they failed to even start, count as root result
@@ -194,6 +264,12 @@ function TestRunner:collect_results(tree, results)
           results[pos.id] = { status = root_result.status, output = root_result.output }
         end
       end
+    end
+  end
+
+  for _, test_id in ipairs(missing_tests) do
+    for parent in tree:get_key(test_id):iter_parents() do
+      results[parent:data().id] = nil
     end
   end
 end
