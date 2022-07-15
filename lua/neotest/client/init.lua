@@ -274,12 +274,21 @@ function NeotestClient:_get_adapter(position_id, adapter_id, refresh)
       end
     end
   end
-  for _, adapter in ipairs(self._adapters) do
-    if
-      self._state:positions(adapter.name, position_id)
-      or (not lib.files.is_dir(position_id) and adapter.is_test_file(position_id))
-    then
-      return adapter.name, adapter
+  if not lib.files.is_dir(position_id) then
+    for _, adapter in ipairs(self._adapters) do
+      if
+        self._state:positions(adapter.name, position_id)
+        or (not lib.files.is_dir(position_id) and adapter.is_test_file(position_id))
+      then
+        return adapter.name, adapter
+      end
+    end
+  else
+    for _, adapter in ipairs(self._adapters) do
+      local root = self._state:positions(adapter.name)
+      if vim.startswith(position_id, root:data().path) then
+        return adapter.name, adapter
+      end
     end
   end
 
