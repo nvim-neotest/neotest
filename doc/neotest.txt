@@ -75,7 +75,8 @@ neotest.setup({user_config})                                 *neotest.setup()*
           select_win = "NeotestWinSelect",
           skipped = "NeotestSkipped",
           target = "NeotestTarget",
-          test = "NeotestTest"
+          test = "NeotestTest",
+          unknown = "NeotestUnknown",
         },
         icons = {
           child_indent = "│",
