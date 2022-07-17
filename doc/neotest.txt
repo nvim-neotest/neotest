@@ -76,7 +76,7 @@ neotest.setup({user_config})                                 *neotest.setup()*
           skipped = "NeotestSkipped",
           target = "NeotestTarget",
           test = "NeotestTest",
-          unknown = "NeotestUnknown",
+          unknown = "NeotestUnknown"
         },
         icons = {
           child_indent = "│",

@@ -55,33 +55,24 @@ function NeotestClient:run_tree(tree, args)
     return
   end
   self._state:update_running(adapter_id, root.id, pos_ids)
-  local all_results = {}
-  local success, error = pcall(
+  local success, all_results = pcall(
     self._runner.run_tree,
     self._runner,
     tree,
     args,
     adapter,
     function(results)
-      for pos_id, result in pairs(results) do
-        all_results[pos_id] = result
-      end
-      self._state:update_results(adapter_id, results)
+      self._state:update_results(adapter_id, results, true)
     end
   )
   if not success then
-    lib.notify(("%s: %s"):format(adapter.name, error), "warn")
+    lib.notify(("%s: %s"):format(adapter.name, all_results), "warn")
     all_results = {}
     for _, pos in tree:iter() do
       all_results[pos.id] = { status = "skipped" }
     end
   end
-  if root.type ~= "test" then
-    self._runner:fill_results(tree, all_results)
-  end
-  if root.type == "test" or root.type == "namespace" then
-    all_results[root.path] = nil
-  end
+
   self._state:update_results(adapter_id, all_results)
 end
 
@@ -299,7 +290,7 @@ function NeotestClient:_get_adapter(position_id, adapter_id, refresh)
   else
     for _, adapter in ipairs(self._adapters) do
       local root = self._state:positions(adapter.name)
-      if vim.startswith(position_id, root:data().path) then
+      if root and vim.startswith(position_id, root:data().path) then
         return adapter.name, adapter
       end
     end

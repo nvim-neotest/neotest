@@ -2,24 +2,6 @@ local async = require("neotest.async")
 local lib = require("neotest.lib")
 local FanoutAccum = require("neotest.types").FanoutAccum
 
-local function first(...)
-  local functions = { ... }
-  local send_ran, await_ran = async.control.channel.oneshot()
-  local result, ran
-  for _, func in ipairs(functions) do
-    async.run(function()
-      local func_result = func()
-      if not ran then
-        result = func_result
-        ran = true
-        send_ran()
-      end
-    end)
-  end
-  await_ran()
-  return result
-end
-
 ---@class integratedStrategyConfig
 ---@field height integer
 ---@field width integer
@@ -84,19 +66,27 @@ return function(spec)
     end,
     output_stream = function()
       local sender, receiver = async.control.channel.mpsc()
-      data_accum:subscribe(sender.send)
+      data_accum:subscribe(function(d)
+        sender.send(d)
+      end)
       return function()
-        return first(finish_cond:wait(), receiver.recv)
+        return async.lib.first(function()
+          finish_cond:wait()
+        end, receiver.recv)
       end
     end,
     attach = function()
-      attach_buf = attach_buf or vim.api.nvim_create_buf(false, true)
-      attach_chan = attach_chan
-        or vim.api.nvim_open_term(attach_buf, {
+      if not attach_buf then
+        attach_buf = vim.api.nvim_create_buf(false, true)
+        attach_chan = vim.api.nvim_open_term(attach_buf, {
           on_input = function(_, _, _, data)
             pcall(async.api.nvim_chan_send, job, data)
           end,
         })
+        data_accum:subscribe(function(data)
+          async.api.nvim_chan_send(attach_chan, data)
+        end)
+      end
       attach_win = lib.ui.float.open({
         height = spec.strategy.height,
         width = spec.strategy.width,
@@ -110,10 +100,6 @@ return function(spec)
         end,
       })
       attach_win:jump_to()
-
-      data_accum:subscribe(function(data)
-        async.api.nvim_chan_send(attach_chan, data)
-      end)
     end,
     result = function()
       if result_code == nil then

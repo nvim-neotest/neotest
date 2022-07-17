@@ -1,3 +1,5 @@
+local async = require("neotest.async")
+local a = async.tests
 local files = require("neotest.lib").files
 A = function(...)
   print(vim.inspect(...))
@@ -115,6 +117,71 @@ describe("files library", function()
           },
         },
       })
+    end)
+  end)
+
+  describe("reading files", function()
+    local path, file
+    before_each(function()
+      path = vim.fn.tempname()
+      file = io.open(path, "w")
+    end)
+    after_each(function()
+      file:close()
+    end)
+
+    a.it("reads data", function()
+      file:write("some data")
+      file:flush()
+      local read_data = files.read(path)
+      assert.equal("some data", read_data)
+    end)
+
+    a.it("reads lines", function()
+      file:write("first\r\nsecond\nthird\n")
+      file:flush()
+      local read_data = files.read_lines(path)
+      assert.same({ "first", "second", "third" }, read_data)
+    end)
+
+    a.it("stream lines", function()
+      file:write("first\r\nsecond\nthird\n")
+      file:flush()
+      local lines_iter, stop_reading = files.stream_lines(path)
+      local result = {}
+      async.run(function()
+        for lines in lines_iter do
+          for _, line in ipairs(lines) do
+            result[#result + 1] = line
+          end
+        end
+      end)
+      async.util.sleep(0.1)
+      stop_reading()
+      assert.same({ "first", "second", "third" }, result)
+    end)
+
+    a.it("stream lines after new data written", function()
+      file:write("first\r\nsecond\nthird\n")
+      file:flush()
+      local lines_iter, stop_reading = files.stream_lines(path)
+      local result = {}
+      async.run(function()
+        for lines in lines_iter do
+          for _, line in ipairs(lines) do
+            result[#result + 1] = line
+          end
+        end
+      end)
+      async.util.sleep(10)
+      file:write("fourth")
+      file:flush()
+      async.util.sleep(10)
+      file:write("\nfifth\n")
+      file:flush()
+      async.util.sleep(10)
+      stop_reading()
+      assert.same({ "first", "second", "third", "fourth", "fifth" }, result)
     end)
   end)
 end)
