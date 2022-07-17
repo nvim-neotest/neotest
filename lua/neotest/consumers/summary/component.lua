@@ -198,7 +198,7 @@ function SummaryComponent:_state_icon(position)
     if self.client:is_running(position.id, { adapter = self.adapter_id }) then
       return config.icons.running, config.highlights.running
     end
-    return config.icons.unknown, "Normal"
+    return config.icons.unknown, config.highlights.unknown
   end
   return config.icons[result.status], config.highlights[result.status]
 end

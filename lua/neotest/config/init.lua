@@ -16,6 +16,7 @@ vim.cmd([[
   hi default NeotestWinSelect ctermfg=Cyan guifg=#00f1f5 gui=bold
   hi default NeotestMarked ctermfg=Brown guifg=#F79000 gui=bold
   hi default NeotestTarget ctermfg=Red guifg=#F70067
+  hi default link NeotestUnknown Normal
 ]])
 
 ---@class neotest.Config
@@ -116,6 +117,7 @@ local default_config = {
     select_win = "NeotestWinSelect",
     marked = "NeotestMarked",
     target = "NeotestTarget",
+    unknown = "NeotestUnknown",
   },
   floating = {
     border = "rounded",
