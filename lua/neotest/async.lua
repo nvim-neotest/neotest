@@ -19,6 +19,11 @@ local async_wrapper = {
   api = proxy_vim("api"),
   fn = proxy_vim("fn"),
 }
+if false then
+  -- For type checking
+  async_wrapper.api = vim.api
+  async_wrapper.fn = vim.fn
+end
 
 setmetatable(async_wrapper, {
   __index = function(_, k)

@@ -13,6 +13,17 @@ local function open_output(result, opts)
   local dos_newlines = string.find(output, "\r\n") ~= nil
   async.api.nvim_chan_send(chan, dos_newlines and output or output:gsub("\n", "\r\n"))
   async.util.sleep(10) -- Wait for chan to send
+  async.api.nvim_create_autocmd("TermEnter", {
+    buffer = buf,
+    callback = function()
+      vim.api.nvim_feedkeys(
+        vim.api.nvim_replace_termcodes("<C-\\><C-N>", true, true, true),
+        "n",
+        false
+      )
+    end,
+  })
+
   local lines = async.api.nvim_buf_get_lines(buf, 0, -1, false)
   local width, height = 80, #lines
   for i, line in ipairs(lines) do
