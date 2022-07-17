@@ -16,12 +16,12 @@
 ---@field line? integer
 
 ---@class neotest.Process
----@field output async fun()string Output data
+---@field output async fun(): string Path to file containing output data
 ---@field is_complete fun() boolean Is process complete
 ---@field result async fun() integer Get result code of process (async)
 ---@field attach async fun() Attach to the running process for user input
 ---@field stop async fun() Stop the running process
----@field output_stream fun(): string | nil Async iterator of process output
+---@field output_stream async fun(): async fun(): string Async iterator of process output
 
 ---@alias neotest.Strategy async fun(spec: neotest.RunSpec): neotest.Process
 

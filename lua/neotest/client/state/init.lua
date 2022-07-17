@@ -61,15 +61,17 @@ function NeotestClientState:update_positions(adapter_id, tree)
 end
 
 ---@param results table<string, neotest.Result>
-function NeotestClientState:update_results(adapter_id, results)
+function NeotestClientState:update_results(adapter_id, results, partial)
   logger.debug("New results for adapter", adapter_id)
   logger.trace(results)
   self._results[adapter_id] = vim.tbl_extend("force", self._results[adapter_id] or {}, results)
   if not self._running[adapter_id] then
     self._running[adapter_id] = {}
   end
-  for id, _ in pairs(results) do
-    self._running[adapter_id][id] = nil
+  if not partial then
+    for id, _ in pairs(results) do
+      self._running[adapter_id][id] = nil
+    end
   end
   self._events:emit(NeotestEvents.RESULTS, adapter_id, results)
 end

@@ -22,13 +22,97 @@ function M.read(file_path)
   return data
 end
 
+---@async
 function M.read_lines(file_path)
   local data = M.read(file_path)
-  local lines = {}
-  for line in vim.gsplit(data, "[\r]?\n", false) do
-    lines[#lines + 1] = line
+  return vim.split(data, "[\r]?\n", { trimempty = true })
+end
+
+---@param data_iterator fun(): string
+---@return fun(): string[]
+function M.split_lines(data_iterator)
+  local sender, receiver = async.control.channel.mpsc()
+
+  local producer = function()
+    local orig = ""
+    local pending_data = nil
+    for data in data_iterator do
+      orig = orig .. data
+      local ends_with_newline = vim.endswith(data, "\n")
+      local next_lines = vim.split(data, "[\r]?\n", { trimempty = true })
+      if pending_data then
+        if vim.startswith(data, "\r\n") or vim.startswith(data, "\n") then
+          table.insert(next_lines, 1, pending_data)
+        else
+          next_lines[1] = pending_data .. next_lines[1]
+        end
+        pending_data = nil
+      end
+      if not ends_with_newline then
+        pending_data = table.remove(next_lines, #next_lines)
+      end
+      sender.send(next_lines)
+    end
   end
-  return lines
+
+  async.run(producer)
+
+  return receiver.recv
+end
+
+---@return fun(): string, fun()
+function M.stream(file_path)
+  local sender, receiver = async.control.channel.mpsc()
+  local read_semaphore = async.control.Semaphore.new(1)
+
+  local open_err, file_fd = async.uv.fs_open(file_path, "r", 438)
+  assert(not open_err, open_err)
+  local data_read = 0
+
+  local send_exit, await_exit = async.control.channel.oneshot()
+  local read = function()
+    local permit = read_semaphore:acquire()
+    local stat_err, stat = async.uv.fs_fstat(file_fd)
+    assert(not stat_err, stat_err)
+    if data_read == stat.size then
+      permit:forget()
+      return
+    end
+    if data_read > stat.size then
+      send_exit()
+      error("Data deleted from file while streaming")
+    end
+    local read_err, data = async.uv.fs_read(file_fd, stat.size - data_read, data_read)
+    assert(not read_err, read_err)
+    data_read = #data + data_read
+    permit:forget()
+    sender.send(data)
+  end
+
+  read()
+  local event = vim.loop.new_fs_event()
+  event:start(file_path, {}, function(err, _, _)
+    assert(not err)
+    async.run(read)
+  end)
+
+  local function stop()
+    await_exit()
+    event:stop()
+    local close_err = async.uv.fs_close(file_fd)
+    assert(not close_err, close_err)
+  end
+
+  async.run(stop)
+
+  return receiver.recv, send_exit
+end
+
+---@param file_path str
+---@return fun(): string[], fun()
+function M.stream_lines(file_path)
+  local stream, stop = M.stream(file_path)
+  return M.split_lines(stream), stop
 end
 
 function M.exists(path)
@@ -73,6 +157,7 @@ function M.parse_dir_from_files(root, files)
     local function dir_contains(dir, child)
       return vim.startswith(child.path, dir.path .. M.sep)
     end
+
     local current_level = { parent }
     while true do
       local next_pos = dirs:peek()

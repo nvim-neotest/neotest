@@ -18,6 +18,25 @@ end
 local async_wrapper = {
   api = proxy_vim("api"),
   fn = proxy_vim("fn"),
+  lib = {
+    first = function(...)
+      local functions = { ... }
+      local send_ran, await_ran = plen_async.control.channel.oneshot()
+      local result, ran
+      for _, func in ipairs(functions) do
+        plen_async.run(function()
+          local func_result = func()
+          if not ran then
+            result = func_result
+            ran = true
+            send_ran()
+          end
+        end)
+      end
+      await_ran()
+      return result
+    end,
+  },
 }
 if false then
   -- For type checking
