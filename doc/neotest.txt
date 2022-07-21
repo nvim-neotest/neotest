@@ -1,5 +1,5 @@
 ================================================================================
-                                                                       *neotest*
+NEOTEST                                                                *neotest*
 
 A framework to interact with tests within NeoVim.
 
@@ -141,7 +141,7 @@ neotest.setup({user_config})                                 *neotest.setup()*
 
 
 ================================================================================
-                                                                *neotest.config*
+CONFIG                                                          *neotest.config*
 
 neotest.Config                                                *neotest.Config*
 
@@ -253,7 +253,7 @@ neotest.Config.status                                  *neotest.Config.status*
 
 
 ================================================================================
-                                                             *neotest.consumers*
+CONSUMERS                                                    *neotest.consumers*
 
 Consumers provide user consumable APIs by wrapping the lower level client
 object. If you are developing a consumer, it is strongly recommended to enable
@@ -284,7 +284,7 @@ which adapter ID you are using throughout several calls.
 
 
 ================================================================================
-                                                                *neotest.output*
+OUTPUT                                                          *neotest.output*
 
 A consumer that displays the output of test results.
 
@@ -313,7 +313,7 @@ neotest.output.open({opts})                            *neotest.output.open()*
 
 
 ================================================================================
-                                                                   *neotest.run*
+RUN                                                                *neotest.run*
 
 A consumer providing a simple interface to run tests.
 
@@ -418,14 +418,14 @@ neotest.run.adapters()                                *neotest.run.adapters()*
 
 
 ================================================================================
-                                                                *neotest.status*
+STATUS                                                          *neotest.status*
 
 A consumer that displays the results of tests as signs beside their
 declaration. This consumer is completely passive and so has no interface.
 
 
 ================================================================================
-                                                            *neotest.diagnostic*
+DIAGNOSTIC                                                  *neotest.diagnostic*
 
 A consumer that displays error messages using the vim.diagnostic API. This
 consumer is completely passive and so has no interface.
@@ -436,7 +436,7 @@ You can configure the diagnostic API for neotest using the "neotest" namespace
 
 
 ================================================================================
-                                                               *neotest.summary*
+SUMMARY                                                        *neotest.summary*
 
 A consumer that displays the structure of the test suite, along with results
 and allows running tests.
@@ -507,7 +507,7 @@ neotest.summary.target({adapter_id}, {position_id}) *neotest.summary.target()*
 
 
 ================================================================================
-                                                                  *neotest.jump*
+JUMP                                                              *neotest.jump*
 
 A consumer that allows jumping between tests
 
