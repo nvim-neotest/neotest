@@ -1,5 +1,6 @@
 local async = require("neotest.async")
 local lib = require("neotest.lib")
+local FanoutAccum = require("neotest.types").FanoutAccum
 
 ---@class integratedStrategyConfig
 ---@field height integer
@@ -14,12 +15,23 @@ return function(spec)
   local finish_cond = async.control.Condvar.new()
   local result_code = nil
   local command = spec.command
+  local data_accum = FanoutAccum(function(prev, new)
+    if not prev then
+      return new
+    end
+    return prev .. new
+  end, nil)
 
-  local unread_data = ""
   local attach_win, attach_buf, attach_chan
   local output_path = async.fn.tempname()
   local open_err, output_fd = async.uv.fs_open(output_path, "w", 438)
   assert(not open_err, open_err)
+
+  data_accum:subscribe(function(data)
+    local write_err, _ = async.uv.fs_write(output_fd, data)
+    assert(not write_err, write_err)
+  end)
+
   local success, job = pcall(async.fn.jobstart, command, {
     cwd = cwd,
     env = env,
@@ -28,14 +40,7 @@ return function(spec)
     width = spec.strategy.width,
     on_stdout = function(_, data)
       async.run(function()
-        data = table.concat(data, "\n")
-        unread_data = unread_data .. data
-        local write_err, _ = async.uv.fs_write(output_fd, data)
-        assert(not write_err, write_err)
-        if attach_chan then
-          async.api.nvim_chan_send(attach_chan, unread_data)
-          unread_data = ""
-        end
+        data_accum:push(table.concat(data, "\n"))
       end)
     end,
     on_exit = function(_, code)
@@ -59,14 +64,29 @@ return function(spec)
     stop = function()
       async.fn.jobstop(job)
     end,
+    output_stream = function()
+      local sender, receiver = async.control.channel.mpsc()
+      data_accum:subscribe(function(d)
+        sender.send(d)
+      end)
+      return function()
+        return async.lib.first(function()
+          finish_cond:wait()
+        end, receiver.recv)
+      end
+    end,
     attach = function()
-      attach_buf = attach_buf or vim.api.nvim_create_buf(false, true)
-      attach_chan = attach_chan
-        or vim.api.nvim_open_term(attach_buf, {
+      if not attach_buf then
+        attach_buf = vim.api.nvim_create_buf(false, true)
+        attach_chan = vim.api.nvim_open_term(attach_buf, {
           on_input = function(_, _, _, data)
             pcall(async.api.nvim_chan_send, job, data)
           end,
         })
+        data_accum:subscribe(function(data)
+          async.api.nvim_chan_send(attach_chan, data)
+        end)
+      end
       attach_win = lib.ui.float.open({
         height = spec.strategy.height,
         width = spec.strategy.width,
@@ -80,11 +100,6 @@ return function(spec)
         end,
       })
       attach_win:jump_to()
-
-      if unread_data ~= "" then
-        async.api.nvim_chan_send(attach_chan, unread_data)
-        unread_data = ""
-      end
     end,
     result = function()
       if result_code == nil then

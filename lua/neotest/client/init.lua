@@ -36,7 +36,7 @@ end
 
 ---Run the given tree
 ---@async
----@param tree? neotest.Tree
+---@param tree neotest.Tree
 ---@param args table
 ---@field adapter string: Adapter ID
 ---@field strategy string: Strategy to run commands with
@@ -48,28 +48,32 @@ function NeotestClient:run_tree(tree, args)
     table.insert(pos_ids, pos.id)
   end
 
-  local pos = tree:data()
-  local adapter_id, adapter = self:_get_adapter(pos.id, args.adapter)
-  if not adapter_id then
-    logger.error("Adapter not found for position", pos.id)
+  local root = tree:data()
+  local adapter_id, adapter = self:_get_adapter(root.id, args.adapter)
+  if not adapter_id or not adapter then
+    logger.error("Adapter not found for position", root.id)
     return
   end
-  self._state:update_running(adapter_id, pos.id, pos_ids)
-  local success, results = pcall(self._runner._run_tree, self._runner, tree, args, adapter)
+  self._state:update_running(adapter_id, root.id, pos_ids)
+  local success, all_results = pcall(
+    self._runner.run_tree,
+    self._runner,
+    tree,
+    args,
+    adapter,
+    function(results)
+      self._state:update_results(adapter_id, results, true)
+    end
+  )
   if not success then
-    lib.notify(("%s: %s"):format(adapter.name, results), "warn")
-    results = {}
+    lib.notify(("%s: %s"):format(adapter.name, all_results), "warn")
+    all_results = {}
     for _, pos in tree:iter() do
-      results[pos.id] = { status = "skipped" }
+      all_results[pos.id] = { status = "skipped" }
     end
   end
-  if pos.type ~= "test" then
-    self._runner:collect_results(tree, results)
-  end
-  if pos.type == "test" or pos.type == "namespace" then
-    results[pos.path] = nil
-  end
-  self._state:update_results(adapter_id, results)
+
+  self._state:update_results(adapter_id, all_results)
 end
 
 ---@async
@@ -286,7 +290,7 @@ function NeotestClient:_get_adapter(position_id, adapter_id, refresh)
   else
     for _, adapter in ipairs(self._adapters) do
       local root = self._state:positions(adapter.name)
-      if vim.startswith(position_id, root:data().path) then
+      if root and vim.startswith(position_id, root:data().path) then
         return adapter.name, adapter
       end
     end

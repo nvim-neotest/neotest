@@ -10,9 +10,9 @@ end)
 
 ---@class neotest.ProcessTracker
 ---@field _instances table<integer, neotest.Process>
-local NeotestProcessTracker = {}
+local ProcessTracker = {}
 
-function NeotestProcessTracker:new()
+function ProcessTracker:new()
   local tracker = {
     _instances = {},
   }
@@ -24,9 +24,10 @@ end
 ---@async
 ---@param pos_id string
 ---@param spec neotest.RunSpec
----@param args? table
+---@param args table
+---@param stream_processor async fun(data_iter: async fun(): string)
 ---@return neotest.StrategyResult
-function NeotestProcessTracker:run(pos_id, spec, args)
+function ProcessTracker:run(pos_id, spec, args, stream_processor)
   local strategy = self:_get_strategy(args)
   logger.info("Starting process", pos_id, "with strategy", args.strategy)
   logger.debug("Strategy spec", spec)
@@ -38,6 +39,12 @@ function NeotestProcessTracker:run(pos_id, spec, args)
     return { code = 1, output = output_path }
   end
   self._instances[pos_id] = instance
+  if stream_processor then
+    local iterator = lib.files.split_lines(instance.output_stream())
+    async.run(function()
+      stream_processor(iterator)
+    end)
+  end
   local code = instance.result()
   logger.info("Process for position", pos_id, "exited with code", code)
   local output = instance.output()
@@ -46,7 +53,7 @@ function NeotestProcessTracker:run(pos_id, spec, args)
   return { code = code, output = output }
 end
 
-function NeotestProcessTracker:stop(pos_id)
+function ProcessTracker:stop(pos_id)
   local instance = self._instances[pos_id]
   if not instance then
     return false
@@ -56,7 +63,7 @@ function NeotestProcessTracker:stop(pos_id)
 end
 
 ---@return neotest.Strategy
-function NeotestProcessTracker:_get_strategy(args)
+function ProcessTracker:_get_strategy(args)
   if type(args.strategy) == "string" then
     return get_strategy(args.strategy)
   end
@@ -65,7 +72,7 @@ end
 
 ---@async
 ---@param pos_id string
-function NeotestProcessTracker:attach(pos_id)
+function ProcessTracker:attach(pos_id)
   local instance = self._instances[pos_id]
   if not instance then
     return false
@@ -74,10 +81,10 @@ function NeotestProcessTracker:attach(pos_id)
   return true
 end
 
-function NeotestProcessTracker:exists(proc_key)
+function ProcessTracker:exists(proc_key)
   return self._instances[proc_key] ~= nil
 end
 
 return function()
-  return NeotestProcessTracker:new()
+  return ProcessTracker:new()
 end
