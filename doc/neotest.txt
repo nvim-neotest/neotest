@@ -47,6 +47,7 @@ neotest.setup({user_config})                                 *neotest.setup()*
       {
         adapters = {},
         consumers = {},
+        default_strategy = "integrated",
         diagnostic = {
           enabled = true
         },
@@ -147,16 +148,17 @@ neotest.Config                                                *neotest.Config*
 
 
     Fields: ~
-        {adapters}   (neotest.Adapter[])
-        {consumers}  (table<string, neotest.Consumer>)
-        {discovery}  (neotest.Config.discovery)
-        {icons}      (table<string, string>)
-        {highlights} (table<string, string>)
-        {floating}   (neotest.Config.floating)
-        {strategies} (neotest.Config.strategies)
-        {summary}    (neotest.Config.summary)
-        {output}     (neotest.Config.output)
-        {status}     (neotest.Config.status)
+        {adapters}         (neotest.Adapter[])
+        {consumers}        (table<string, neotest.Consumer>)
+        {discovery}        (neotest.Config.discovery)
+        {icons}            (table<string, string>)
+        {highlights}       (table<string, string>)
+        {floating}         (neotest.Config.floating)
+        {default_strategy} (string)
+        {strategies}       (neotest.Config.strategies)
+        {summary}          (neotest.Config.summary)
+        {output}           (neotest.Config.output)
+        {status}           (neotest.Config.status)
 
 
 neotest.Config.discovery                            *neotest.Config.discovery*
