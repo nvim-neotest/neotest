@@ -82,6 +82,7 @@ To get started you will also need to install an adapter for your test runner.
 | dart, flutter   |       [neotest-dart](https://github.com/sidlatau/neotest-dart)       |
 | testthat        | [neotest-testthat](https://github.com/shunsambongi/neotest-testthat) |
 | phpunit         | [neotest-phpunit](https://github.com/olimorris/neotest-phpunit)      |
+| rust            | [neotest-rust](https://github.com/rouge8/neotest-rust)               |
 
 For any runner without an adapter you can use [neotest-vim-test](https://github.com/nvim-neotest/neotest-vim-test) which supports any runner that vim-test supports.
 The vim-test adapter does not support some of the more advanced features such as error locations or per-test output.
