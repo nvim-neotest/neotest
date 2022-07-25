@@ -154,7 +154,7 @@ neotest.Config                                                *neotest.Config*
         {icons}            (table<string, string>)
         {highlights}       (table<string, string>)
         {floating}         (neotest.Config.floating)
-        {default_strategy} (string)
+        {default_strategy} (string|function)
         {strategies}       (neotest.Config.strategies)
         {summary}          (neotest.Config.summary)
         {output}           (neotest.Config.output)
