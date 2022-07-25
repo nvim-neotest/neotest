@@ -26,6 +26,7 @@ vim.cmd([[
 ---@field icons table<string, string>
 ---@field highlights table<string, string>
 ---@field floating neotest.Config.floating
+---@field default_strategy string | function
 ---@field strategies neotest.Config.strategies
 ---@field summary neotest.Config.summary
 ---@field output neotest.Config.output
@@ -125,6 +126,7 @@ local default_config = {
     max_width = 0.6,
     options = {},
   },
+  default_strategy = "integrated",
   strategies = {
     integrated = {
       width = 120,

@@ -55,7 +55,7 @@ function TestRunner:run_tree(tree, args, adapter, on_results)
     on_results(results)
   end
 
-  args = vim.tbl_extend("keep", args or {}, { strategy = "integrated" })
+  args = vim.tbl_extend("keep", args or {}, { strategy = config.default_strategy })
 
   self:_run_tree(tree, args, adapter, results_callback)
 
