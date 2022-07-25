@@ -26,7 +26,7 @@ vim.cmd([[
 ---@field icons table<string, string>
 ---@field highlights table<string, string>
 ---@field floating neotest.Config.floating
----@field default_strategy string
+---@field default_strategy string | function
 ---@field strategies neotest.Config.strategies
 ---@field summary neotest.Config.summary
 ---@field output neotest.Config.output
