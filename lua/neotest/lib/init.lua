@@ -21,14 +21,16 @@ M.func_util = require("neotest.lib.func_util")
 M.treesitter = require("neotest.lib.treesitter")
 
 M.notify = function(msg, level, opts)
-  return vim.notify(
-    msg,
-    level,
-    vim.tbl_extend("keep", opts or {}, {
-      title = "Neotest",
-      icon = "ﭧ",
-    })
-  )
+  vim.schedule(function()
+    return vim.notify(
+      msg,
+      level,
+      vim.tbl_extend("keep", opts or {}, {
+        title = "Neotest",
+        icon = "ﭧ",
+      })
+    )
+  end)
 end
 
 M.vim_test = require("neotest.lib.vim_test")
