@@ -49,7 +49,10 @@ end
 
 local components = {}
 
+local render_cond = async.control.Condvar.new()
+
 local focused
+local all_expanded = {}
 local function render(expanded)
   if not is_open() then
     return
@@ -64,35 +67,47 @@ local function render(expanded)
       vim.schedule(render)
     end)
   end
-  local canvas = Canvas.new(config.summary)
-  if not ready then
-    canvas:write("Parsing tests")
-  else
-    local cwd = async.fn.getcwd()
-    for _, adapter_id in ipairs(client:get_adapters()) do
-      local tree = client:get_position(nil, { adapter = adapter_id })
-      canvas:write(adapter_id .. "\n", { group = config.highlights.adapter_name })
-      if tree:data().path ~= cwd then
-        local root_dir = async.fn.fnamemodify(tree:data().path, ":.")
-        canvas:write(root_dir .. "\n", { group = config.highlights.dir })
-      end
-      components[adapter_id] = components[adapter_id] or SummaryComponent(client, adapter_id)
-      components[adapter_id]:render(canvas, tree, expanded or {}, focused)
-      canvas:write("\n")
-    end
-    if canvas:length() > 1 then
-      canvas:remove_line()
-      canvas:remove_line()
-    else
-      canvas:write("No tests found")
-    end
+  for pos_id, _ in pairs(expanded or {}) do
+    all_expanded[pos_id] = true
   end
-  local rendered, err = canvas:render_buffer(summary_buf)
-  if not rendered then
-    logger.error("Couldn't render buffer", err)
-  end
-  async.api.nvim_exec("redraw", false)
+  render_cond:notify_all()
 end
+
+async.run(function()
+  while true do
+    render_cond:wait()
+    local canvas = Canvas.new(config.summary)
+    if not client:has_started() then
+      canvas:write("Parsing tests")
+    else
+      local cwd = async.fn.getcwd()
+      for _, adapter_id in ipairs(client:get_adapters()) do
+        local tree = client:get_position(nil, { adapter = adapter_id })
+        canvas:write(adapter_id .. "\n", { group = config.highlights.adapter_name })
+        if tree:data().path ~= cwd then
+          local root_dir = async.fn.fnamemodify(tree:data().path, ":.")
+          canvas:write(root_dir .. "\n", { group = config.highlights.dir })
+        end
+        components[adapter_id] = components[adapter_id] or SummaryComponent(client, adapter_id)
+        components[adapter_id]:render(canvas, tree, all_expanded, focused)
+        all_expanded = {}
+        canvas:write("\n")
+      end
+      if canvas:length() > 1 then
+        canvas:remove_line()
+        canvas:remove_line()
+      else
+        canvas:write("No tests found")
+      end
+    end
+    local rendered, err = canvas:render_buffer(summary_buf)
+    if not rendered then
+      logger.error("Couldn't render buffer", err)
+    end
+    async.api.nvim_exec("redraw", false)
+    async.util.sleep(100)
+  end
+end)
 
 local function expand(pos_id, recursive, focus)
   local tree = client:get_position(pos_id)
@@ -129,6 +144,7 @@ local function init()
   client.listeners.results = function(adapter_id, results)
     if not config.summary.expand_errors then
       render()
+      return
     end
     local expanded = {}
     for pos_id, result in pairs(results) do
