@@ -70,7 +70,7 @@ vim.cmd([[
 
 ---@class neotest.Config.output
 ---@field enabled boolean
----@field open_on_run boolean: Open nearest test result after running
+---@field open_on_run string | boolean: Open nearest test result after running
 
 ---@class neotest.Config.diagnostic
 ---@field enabled boolean
