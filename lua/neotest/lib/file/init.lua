@@ -37,21 +37,23 @@ function M.split_lines(data_iterator)
     local orig = ""
     local pending_data = nil
     for data in data_iterator do
-      orig = orig .. data
-      local ends_with_newline = vim.endswith(data, "\n")
-      local next_lines = vim.split(data, "[\r]?\n", { trimempty = true })
-      if pending_data then
-        if vim.startswith(data, "\r\n") or vim.startswith(data, "\n") then
-          table.insert(next_lines, 1, pending_data)
-        else
-          next_lines[1] = pending_data .. next_lines[1]
+      if data ~= "" then
+        orig = orig .. data
+        local ends_with_newline = vim.endswith(data, "\n")
+        local next_lines = vim.split(data, "[\r]?\n", { trimempty = true })
+        if pending_data then
+          if vim.startswith(data, "\r\n") or vim.startswith(data, "\n") then
+            table.insert(next_lines, 1, pending_data)
+          else
+            next_lines[1] = pending_data .. next_lines[1]
+          end
+          pending_data = nil
         end
-        pending_data = nil
+        if not ends_with_newline then
+          pending_data = table.remove(next_lines, #next_lines)
+        end
+        sender.send(next_lines)
       end
-      if not ends_with_newline then
-        pending_data = table.remove(next_lines, #next_lines)
-      end
-      sender.send(next_lines)
     end
   end
 
@@ -254,7 +256,7 @@ function M.match_root_pattern(...)
   return function(start_path)
     local start_parents = Path:new(start_path):parents()
     local potential_roots = M.is_dir(start_path) and vim.list_extend({ start_path }, start_parents)
-      or start_parents
+        or start_parents
     for _, path in ipairs(potential_roots) do
       for _, pattern in ipairs(patterns) do
         for _, p in ipairs(async.fn.glob(Path:new(path, pattern).filename, true, true)) do
