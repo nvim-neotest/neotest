@@ -192,9 +192,21 @@ local function init(client)
 
   client.listeners.results = function(adapter_id, results)
     local files = {}
+    local tree = client:get_position(nil, { adapter = adapter_id })
+    if not tree then
+      return
+    end
+    --- Could be thousands of file paths in the results. To avoid checking if each one is loaded which involves a
+    --- vimscript call to bufnr, we create the set of buffers that are loaded and check against that.
+    local valid_bufs = {}
+    for _, bufnr in async.api.nvim_list_bufs() do
+      local bufpath = async.fn.fnamemodify(async.api.nvim_buf_get_name(bufnr), ":p")
+      valid_bufs[bufpath] = true
+    end
+
     for pos_id, _ in pairs(results) do
-      local node = client:get_position(pos_id, { adapter = adapter_id })
-      if node and node:data().type ~= "dir" then
+      local node = tree:get_key(pos_id)
+      if node and node:data().type ~= "dir" and valid_bufs[node:data().path] then
         files[node:data().path] = true
       end
     end
