@@ -199,7 +199,7 @@ local function init(client)
     --- Could be thousands of file paths in the results. To avoid checking if each one is loaded which involves a
     --- vimscript call to bufnr, we create the set of buffers that are loaded and check against that.
     local valid_bufs = {}
-    for _, bufnr in async.api.nvim_list_bufs() do
+    for _, bufnr in ipairs(async.api.nvim_list_bufs()) do
       local bufpath = async.fn.fnamemodify(async.api.nvim_buf_get_name(bufnr), ":p")
       valid_bufs[bufpath] = true
     end
