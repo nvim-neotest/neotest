@@ -52,6 +52,7 @@ local components = {}
 local render_cond = async.control.Condvar.new()
 
 local focused
+local pending_render = false
 local all_expanded = {}
 local function render(expanded)
   if not is_open() then
@@ -70,12 +71,16 @@ local function render(expanded)
   for pos_id, _ in pairs(expanded or {}) do
     all_expanded[pos_id] = true
   end
+  pending_render = true
   render_cond:notify_all()
 end
 
 async.run(function()
   while true do
-    render_cond:wait()
+    if not pending_render then
+      render_cond:wait()
+    end
+    pending_render = false
     local canvas = Canvas.new(config.summary)
     if not client:has_started() then
       canvas:write("Parsing tests")
