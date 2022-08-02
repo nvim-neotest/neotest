@@ -234,7 +234,7 @@ neotest.Config.output                                  *neotest.Config.output*
 
     Fields: ~
         {enabled}     (boolean)
-        {open_on_run} (boolean)  Open nearest test result after running
+        {open_on_run} (string|boolean)  Open nearest test result after running
 
 
 neotest.Config.diagnostic                          *neotest.Config.diagnostic*
