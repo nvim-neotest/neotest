@@ -4,7 +4,16 @@ local lib = require("neotest.lib")
 ---@type  neotest.Client
 local client
 local last_run
-local function get_tree_from_args(args, store)
+
+---@tag neotest.run
+---@brief [[
+--- A consumer providing a simple interface to run tests.
+---@brief ]]
+local neotest = {}
+neotest.run = {}
+
+---@private
+function neotest.run.get_tree_from_args(args, store)
   local tree, adapter = (function()
     if args.suite then
       return client:get_position(nil, args)
@@ -23,13 +32,6 @@ local function get_tree_from_args(args, store)
   end
   return tree
 end
-
----@tag neotest.run
----@brief [[
---- A consumer providing a simple interface to run tests.
----@brief ]]
-local neotest = {}
-neotest.run = {}
 
 ---Run the given position or the nearest position if not given.
 ---All arguments are optional
@@ -63,7 +65,7 @@ function neotest.run.run(args)
     args = { args }
   end
   async.run(function()
-    local tree = get_tree_from_args(args, true)
+    local tree = neotest.run.get_tree_from_args(args, true)
     if not tree then
       lib.notify("No tests found")
       return
@@ -118,7 +120,7 @@ function neotest.run.stop(args)
     args = { args }
   end
   async.run(function()
-    local tree = get_tree_from_args(args)
+    local tree = neotest.run.get_tree_from_args(args)
     if not tree then
       lib.notify("No tests found", "warn")
       return
@@ -136,7 +138,7 @@ function neotest.run.attach(args)
     args = { args }
   end
   async.run(function()
-    local pos = get_tree_from_args(args)
+    local pos = neotest.run.get_tree_from_args(args)
     if not pos then
       lib.notify("No tests found in file", "warn")
       return
