@@ -5,9 +5,15 @@ local config = require("neotest.config")
 local win, short_opened
 
 local function open_output(result, opts)
+  local output = opts.short and result.short or (result.output and lib.files.read(result.output))
+  if not output then
+    if not opts.quiet then
+      lib.notify("Output not found for position", "warn")
+    end
+    return
+  end
   local buf = async.api.nvim_create_buf(false, true)
   local chan = async.api.nvim_open_term(buf, {})
-  local output = opts.short and result.short or lib.files.read(result.output)
   short_opened = opts.short
   -- See https://github.com/neovim/neovim/issues/14557
   local dos_newlines = string.find(output, "\r\n") ~= nil
@@ -111,7 +117,7 @@ local init = function()
         then
           open_output(
             results[pos.id],
-            { enter = false, short = config.output.open_on_run == "short" }
+            { short = config.output.open_on_run == "short", enter = false, quiet = true }
           )
         end
       end
@@ -128,6 +134,7 @@ end
 ---@field open_win function: Function that takes a table with width and height keys and opens a window for the output. If a window ID is not returned, the current window will be used
 ---@field short boolean: Show shortened output
 ---@field enter boolean: Enter output window
+---@field quiet boolean: Suppress warnings of no output
 ---@field position_id string: Open output for position with this ID, opens nearest position if not given
 ---@field adapter string: Adapter ID, defaults to first found with matching position
 function neotest.output.open(opts)
