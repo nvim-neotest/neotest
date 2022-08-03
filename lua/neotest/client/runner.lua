@@ -180,68 +180,68 @@ end
 ---@param results table<string, neotest.Result>
 ---@param partial? boolean
 function TestRunner:_missing_results(tree, results, partial)
-  local new_results = setmetatable({}, {
+  local new_results = {}
+  local results_proxy = setmetatable({}, {
     __index = function(_, key)
-      return results[key]
+      return new_results[key] or results[key]
+    end,
+    __newindex = function(_, key, value)
+      new_results[key] = value
     end,
   })
   local root = tree:data()
   local missing_tests = {}
-  for _, node in tree:iter_nodes() do
-    local pos = node:data()
 
-    if results[pos.id] then
-      for parent in node:iter_parents() do
-        local parent_pos = parent:data()
-        if not lib.positions.contains(root, parent_pos) then
-          break
-        end
-        local parent_result = results[parent_pos.id]
-        local pos_result = results[pos.id]
-        if not parent_result then
-          parent_result = { status = "passed", output = pos_result.output }
-        end
-
-        if pos_result.status ~= "skipped" then
-          if parent_result.status == "passed" then
-            parent_result.status = pos_result.status
-          end
-        end
-
-        if pos_result.errors then
-          parent_result.errors = vim.list_extend(parent_result.errors or {}, pos_result.errors)
-        end
-
-        new_results[parent_pos.id] = parent_result
+  local function propagate_result_upwards(node)
+    for parent in node:iter_parents() do
+      local parent_pos = parent:data()
+      if not lib.positions.contains(root, parent_pos) then
+        return
       end
-    else
-      if pos.type == "test" then
-        missing_tests[#missing_tests + 1] = pos.id
+
+      local parent_result = results_proxy[parent_pos.id]
+      local pos_result = results_proxy[node:data().id]
+      if not parent_result then
+        parent_result = { status = "passed" }
       end
+
+      if pos_result.status ~= "skipped" and parent_result.status == "passed" then
+        parent_result.status = pos_result.status
+      end
+
+      if pos_result.errors then
+        parent_result.errors = vim.list_extend(parent_result.errors or {}, pos_result.errors)
+      end
+
+      results_proxy[parent_pos.id] = parent_result
     end
   end
+
+  for _, node in tree:iter_nodes() do
+    local pos = node:data()
+    if results_proxy[pos.id] then
+      propagate_result_upwards(node)
+    elseif pos.type == "test" then
+      missing_tests[#missing_tests + 1] = pos.id
+    end
+  end
+
   if partial then
     for _, test_id in ipairs(missing_tests) do
       for parent in tree:get_key(test_id):iter_parents() do
-        new_results[parent:data().id] = nil
+        results_proxy[parent:data().id] = nil
       end
     end
-  end
-
-  local root_result = results[root.id]
-  for _, node in tree:iter_nodes() do
-    local pos = node:data()
-    if pos.type ~= "dir" then
-      if pos.type == "file" then
+  else
+    local root_result = results_proxy[root.id]
+    for _, node in tree:iter_nodes() do
+      local pos = node:data()
+      if pos.type == "file" and not results_proxy[pos.id] then
         -- Files not being present means that they were skipped (probably)
-        if not results[pos.id] and root_result then
-          new_results[pos.id] = { status = "skipped", output = root_result.output }
-        end
-      else
+        results_proxy[pos.id] = { status = "skipped" }
+      elseif pos.type ~= "dir" and not results_proxy[pos.id] and root_result then
         -- Tests and namespaces not being present means that they failed to even start, count as root result
-        if not results[pos.id] and root_result then
-          new_results[pos.id] = { status = root_result.status, output = root_result.output }
-        end
+        results_proxy[pos.id] = { status = root_result.status }
       end
     end
   end

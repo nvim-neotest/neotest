@@ -77,7 +77,7 @@ describe("neotest client", function()
       results = function(_, _, tree)
         local results = {}
         for _, pos in tree:iter() do
-          if pos.type == "file" or pos.type == "test" then
+          if pos.type == "test" then
             results[pos.id] = {
               status = "failed",
               short = pos.name,
@@ -501,8 +501,47 @@ describe("neotest client", function()
       client:run_tree(tree, { strategy = mock_strategy })
       local results = client:get_results(mock_adapter.name)
       for _, pos in tree:iter() do
-        assert.Not.Nil(results[pos.id])
+        if pos.type == "dir" then
+          assert.equal(results[pos.id].status, "failed")
+        end
       end
+    end)
+
+    a.it("fills results for files from child files", function()
+      local tree = get_pos(dir)
+      exit_test()
+      client:run_tree(tree, { strategy = mock_strategy })
+      local results = client:get_results(mock_adapter.name)
+      for _, pos in tree:iter() do
+        if pos.type == "file" then
+          assert.equal(results[pos.id].status, "failed")
+        end
+      end
+    end)
+
+    a.it("fills empty file as skipped", function()
+      get_pos(dir)
+      mock_adapter.results = function()
+        return {}
+      end
+      mock_adapter.discover_positions = function()
+        return Tree.from_list({
+          {
+            id = dir .. "/dummy_file",
+            type = "file",
+            path = dir .. "/dummy_file",
+            name = dir .. "/dummy_file",
+          },
+        }, function(pos)
+          return pos.id
+        end)
+      end
+      client:_update_positions(dir .. "/dummy_file", { adapter = "adapter" })
+      local tree = get_pos(dir .. "/dummy_file")
+      exit_test()
+      client:run_tree(tree, { strategy = mock_strategy })
+      local results = client:get_results(mock_adapter.name)
+      assert.equal(results[dir .. "/dummy_file"].status, "skipped")
     end)
 
     a.it("fills results for namespaces from child tests", function()
