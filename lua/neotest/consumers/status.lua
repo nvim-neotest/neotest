@@ -18,11 +18,11 @@ local function init(client)
 
   local function place_sign(buf, pos, adapter_id, results)
     local status
-    if client:is_running(pos.id, { adapter = adapter_id }) then
-      status = "running"
-    elseif results[pos.id] then
+    if results[pos.id] then
       local result = results[pos.id]
       status = result.status
+    elseif client:is_running(pos.id, { adapter = adapter_id }) then
+      status = "running"
     end
     if not status then
       return
