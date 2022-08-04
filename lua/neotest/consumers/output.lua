@@ -83,14 +83,14 @@ local function open_output(result, opts)
   })
 end
 
----@tag neotest.output
-
----@brief [[
---- A consumer that displays the output of test results.
----@brief ]]
 local neotest = {}
+
+---@toc_entry Output Consumer
+---@text
+--- A consumer that displays the output of test results.
 neotest.output = {}
 
+---@private
 ---@type neotest.Client
 local client
 
@@ -125,18 +125,20 @@ local init = function()
   end
 end
 
----Open the output of a test result
----<pre>
---->
----lua require("neotest").output.open({ enter = true })
----</pre>
----@param opts table
----@field open_win function: Function that takes a table with width and height keys and opens a window for the output. If a window ID is not returned, the current window will be used
----@field short boolean: Show shortened output
----@field enter boolean: Enter output window
----@field quiet boolean: Suppress warnings of no output
----@field position_id string: Open output for position with this ID, opens nearest position if not given
----@field adapter string: Adapter ID, defaults to first found with matching position
+--- Open the output of a test result
+--- >
+---   lua require("neotest").output.open({ enter = true })
+--- <
+---@param opts table?
+---@field open_win function Function that takes a table with width and height keys
+--- and opens a window for the output. If a window ID is not returned, the current
+--- window will be used
+---@field short boolean Show shortened output
+---@field enter boolean Enter output window
+---@field quiet boolean Suppress warnings of no output
+---@field position_id string Open output for position with this ID, opens nearest
+--- position if not given
+---@field adapter string Adapter ID, defaults to first found with matching position
 function neotest.output.open(opts)
   opts = opts or {}
   if win then

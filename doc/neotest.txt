@@ -1,281 +1,255 @@
-================================================================================
-NEOTEST                                                                *neotest*
+*neotest.txt*	A framework to interact with tests within NeoVim
 
-A framework to interact with tests within NeoVim.
+==============================================================================
+neotest                                                                *neotest*
+                                   `neotest`
+  Setup......................................................|neotest.setup()|
+  Configuration Options.......................................|neotest.config|
+  Consumers................................................|neotest.consumers|
+  Output Consumer.............................................|neotest.output|
+  Run Consumer...................................................|neotest.run|
+  Status Consumer.............................................|neotest.status|
+  Diagnostic Consumer.....................................|neotest.diagnostic|
+  Summary Consumer...........................................|neotest.summary|
+  Jump Consumer.................................................|neotest.jump|
+
 
 There are three main components to this plugin's architecture.
-- Adapters: Generally language specific objects to parse tests, build commands
-  and parse results
-- Client: Runs tests and stores state of tests and results, emitting events
-  during operation
-- Consumers: Use the client to provide some utility to interact with tests and
-  results
+ - Adapters: Generally language specific objects to parse tests, build commands
+ and parse results
+
+ - Client: Runs tests and stores state of tests and results, emitting events
+ during operation
+
+ - Consumers: Use the client to provide some utility to interact with tests and
+ results
 
 In order to use neotest, you must use an adapter for your language of choice.
 You can supply them in the setup function.
 
 Once you have setup an adapter, you can use neotest consumers to run and
-interact with tests. For most users, the bulk of relevant features will be in
-the consumers. There are multiple consumers:
-- run: Allows running, debugging and stopping tests.
-
-- summary: Shows all known tests in a tree structure, along with their current
-  state.
-
-- output: Displays the output of tests.
-
-- diagnostics: Uses vim.diagnostic to show error messages where they occur (if
-  supported by the adapter).
-
-- status: Displays signs beside tests and namespaces to show current result
-  state.
+interact with tests.
+For most users, the bulk of relevant features will be in the consumers.
 
 Each consumer can be accessed as a property of the neotest module
+See the table of contents for the consumers
 
 >
- require("neotest").summary.toggle()
+   require("neotest").summary.toggle()
 <
 
 
+neotest.setup()                                                *neotest.setup()*
+                         `neotest.setup`({user_config})
 
-neotest.setup({user_config})                                 *neotest.setup()*
-    Configure Neotest strategies and consumers
-       See: ~
-           |neotest.Config|
+Neotest strategies and consumers
+See also~
+|neotest.Config|
 
-    Default values:
-      {
-        adapters = {},
-        consumers = {},
-        default_strategy = "integrated",
-        diagnostic = {
-          enabled = true
-        },
-        discovery = {
-          enabled = true
-        },
-        floating = {
-          border = "rounded",
-          max_height = 0.6,
-          max_width = 0.6,
-          options = {}
-        },
-        highlights = {
-          adapter_name = "NeotestAdapterName",
-          border = "NeotestBorder",
-          dir = "NeotestDir",
-          expand_marker = "NeotestExpandMarker",
-          failed = "NeotestFailed",
-          file = "NeotestFile",
-          focused = "NeotestFocused",
-          indent = "NeotestIndent",
-          marked = "NeotestMarked",
-          namespace = "NeotestNamespace",
-          passed = "NeotestPassed",
-          running = "NeotestRunning",
-          select_win = "NeotestWinSelect",
-          skipped = "NeotestSkipped",
-          target = "NeotestTarget",
-          test = "NeotestTest",
-          unknown = "NeotestUnknown"
-        },
-        icons = {
-          child_indent = "│",
-          child_prefix = "├",
-          collapsed = "─",
-          expanded = "╮",
-          failed = "✖",
-          final_child_indent = " ",
-          final_child_prefix = "╰",
-          non_collapsible = "─",
-          passed = "✔",
-          running = "🗘",
-          skipped = "ﰸ",
-          unknown = "?"
-        },
-        jump = {
-          enabled = true
-        },
-        output = {
-          enabled = true,
-          open_on_run = "short"
-        },
-        run = {
-          enabled = true
-        },
-        status = {
-          enabled = true,
-          signs = true,
-          virtual_text = false
-        },
-        strategies = {
-          integrated = {
-            height = 40,
-            width = 120
-          }
-        },
-        summary = {
-          enabled = true,
-          expand_errors = true,
-          follow = true,
-          mappings = {
-            attach = "a",
-            clear_marked = "M",
-            clear_target = "T",
-            expand = { "<CR>", "<2-LeftMouse>" },
-            expand_all = "e",
-            jumpto = "i",
-            mark = "m",
-            output = "o",
-            run = "r",
-            run_marked = "R",
-            short = "O",
-            stop = "u",
-            target = "t"
-          }
-        }
+Parameters~
+{user_config} neotest.Config
+
+Default values:
+>
+  {
+    adapters = {},
+    consumers = {},
+    default_strategy = "integrated",
+    diagnostic = {
+      enabled = true
+    },
+    discovery = {
+      enabled = true
+    },
+    floating = {
+      border = "rounded",
+      max_height = 0.6,
+      max_width = 0.6,
+      options = {}
+    },
+    highlights = {
+      adapter_name = "NeotestAdapterName",
+      border = "NeotestBorder",
+      dir = "NeotestDir",
+      expand_marker = "NeotestExpandMarker",
+      failed = "NeotestFailed",
+      file = "NeotestFile",
+      focused = "NeotestFocused",
+      indent = "NeotestIndent",
+      marked = "NeotestMarked",
+      namespace = "NeotestNamespace",
+      passed = "NeotestPassed",
+      running = "NeotestRunning",
+      select_win = "NeotestWinSelect",
+      skipped = "NeotestSkipped",
+      target = "NeotestTarget",
+      test = "NeotestTest",
+      unknown = "NeotestUnknown"
+    },
+    icons = {
+      child_indent = "│",
+      child_prefix = "├",
+      collapsed = "─",
+      expanded = "╮",
+      failed = "✖",
+      final_child_indent = " ",
+      final_child_prefix = "╰",
+      non_collapsible = "─",
+      passed = "✔",
+      running = "🗘",
+      skipped = "ﰸ",
+      unknown = "?"
+    },
+    jump = {
+      enabled = true
+    },
+    output = {
+      enabled = true,
+      open_on_run = "short"
+    },
+    run = {
+      enabled = true
+    },
+    status = {
+      enabled = true,
+      signs = true,
+      virtual_text = false
+    },
+    strategies = {
+      integrated = {
+        height = 40,
+        width = 120
       }
-
-    Parameters: ~
-        {user_config} (neotest.Config)
-
-
-
-================================================================================
-CONFIG                                                          *neotest.config*
-
-neotest.Config                                                *neotest.Config*
-
-
-    Fields: ~
-        {adapters}         (neotest.Adapter[])
-        {consumers}        (table<string, neotest.Consumer>)
-        {discovery}        (neotest.Config.discovery)
-        {icons}            (table<string, string>)
-        {highlights}       (table<string, string>)
-        {floating}         (neotest.Config.floating)
-        {default_strategy} (string|function)
-        {strategies}       (neotest.Config.strategies)
-        {summary}          (neotest.Config.summary)
-        {output}           (neotest.Config.output)
-        {status}           (neotest.Config.status)
-
-
-neotest.Config.discovery                            *neotest.Config.discovery*
+    },
+    summary = {
+      enabled = true,
+      expand_errors = true,
+      follow = true,
+      mappings = {
+        attach = "a",
+        clear_marked = "M",
+        clear_target = "T",
+        expand = { "<CR>", "<2-LeftMouse>" },
+        expand_all = "e",
+        jumpto = "i",
+        mark = "m",
+        output = "o",
+        run = "r",
+        run_marked = "R",
+        short = "O",
+        stop = "u",
+        target = "t"
+      }
+    }
+  }
+<
 
 
-    Fields: ~
-        {enabled} (boolean)
+==============================================================================
+neotest.config                                                  *neotest.config*
+
+Class~
+{neotest.Config}
+Fields~
+{adapters} neotest.Adapter[]
+{consumers} `(table<string, neotest.Consumer>)`
+{discovery} neotest.Config.discovery
+{icons} `(table<string, string>)`
+{highlights} `(table<string, string>)`
+{floating} neotest.Config.floating
+{default_strategy} `(string|function)`
+{strategies} neotest.Config.strategies
+{summary} neotest.Config.summary
+{output} neotest.Config.output
+{status} neotest.Config.status
+
+Class~
+{neotest.Config.discovery}
+Fields~
+{enabled} `(boolean)`
+
+Class~
+{neotest.Config.floating}
+Fields~
+{border} `(string)` Border style
+{max_height} `(number)` Max height of window as proportion of NeoVim window
+{max_width} `(number)` Max width of window as proportion of NeoVim window
+{options} `(table)` Window local options to set on floating windows (e.g. winblend)
+
+Class~
+{neotest.Config.strategies.integrated}
+Fields~
+{width} `(integer)` Width to pass to the pty runnning commands
+
+Class~
+{neotest.Config.strategies}
+Fields~
+{integrated} neotest.Config.strategies.integrated
+
+Class~
+{neotest.Config.summary}
+Fields~
+{enabled} `(boolean)`
+{follow} `(boolean)` Expand user's current file
+{expand_errors} `(boolean)` Expand all failed positions
+{mappings} neotest.Config.summary.mappings Buffer mappings for summary window
+
+Class~
+{neotest.Config.summary.mappings}
+Fields~
+{expand} `(string|string[])` Expand currently selected position
+{expand_all} `(string|string[])` Expand all positions under currently selected
+{output} `(string|string[])` Show output for position
+{short} `(string|string[])` Show short output for position (if exists)
+{attach} `(string|string[])` Attach to process for position
+{jumpto} `(string|string[])` Jump to the selected position
+{stop} `(string|string[])` Stop selected position
+{run} `(string|string[])` Run selected position
+{mark} `(string|string[])` Mark the selected position
+{run_marked} `(string|string[])` Run the marked positions for selected suite.
+{clear_marked} `(string|string[])` Clear the marked positions for selected suite.
+
+Class~
+{neotest.Config.output}
+Fields~
+{enabled} `(boolean)`
+{open_on_run} `(string|boolean)` Open nearest test result after running
+
+Class~
+{neotest.Config.diagnostic}
+Fields~
+{enabled} `(boolean)`
+
+Class~
+{neotest.Config.status}
+Fields~
+{enabled} `(boolean)`
+{virtual_text} `(boolean)` Display status using virtual text
+{signs} `(boolean)` Display status using signs
 
 
-neotest.Config.floating                              *neotest.Config.floating*
-
-
-    Fields: ~
-        {border}     (string)  Border style
-        {max_height} (number)  Max height of window as proportion of NeoVim
-                               window
-        {max_width}  (number)  Max width of window as proportion of NeoVim
-                               window
-        {options}    (table)   Window local options to set on floating windows
-                               (e.g. winblend)
-
-
-neotest.Config.strategies.integrated    *neotest.Config.strategies.integrated*
-
-
-    Fields: ~
-        {width} (integer)  Width to pass to the pty runnning commands
-
-
-neotest.Config.strategies                          *neotest.Config.strategies*
-
-
-    Fields: ~
-        {integrated} (neotest.Config.strategies.integrated)
-
-
-neotest.Config.summary                                *neotest.Config.summary*
-
-
-    Fields: ~
-        {enabled}       (boolean)
-        {follow}        (boolean)                          Expand user's
-                                                           current file
-        {expand_errors} (boolean)                          Expand all failed
-                                                           positions
-        {mappings}      (neotest.Config.summary.mappings)  Buffer mappings for
-                                                           summary window
-
-
-neotest.Config.summary.mappings              *neotest.Config.summary.mappings*
-
-
-    Fields: ~
-        {expand}       (string|string[])  Expand currently selected position
-        {expand_all}   (string|string[])  Expand all positions under currently
-                                          selected
-        {output}       (string|string[])  Show output for position
-        {short}        (string|string[])  Show short output for position (if
-                                          exists)
-        {attach}       (string|string[])  Attach to process for position
-        {jumpto}       (string|string[])  Jump to the selected position
-        {stop}         (string|string[])  Stop selected position
-        {run}          (string|string[])  Run selected position
-        {mark}         (string|string[])  Mark the selected position
-        {run_marked}   (string|string[])  Run the marked positions for
-                                          selected suite.
-        {clear_marked} (string|string[])  Clear the marked positions for
-                                          selected suite.
-
-
-neotest.Config.output                                  *neotest.Config.output*
-
-
-    Fields: ~
-        {enabled}     (boolean)
-        {open_on_run} (string|boolean)  Open nearest test result after running
-
-
-neotest.Config.diagnostic                          *neotest.Config.diagnostic*
-
-
-    Fields: ~
-        {enabled} (boolean)
-
-
-neotest.Config.status                                  *neotest.Config.status*
-
-
-    Fields: ~
-        {enabled}      (boolean)
-        {virtual_text} (boolean)  Display status using virtual text
-        {signs}        (boolean)  Display status using signs
-
-
-
-================================================================================
-CONSUMERS                                                    *neotest.consumers*
+==============================================================================
+neotest.consumers                                            *neotest.consumers*
+                              `neotest.consumers`
 
 Consumers provide user consumable APIs by wrapping the lower level client
 object. If you are developing a consumer, it is strongly recommended to enable
 type checking of the `neotest` repo, as it will provide very helpful type
-hints/docs. You can use https://github.com/folke/lua-dev.nvim to do this
-easily.
+hints/docs. You can use https://github.com/folke/lua-dev.nvim to do this easily.
 
 A consumer is a function which takes a neotest.Client object. The function can
-optionally return a table containing functions which will be directly
-accessable on the `neotest` module under the consumers name. For example, the
-`run` consumer returns a table with `run`, `attach` and `stop` and so users can
-call `neotest.run.run`, `neotest.run.attach` and `neotest.run.stop`
+optionally return a table containing functions which will be directly accessable
+on the `neotest` module under the consumers name. For example, the `run`
+consumer returns a table with `run`, `attach` and `stop` and so users can call
+`neotest.run.run`, `neotest.run.attach` and `neotest.run.stop`
 
 The client interface provides methods for interacting with tests, fetching
-results as well as event listeners. To listen to an event, just assign the
-event listener to a function:
+results as well as event listeners. To listen to an event, just assign the event
+listener to a function:
 >
-client.listeners.discover_positions = function (adapter_id, path, tree)
- ...
-end
+  client.listeners.discover_positions = function (adapter_id, path, tree)
+    ...
+  end
 <
 Available events and the listener signatures are visible as properties on the
 `client.listeners` table
@@ -285,261 +259,234 @@ positions tree. Each adapter instance has a separate tree, so you should track
 which adapter ID you are using throughout several calls.
 
 
-================================================================================
-OUTPUT                                                          *neotest.output*
+==============================================================================
+neotest.output                                                  *neotest.output*
+                                `neotest.output`
 
 A consumer that displays the output of test results.
 
-neotest.output.open({opts})                            *neotest.output.open()*
-    Open the output of a test result
-    >
-    lua require("neotest").output.open({ enter = true })
+neotest.output.open()                                    *neotest.output.open()*
+                         `neotest.output.open`({opts})
+Open the output of a test result
+>
+  lua require("neotest").output.open({ enter = true })
 <
+Parameters~
+{opts} `(table?)`
+Fields~
+{open_win} `(function)` Function that takes a table with width and height keys
+and opens a window for the output. If a window ID is not returned, the current
+window will be used
+{short} `(boolean)` Show shortened output
+{enter} `(boolean)` Enter output window
+{quiet} `(boolean)` Suppress warnings of no output
+{position_id} `(string)` Open output for position with this ID, opens nearest
+position if not given
+{adapter} `(string)` Adapter ID, defaults to first found with matching position
 
 
-    Parameters: ~
-        {opts} (table)
-
-    Fields: ~
-        {open_win}    (function)  Function that takes a table with width and
-                                  height keys and opens a window for the
-                                  output. If a window ID is not returned, the
-                                  current window will be used
-        {short}       (boolean)   Show shortened output
-        {enter}       (boolean)   Enter output window
-        {position_id} (string)    Open output for position with this ID, opens
-                                  nearest position if not given
-        {adapter}     (string)    Adapter ID, defaults to first found with
-                                  matching position
-
-
-
-================================================================================
-RUN                                                                *neotest.run*
+==============================================================================
+neotest.run                                                        *neotest.run*
+                                 `neotest.run`
 
 A consumer providing a simple interface to run tests.
 
-neotest.run.run({args})                                    *neotest.run.run()*
-    Run the given position or the nearest position if not given. All arguments
-    are optional
+neotest.run.run()                                            *neotest.run.run()*
+                           `neotest.run.run`({args})
+Run the given position or the nearest position if not given.
+All arguments are optional
 
-    Run the current file
-    >
-    lua require("neotest").run.run(vim.fn.expand("%"))
+Run the current file
+>
+  lua require("neotest").run.run(vim.fn.expand("%"))
 <
 
-    Run the nearest test
-    >
-    lua require("neotest").run.run()
+Run the nearest test
+>
+  lua require("neotest").run.run()
 <
 
-    Debug the current file with nvim-dap
-    >
-    lua require("neotest").run.run({vim.fn.expand("%"), strategy = "dap"})
+Debug the current file with nvim-dap
+>
+  lua require("neotest").run.run({vim.fn.expand("%"), strategy = "dap"})
+<
+Parameters~
+{args} `(string|table?)` Position ID to run or args. If args then args[1] should
+be the position ID.
+
+Fields~
+{suite} `(boolean)` Run the entire suite instead of a single position
+{adapter} `(string)` Adapter ID, if not given the first adapter found with
+chosen position is used.
+{strategy} `(string|neotest.Strategy)` Strategy to run commands with
+{extra_args} `(string[])` Extra arguments for test command
+{env} `(table<string, string>)` Extra environment variables to add to the
+environment of tests
+
+neotest.run.run_last()                                  *neotest.run.run_last()*
+                         `neotest.run.run_last`({args})
+Re-run the last position that was run.
+Arguments are optional
+
+Run the last position that was run with the same arguments and strategy
+>
+  lua require("neotest").run.run_last()
 <
 
-
-    Parameters: ~
-        {args} (string|table)  Position ID to run or args. If args then
-                               args[1] should be the position ID.
-
-    Fields: ~
-        {suite}      (boolean)                  Run the entire suite instead
-                                                of a single position
-        {adapter}    (string)                   Adapter ID, if not given the
-                                                first adapter found with
-                                                chosen position is used.
-        {strategy}   (string|neotest.Strategy)  Strategy to run commands with
-        {extra_args} (string[])                 Extra arguments for test
-                                                command
-        {env}        (table<string, string>)    Extra environment variables to
-                                                add to the environment of
-                                                tests
-
-
-neotest.run.run_last({args})                          *neotest.run.run_last()*
-    Re-run the last position that was run. Arguments are optional
-
-    Run the last position that was run with the same arguments and strategy
-    >
-    lua require("neotest").run.run_last()
+Run the last position that was run with the same arguments but debug with
+nvim-dap
+>
+  lua require("neotest").run.run_last({ strategy = "dap" })
 <
+Parameters~
+{args} `(table)` Arguments to run with
 
-    Run the last position that was run with the same arguments but debug with
-    nvim-dap
-    >
-    lua require("neotest").run.run_last({ strategy = "dap" })
-<
+Fields~
+{adapter} `(string)` Adapter ID, if not given the same adapter as the last run
+is used.
+{strategy} `(string|neotest.Strategy)` Strategy to run commands with
+{extra_args} `(string[])` Extra arguments for test command
+{env} `(table<string, string>)` Extra environment variables to add to the
+environment of tests
 
+neotest.run.stop()                                          *neotest.run.stop()*
+                           `neotest.run.stop`({args})
+Stop a running process
 
-    Parameters: ~
-        {args} (table)  Arguments to run with
+Parameters~
+{args} `(string|table?)` Position ID to stop or args. If args then args[1]
+should be the position ID.
+Fields~
+{adapter} `(string)` Adapter ID, if not given the first adapter found with
+chosen position is used.
 
-    Fields: ~
-        {adapter}    (string)                   Adapter ID, if not given the
-                                                same adapter as the last run
-                                                is used.
-        {strategy}   (string|neotest.Strategy)  Strategy to run commands with
-        {extra_args} (string[])                 Extra arguments for test
-                                                command
-        {env}        (table<string, string>)    Extra environment variables to
-                                                add to the environment of
-                                                tests
+neotest.run.attach()                                      *neotest.run.attach()*
+                          `neotest.run.attach`({args})
+Attach to a running process for the given position.
 
+Parameters~
+{args} `(string|table?)` Position ID to attach to or args. If args then
+args[1] should be the position ID.
 
-neotest.run.stop({args})                                  *neotest.run.stop()*
-    Stop a running process
+Fields~
+{adapter} `(string)` Adapter ID, if not given the first adapter found with
+chosen position is used.
 
-
-    Parameters: ~
-        {args} (string|table)  Position ID to stop or args. If args then
-                               args[1] should be the position ID.
-
-    Fields: ~
-        {adapter} (string)  Adapter ID, if not given the first adapter found
-                            with chosen position is used.
-
-
-neotest.run.attach({args})                              *neotest.run.attach()*
-    Attach to a running process for the given position.
-
-
-    Parameters: ~
-        {args} (string|table)  Position ID to attach to or args. If args then
-                               args[1] should be the position ID.
-
-    Fields: ~
-        {adapter} (string)  Adapter ID, if not given the first adapter found
-                            with chosen position is used.
+neotest.run.adapters()                                  *neotest.run.adapters()*
+                            `neotest.run.adapters`()
+Get the list of all known adapter IDs.
 
 
-neotest.run.adapters()                                *neotest.run.adapters()*
-    Get the list of all known adapter IDs.
+==============================================================================
+neotest.status                                                  *neotest.status*
+                                `neotest.status`
+
+A consumer that displays the results of tests as signs beside their declaration.
+This consumer is completely passive and so has no interface.
 
 
+==============================================================================
+neotest.diagnostic                                          *neotest.diagnostic*
+                              `neotest.diagnostic`
 
-
-================================================================================
-STATUS                                                          *neotest.status*
-
-A consumer that displays the results of tests as signs beside their
-declaration. This consumer is completely passive and so has no interface.
-
-
-================================================================================
-DIAGNOSTIC                                                  *neotest.diagnostic*
-
-A consumer that displays error messages using the vim.diagnostic API. This
-consumer is completely passive and so has no interface.
+A consumer that displays error messages using the vim.diagnostic API.
+This consumer is completely passive and so has no interface.
 
 You can configure the diagnostic API for neotest using the "neotest" namespace
-   See: ~
-       |vim.diagnostic.config()|
+See also~
+|vim.diagnostic.config()|
 
 
-================================================================================
-SUMMARY                                                        *neotest.summary*
+==============================================================================
+neotest.summary                                                *neotest.summary*
+                               `neotest.summary`
 
-A consumer that displays the structure of the test suite, along with results
-and allows running tests.
-   See: ~
-       |neotest.Config.summary.mappings| for all mappings in the summary window
+A consumer that displays the structure of the test suite, along with results and
+allows running tests.
+See also~
+|neotest.Config.summary.mappings| for all mappings in the summary window
 
-neotest.summary.open()                                *neotest.summary.open()*
-    Open the summary window
-    >
-    lua require("neotest").summary.open()
+neotest.summary.open()                                  *neotest.summary.open()*
+                            `neotest.summary.open`()
+Open the summary window
+>
+  lua require("neotest").summary.open()
 <
 
-
-
-neotest.summary.close()                              *neotest.summary.close()*
-    Close the summary window
-    >
-    lua require("neotest").summary.close()
+neotest.summary.close()                                *neotest.summary.close()*
+                           `neotest.summary.close`()
+Close the summary window
+>
+  lua require("neotest").summary.close()
 <
 
+neotest.summary.toggle()                              *neotest.summary.toggle()*
+                           `neotest.summary.toggle`()
+the summary window
 
 
-neotest.summary.toggle()                            *neotest.summary.toggle()*
-    Toggle the summary window
-    >
-    lua require("neotest").summary.toggle()
-<
+ lua require("neotest").summary.toggle()
 
 
+neotest.summary.run_marked()                      *neotest.summary.run_marked()*
+                      `neotest.summary.run_marked`({args})
+Run all marked positions
+Parameters~
+{args} `(table)`
 
-neotest.summary.run_marked({args})              *neotest.summary.run_marked()*
-    Run all marked positions
+Fields~
+{adapter} `(string)` Adapter ID, if not given all adapters are used
+{strategy} `(string|neotest.Strategy)` Strategy to run commands with
+{extra_args} `(string[])` Extra arguments for test command
+{env} `(table<string, string>)` Extra environment variables to add to the
+environment of tests
 
+neotest.summary.clear_marked()                  *neotest.summary.clear_marked()*
+                     `neotest.summary.clear_marked`({args})
+Clear all marked positions
+Parameters~
+{args} `(table)`
 
-    Parameters: ~
-        {args} (table)
+Fields~
+{adapter} `(string)` Adapter ID, if not given all adapters are used
 
-    Fields: ~
-        {adapter}    (string)                   Adapter ID, if not given all
-                                                adapters are used
-        {strategy}   (string|neotest.Strategy)  Strategy to run commands with
-        {extra_args} (string[])                 Extra arguments for test
-                                                command
-        {env}        (table<string, string>)    Extra environment variables to
-                                                add to the environment of
-                                                tests
-
-
-neotest.summary.clear_marked({args})          *neotest.summary.clear_marked()*
-    Clear all marked positions
-
-
-    Parameters: ~
-        {args} (table)
-
-    Fields: ~
-        {adapter} (string)  Adapter ID, if not given all adapters are used
-
-
-neotest.summary.target({adapter_id}, {position_id}) *neotest.summary.target()*
-    Set the target for an adapter tree
+neotest.summary.target()                              *neotest.summary.target()*
+             `neotest.summary.target`({adapter_id}, {position_id})
+Set the target for an adapter tree
+Parameters~
+{adapter_id} `(string)`
+{position_id} `(string|nil)` Position ID to target, nil to reset target
 
 
-    Parameters: ~
-        {adapter_id}  (string)
-        {position_id} (string|nil)  Position ID to target, nil to reset target
-
-
-
-================================================================================
-JUMP                                                              *neotest.jump*
+==============================================================================
+neotest.jump                                                      *neotest.jump*
+                                 `neotest.jump`
 
 A consumer that allows jumping between tests
 
 Example mappings to jump between test failures
 >
- nnoremap <silent>[n <cmd>lua require("neotest").jump.prev({ status = "failed" })<CR>
- nnoremap <silent>]n <cmd>lua require("neotest").jump.next({ status = "failed" })<CR>
+  nnoremap <silent>[n <cmd>lua require("neotest").jump.prev({ status = "failed" })<CR>
+  nnoremap <silent>]n <cmd>lua require("neotest").jump.next({ status = "failed" })<CR>
 <
 
-neotest.jump.next({args})                                *neotest.jump.next()*
-    Jump to the position after the cursor position in the current file
+neotest.jump.next()                                        *neotest.jump.next()*
+                          `neotest.jump.next`({args})
+Jump to the position after the cursor position in the current file
+Parameters~
+{args} `(table)` Optionals arguments
+
+Fields~
+{status} `(string)` Only jump to positions with given status
+
+neotest.jump.prev()                                        *neotest.jump.prev()*
+                          `neotest.jump.prev`({args})
+to the position after the cursor position in the current file
+Parameters~
+{args} `(table)` Optionals arguments
+
+Fields~
+{status} `(string)` Only jump to positions with given status
 
 
-    Parameters: ~
-        {args} (table)  Optionals arguments
-
-    Fields: ~
-        {status} (string)  Only jump to positions with given status
-
-
-neotest.jump.prev({args})                                *neotest.jump.prev()*
-    Jump to the position after the cursor position in the current file
-
-
-    Parameters: ~
-        {args} (table)  Optionals arguments
-
-    Fields: ~
-        {status} (string)  Only jump to positions with given status
-
-
-
- vim:tw=78:ts=8:ft=help:norl:
+ vim:tw=78:ts=8:noet:ft=help:norl:

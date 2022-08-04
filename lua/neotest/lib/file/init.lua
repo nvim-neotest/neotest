@@ -110,7 +110,7 @@ function M.stream(file_path)
   return receiver.recv, send_exit
 end
 
----@param file_path str
+---@param file_path string
 ---@return fun(): string[], fun()
 function M.stream_lines(file_path)
   local stream, stop = M.stream(file_path)
