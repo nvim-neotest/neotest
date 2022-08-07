@@ -1,0 +1,1 @@
+setlocal nomodifiable norelativenumber nonumber winfixwidth nospell

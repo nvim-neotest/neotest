@@ -16,13 +16,6 @@ local function create_buf()
   end
 
   summary_buf = async.api.nvim_create_buf(false, true)
-  local options = {
-    modifiable = false,
-    filetype = "neotest-summary",
-  }
-  for name, value in pairs(options) do
-    async.api.nvim_buf_set_option(summary_buf, name, value)
-  end
   async.api.nvim_buf_set_name(summary_buf, buf_name)
   return summary_buf
 end
@@ -35,16 +28,9 @@ local function open_window(buf)
   local cur_win = async.api.nvim_get_current_win()
   vim.cmd([[botright vsplit | vertical resize 50]])
   local win = async.api.nvim_get_current_win()
-  local options = {
-    relativenumber = false,
-    number = false,
-    winfixwidth = true,
-  }
-  for name, value in pairs(options) do
-    async.api.nvim_win_set_option(win, name, value)
-  end
   async.api.nvim_win_set_buf(win, buf)
   async.api.nvim_set_current_win(cur_win)
+  async.api.nvim_buf_set_option(summary_buf, 'filetype', 'neotest-summary')
 end
 
 local components = {}
