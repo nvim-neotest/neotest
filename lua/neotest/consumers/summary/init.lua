@@ -16,6 +16,7 @@ local function create_buf()
   end
 
   summary_buf = async.api.nvim_create_buf(false, true)
+  async.api.nvim_buf_set_option(summary_buf, 'modifiable', false)
   async.api.nvim_buf_set_name(summary_buf, buf_name)
   return summary_buf
 end
