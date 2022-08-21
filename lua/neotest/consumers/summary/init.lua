@@ -5,6 +5,7 @@ local Canvas = require("neotest.consumers.summary.canvas")
 local SummaryComponent = require("neotest.consumers.summary.component")
 local async = require("neotest.async")
 
+---@private
 ---@type neotest.Client
 local client
 local buf_name = "Neotest Summary"
@@ -173,23 +174,21 @@ local function close()
   end
 end
 
----@tag neotest.summary
----@brief [[
---- A consumer that displays the structure of the test suite, along with results and allows running tests.
----<pre>
----    See: ~
----        |neotest.Config.summary.mappings| for all mappings in the summary window
----</pre>
----@brief ]]
 local neotest = {}
+
+---@toc_entry Summary Consumer
+---@text
+--- A consumer that displays the structure of the test suite, along with results and
+--- allows running tests.
+---@seealso |neotest.Config.summary.mappings| for all mappings in the summary window
 neotest.summary = {}
+
 neotest.summary.render = render
 
----Open the summary window
----<pre>
---->
----lua require("neotest").summary.open()
----</pre>
+--- Open the summary window
+--- >
+---   lua require("neotest").summary.open()
+--- <
 function neotest.summary.open()
   if is_open() then
     return
@@ -198,20 +197,19 @@ function neotest.summary.open()
   render()
 end
 
----Close the summary window
----<pre>
---->
----lua require("neotest").summary.close()
----</pre>
+--- Close the summary window
+--- >
+---   lua require("neotest").summary.close()
+--- <
 function neotest.summary.close()
   close()
 end
 
 ---Toggle the summary window
----<pre>
+---
 --->
----lua require("neotest").summary.toggle()
----</pre>
+---  lua require("neotest").summary.toggle()
+---<
 function neotest.summary.toggle()
   async.run(function()
     if is_open() then
@@ -223,12 +221,14 @@ function neotest.summary.toggle()
   end)
 end
 
----Run all marked positions
+--- Run all marked positions
 ---@param args table
----@field adapter string: Adapter ID, if not given all adapters are used
----@field strategy string | neotest.Strategy: Strategy to run commands with
----@field extra_args string[]: Extra arguments for test command
----@field env table<string, string>: Extra environment variables to add to the environment of tests
+---
+---@field adapter string Adapter ID, if not given all adapters are used
+---@field strategy string|neotest.Strategy Strategy to run commands with
+---@field extra_args string[] Extra arguments for test command
+---@field env table<string, string> Extra environment variables to add to the
+--- environment of tests
 function neotest.summary.run_marked(args)
   args = args or {}
   for adapter_id, component in pairs(components) do
@@ -244,9 +244,10 @@ function neotest.summary.run_marked(args)
   end
 end
 
----Clear all marked positions
+--- Clear all marked positions
 ---@param args table
----@field adapter string: Adapter ID, if not given all adapters are used
+---
+---@field adapter string Adapter ID, if not given all adapters are used
 function neotest.summary.clear_marked(args)
   args = args or {}
   for adapter_id, component in pairs(components) do
@@ -257,9 +258,9 @@ function neotest.summary.clear_marked(args)
   render()
 end
 
----Set the target for an adapter tree
+--- Set the target for an adapter tree
 ---@param adapter_id string
----@param position_id string | nil: Position ID to target, nil to reset target
+---@param position_id string|nil Position ID to target, nil to reset target
 function neotest.summary.target(adapter_id, position_id)
   local component = components[adapter_id]
   if not component then

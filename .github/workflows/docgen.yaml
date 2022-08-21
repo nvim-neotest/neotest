@@ -5,6 +5,7 @@ on:
   push:
     branches-ignore:
       - master
+  pull_request: ~
 
 jobs:
   build-sources:
@@ -32,15 +33,7 @@ jobs:
             curl -sL ${{ matrix.url }} | tar xzf - --strip-components=1 -C "${PWD}/_neovim"
           }
           mkdir -p ~/.local/share/nvim/site/pack/vendor/start
-          git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
-          git clone --depth 1 https://github.com/tjdevries/tree-sitter-lua ~/.local/share/nvim/site/pack/vendor/start/tree-sitter-lua
-          ln -s $(pwd) ~/.local/share/nvim/site/pack/vendor/start
-      - name: Build parser
-        run: |
-          # We have to build the parser every single time to keep up with parser changes
-          cd ~/.local/share/nvim/site/pack/vendor/start/tree-sitter-lua
-          make dist
-          cd -
+          git clone --depth 1 https://github.com/echasnovski/mini.nvim ~/.local/share/nvim/site/pack/vendor/start/mini.nvim
       - name: Generating docs
         run: |
           export PATH="${PWD}/_neovim/bin:${PATH}"

@@ -1,40 +1,33 @@
----@brief [[
----A framework to interact with tests within NeoVim.
+---@toc
+---@text
 ---
----There are three main components to this plugin's architecture.
---- - Adapters: Generally language specific objects to parse tests, build commands and parse results
---- - Client: Runs tests and stores state of tests and results, emitting events during operation
---- - Consumers: Use the client to provide some utility to interact with tests and results
+--- There are three main components to this plugin's architecture.
+---  - Adapters: Generally language specific objects to parse tests, build commands
+---  and parse results
 ---
----In order to use neotest, you must use an adapter for your language of choice.
----You can supply them in the setup function.
+---  - Client: Runs tests and stores state of tests and results, emitting events
+---  during operation
 ---
----Once you have setup an adapter, you can use neotest consumers to run and interact with tests.
----For most users, the bulk of relevant features will be in the consumers.
----There are multiple consumers:
---- - run: Allows running, debugging and stopping tests.
+---  - Consumers: Use the client to provide some utility to interact with tests and
+---  results
 ---
---- - summary: Shows all known tests in a tree structure, along with their current state.
+--- In order to use neotest, you must use an adapter for your language of choice.
+--- You can supply them in the setup function.
 ---
---- - output: Displays the output of tests.
----
---- - diagnostics: Uses vim.diagnostic to show error messages where they occur (if supported by the adapter).
----
---- - status: Displays signs beside tests and namespaces to show current result state.
+--- Once you have setup an adapter, you can use neotest consumers to run and
+--- interact with tests.
+--- For most users, the bulk of relevant features will be in the consumers.
 ---
 --- Each consumer can be accessed as a property of the neotest module
+--- See the table of contents for the consumers
 ---
----<pre>
---->
----  require("neotest").summary.toggle()
----</pre>
+--- >
+---    require("neotest").summary.toggle()
+--- <
 ---
----
----@brief ]]
-local config = require("neotest.config")
-
----@tag neotest
 local neotest = {}
+
+local config = require("neotest.config")
 
 local consumers = {}
 
@@ -71,13 +64,14 @@ local consumer_client = function(client, name)
   return consumer_client
 end
 
+---@toc_entry Setup
+---@text
 ---Configure Neotest strategies and consumers
----<pre>
----    See: ~
----        |neotest.Config|
----</pre>
+---@seealso |neotest.Config|
+---
 ---@param user_config neotest.Config
----@eval { ['description'] = require('neotest.config')._format_default() }
+---
+---@eval return require('neotest.config')._format_default()
 function neotest.setup(user_config)
   config.setup(user_config)
   local adapter_group = require("neotest.adapters")(config.adapters)

@@ -2,7 +2,6 @@ local async = require("neotest.async")
 local sign_group = "neotest-status"
 local config = require("neotest.config")
 
----@param client neotest.Client
 local function init(client)
   local statuses = {
     passed = { text = config.icons.passed, texthl = config.highlights.passed },
@@ -96,13 +95,11 @@ local function init(client)
   end
 end
 
----@tag neotest.status
----@brief [[
+local neotest = {}
+---@toc_entry Status Consumer
+---@text
 --- A consumer that displays the results of tests as signs beside their declaration.
 --- This consumer is completely passive and so has no interface.
----@brief ]]
---
-local neotest = {}
 neotest.status = {}
 neotest.status = setmetatable(neotest.status, {
   __call = function(_, ...)

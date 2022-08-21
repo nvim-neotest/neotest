@@ -1,21 +1,21 @@
 local async = require("neotest.async")
 local lib = require("neotest.lib")
 
+---@private
 ---@type neotest.Client
 local client
 
----@tag neotest.jump
----@brief [[
+local neotest = {}
+
+---@toc_entry Jump Consumer
+---@text
 --- A consumer that allows jumping between tests
 ---
 --- Example mappings to jump between test failures
----<pre>
---->
----  nnoremap <silent>[n <cmd>lua require("neotest").jump.prev({ status = "failed" })<CR>
----  nnoremap <silent>]n <cmd>lua require("neotest").jump.next({ status = "failed" })<CR>
----</pre>
----@brief ]]
-local neotest = {}
+--- >
+---   nnoremap <silent>[n <cmd>lua require("neotest").jump.prev({ status = "failed" })<CR>
+---   nnoremap <silent>]n <cmd>lua require("neotest").jump.next({ status = "failed" })<CR>
+--- <
 neotest.jump = {}
 
 local get_nearest = function()
@@ -42,6 +42,7 @@ local function match_status(status, adapter_id)
 end
 
 ---@param pos neotest.Tree
+---@private
 local jump_to_prev = function(pos, predicate)
   if pos:data().type == "file" then
     return false
@@ -68,6 +69,7 @@ local jump_to_prev = function(pos, predicate)
 end
 
 ---@param pos neotest.Tree
+---@private
 local jump_to_next = function(pos, predicate)
   local file_pos = pos:get_key(pos:data().path)
   assert(file_pos)
@@ -82,9 +84,10 @@ local jump_to_next = function(pos, predicate)
   end
 end
 
----Jump to the position after the cursor position in the current file
----@param args table: Optionals arguments
----@field status string: Only jump to positions with given status
+--- Jump to the position after the cursor position in the current file
+---@param args table Optionals arguments
+---
+---@field status string Only jump to positions with given status
 function neotest.jump.next(args)
   args = args or {}
 
@@ -105,8 +108,9 @@ function neotest.jump.next(args)
 end
 
 ---Jump to the position after the cursor position in the current file
----@param args table: Optionals arguments
----@field status string: Only jump to positions with given status
+---@param args table Optionals arguments
+---
+---@field status string Only jump to positions with given status
 function neotest.jump.prev(args)
   args = args or {}
   async.run(function()

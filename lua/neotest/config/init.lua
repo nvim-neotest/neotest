@@ -1,4 +1,5 @@
 ---@tag neotest.config
+---@toc_entry Configuration Options
 
 local function define_highlights()
   vim.cmd([[
@@ -31,60 +32,61 @@ define_highlights()
 ---@field icons table<string, string>
 ---@field highlights table<string, string>
 ---@field floating neotest.Config.floating
----@field default_strategy string | function
+---@field default_strategy string|function
 ---@field strategies neotest.Config.strategies
 ---@field summary neotest.Config.summary
 ---@field output neotest.Config.output
 ---@field status neotest.Config.status
---
+
 ---@class neotest.Config.discovery
 ---@field enabled boolean
 
----@alias neotest.Consumer fun(client: neotest.Client): table
+---@alias neotest.Consumer fun(client neotest.Client): table
 
 ---@class neotest.Config.floating
----@field border string: Border style
----@field max_height number: Max height of window as proportion of NeoVim window
----@field max_width number: Max width of window as proportion of NeoVim window
----@field options table: Window local options to set on floating windows (e.g. winblend)
+---@field border string Border style
+---@field max_height number Max height of window as proportion of NeoVim window
+---@field max_width number Max width of window as proportion of NeoVim window
+---@field options table Window local options to set on floating windows (e.g. winblend)
 
 ---@class neotest.Config.strategies.integrated
----@field width integer: Width to pass to the pty runnning commands
+---@field width integer Width to pass to the pty runnning commands
 
 ---@class neotest.Config.strategies
 ---@field integrated neotest.Config.strategies.integrated
 
 ---@class neotest.Config.summary
 ---@field enabled boolean
----@field follow boolean: Expand user's current file
----@field expand_errors boolean: Expand all failed positions
----@field mappings neotest.Config.summary.mappings: Buffer mappings for summary window
+---@field follow boolean Expand user's current file
+---@field expand_errors boolean Expand all failed positions
+---@field mappings neotest.Config.summary.mappings Buffer mappings for summary window
 
 ---@class neotest.Config.summary.mappings
----@field expand string | string[]: Expand currently selected position
----@field expand_all string | string[]: Expand all positions under currently selected
----@field output string | string[]: Show output for position
----@field short string | string[]: Show short output for position (if exists)
----@field attach string | string[]: Attach to process for position
----@field jumpto string | string[]: Jump to the selected position
----@field stop string | string[]: Stop selected position
----@field run string | string[]: Run selected position
----@field mark string | string[]: Mark the selected position
----@field run_marked string | string[]: Run the marked positions for selected suite.
----@field clear_marked string | string[]: Clear the marked positions for selected suite.
+---@field expand string|string[] Expand currently selected position
+---@field expand_all string|string[] Expand all positions under currently selected
+---@field output string|string[] Show output for position
+---@field short string|string[] Show short output for position (if exists)
+---@field attach string|string[] Attach to process for position
+---@field jumpto string|string[] Jump to the selected position
+---@field stop string|string[] Stop selected position
+---@field run string|string[] Run selected position
+---@field mark string|string[] Mark the selected position
+---@field run_marked string|string[] Run the marked positions for selected suite.
+---@field clear_marked string|string[] Clear the marked positions for selected suite.
 
 ---@class neotest.Config.output
 ---@field enabled boolean
----@field open_on_run string | boolean: Open nearest test result after running
+---@field open_on_run string|boolean Open nearest test result after running
 
 ---@class neotest.Config.diagnostic
 ---@field enabled boolean
 
 ---@class neotest.Config.status
 ---@field enabled boolean
----@field virtual_text boolean: Display status using virtual text
----@field signs boolean: Display status using signs
+---@field virtual_text boolean Display status using virtual text
+---@field signs boolean Display status using signs
 
+---@private
 ---@type neotest.Config
 local default_config = {
   adapters = {},
@@ -180,20 +182,22 @@ local default_config = {
 
 local user_config = default_config
 
+---@private
 ---@type neotest.Config
 local NeotestConfigModule = {}
 
 ---@param config neotest.Config
+---@private
 function NeotestConfigModule.setup(config)
   user_config = vim.tbl_deep_extend("force", default_config, config)
 end
 
 function NeotestConfigModule._format_default()
-  local lines = { "<pre>", "Default values:" }
+  local lines = { "Default values:", ">" }
   for line in vim.gsplit(vim.inspect(default_config), "\n", true) do
     table.insert(lines, "  " .. line)
   end
-  table.insert(lines, "</pre>")
+  table.insert(lines, "<")
   return lines
 end
 
