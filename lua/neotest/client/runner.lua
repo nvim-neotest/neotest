@@ -113,7 +113,13 @@ function TestRunner:_run_broken_down_tree(tree, args, adapter, results_callback)
     if #async_runners == 0 then
       return {}
     end
-    async.util.join(async_runners)
+    if args.concurrent ~= false and config.running.concurrent then
+      async.util.join(async_runners)
+    else
+      for _, runner in ipairs(async_runners) do
+        runner()
+      end
+    end
   end
 
   if position.type == "dir" then

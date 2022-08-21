@@ -110,6 +110,9 @@ Default values:
     run = {
       enabled = true
     },
+    running = {
+      concurrent = true
+    },
     status = {
       enabled = true,
       signs = true,
@@ -154,6 +157,7 @@ Fields~
 {adapters} neotest.Adapter[]
 {consumers} `(table<string, neotest.Consumer>)`
 {discovery} neotest.Config.discovery
+{running} neotest.Config.running
 {icons} `(table<string, string>)`
 {highlights} `(table<string, string>)`
 {floating} neotest.Config.floating
@@ -167,6 +171,11 @@ Class~
 {neotest.Config.discovery}
 Fields~
 {enabled} `(boolean)`
+
+Class~
+{neotest.Config.running}
+Fields~
+{concurrent} `(boolean)` Run tests concurrently when an adapter provides multiple commands to run
 
 Class~
 {neotest.Config.floating}
@@ -322,6 +331,7 @@ chosen position is used.
 {extra_args} `(string[])` Extra arguments for test command
 {env} `(table<string, string>)` Extra environment variables to add to the
 environment of tests
+{concurrent} `(boolean)` Run tests concurrently when an adapter provides multiple commands to run
 
 neotest.run.run_last()                                  *neotest.run.run_last()*
                          `neotest.run.run_last`({args})
@@ -348,6 +358,7 @@ is used.
 {extra_args} `(string[])` Extra arguments for test command
 {env} `(table<string, string>)` Extra environment variables to add to the
 environment of tests
+{concurrent} `(boolean)` Run tests concurrently when an adapter provides multiple commands to run
 
 neotest.run.stop()                                          *neotest.run.stop()*
                            `neotest.run.stop`({args})

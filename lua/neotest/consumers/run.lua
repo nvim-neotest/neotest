@@ -61,6 +61,7 @@ end
 ---@field extra_args string[] Extra arguments for test command
 ---@field env table<string, string> Extra environment variables to add to the
 --- environment of tests
+---@field concurrent boolean Run tests concurrently when an adapter provides multiple commands to run
 function neotest.run.run(args)
   args = args or {}
   if type(args) == "string" then
@@ -97,6 +98,7 @@ end
 ---@field extra_args string[] Extra arguments for test command
 ---@field env table<string, string> Extra environment variables to add to the
 --- environment of tests
+---@field concurrent boolean Run tests concurrently when an adapter provides multiple commands to run
 function neotest.run.run_last(args)
   args = args or {}
   if not last_run then

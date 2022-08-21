@@ -25,10 +25,12 @@ end
 local augroup = vim.api.nvim_create_augroup("NeotestColorSchemeRefresh", {})
 vim.api.nvim_create_autocmd("ColorScheme", { callback = define_highlights, group = augroup })
 define_highlights()
+
 ---@class neotest.Config
 ---@field adapters neotest.Adapter[]
 ---@field consumers table<string, neotest.Consumer>
 ---@field discovery neotest.Config.discovery
+---@field running neotest.Config.running
 ---@field icons table<string, string>
 ---@field highlights table<string, string>
 ---@field floating neotest.Config.floating
@@ -40,6 +42,9 @@ define_highlights()
 
 ---@class neotest.Config.discovery
 ---@field enabled boolean
+
+---@class neotest.Config.running
+---@field concurrent boolean Run tests concurrently when an adapter provides multiple commands to run
 
 ---@alias neotest.Consumer fun(client neotest.Client): table
 
@@ -92,6 +97,9 @@ local default_config = {
   adapters = {},
   discovery = {
     enabled = true,
+  },
+  running = {
+    concurrent = true,
   },
   consumers = {},
   icons = {
