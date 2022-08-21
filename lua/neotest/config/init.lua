@@ -1,6 +1,7 @@
 ---@tag neotest.config
 
-vim.cmd([[
+local function define_highlights()
+  vim.cmd([[
   hi default NeotestPassed ctermfg=Green guifg=#96F291
   hi default NeotestFailed ctermfg=Red guifg=#F70067
   hi default NeotestRunning ctermfg=Yellow guifg=#FFEC63
@@ -18,7 +19,11 @@ vim.cmd([[
   hi default NeotestTarget ctermfg=Red guifg=#F70067
   hi default link NeotestUnknown Normal
 ]])
+end
 
+local augroup = vim.api.nvim_create_augroup("NeotestColorSchemeRefresh", {})
+vim.api.nvim_create_autocmd("ColorScheme", { callback = define_highlights, group = augroup })
+define_highlights()
 ---@class neotest.Config
 ---@field adapters neotest.Adapter[]
 ---@field consumers table<string, neotest.Consumer>
