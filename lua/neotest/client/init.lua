@@ -76,6 +76,11 @@ function NeotestClient:run_tree(tree, args)
   self._state:update_results(adapter_id, all_results)
 end
 
+---@return table[]
+function NeotestClient:running_positions()
+  return self._runner:running()
+end
+
 ---@async
 ---@param position neotest.Tree
 ---@param args? table

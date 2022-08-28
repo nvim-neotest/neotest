@@ -5,12 +5,14 @@ local lib = require("neotest.lib")
 
 ---@class neotest.TestRunner
 ---@field _processes neotest.ProcessTracker
+---@field _running table<string, table>
 local TestRunner = {}
 
 function TestRunner:new(processes)
   self.__index = self
   return setmetatable({
     _processes = processes,
+    _running = {},
   }, self)
 end
 
@@ -20,6 +22,11 @@ end
 ---@param args table
 ---@param adapter neotest.Adapter
 function TestRunner:run_tree(tree, args, adapter, on_results)
+  if self._running[tree:data().id] then
+    logger.warn("Position already running:", tree:data().id)
+  end
+  -- TODO: Change adapter.name to adapter ID when project configs are merged
+  self._running[tree:data().id] = { position = tree, adapter = adapter.name }
   local all_results = {}
   local results_callback = function(root, results, output_path)
     local function fill_results(missing_results)
@@ -59,7 +66,12 @@ function TestRunner:run_tree(tree, args, adapter, on_results)
 
   self:_run_tree(tree, args, adapter, results_callback)
 
+  self._running[tree:data().id] = nil
   return all_results
+end
+
+function TestRunner:running()
+  return vim.tbl_values(self._running)
 end
 
 function TestRunner:_run_tree(tree, args, adapter, results_callback)

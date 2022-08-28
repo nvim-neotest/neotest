@@ -18,6 +18,10 @@ end
 local async_wrapper = {
   api = proxy_vim("api"),
   fn = proxy_vim("fn"),
+  ui = {
+    select = plen_async.wrap(vim.ui.select, 3),
+    input = plen_async.wrap(vim.ui.input, 2),
+  },
   lib = {
     first = function(...)
       local functions = { ... }

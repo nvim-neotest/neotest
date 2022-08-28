@@ -372,6 +372,7 @@ should be the position ID.
 Fields~
 {adapter} `(string)` Adapter ID, if not given the first adapter found with
 chosen position is used.
+{interactive} `(boolean)` Select a running position interactively
 
 neotest.run.attach()                                      *neotest.run.attach()*
                           `neotest.run.attach`({args})
@@ -384,6 +385,7 @@ args[1] should be the position ID.
 Fields~
 {adapter} `(string)` Adapter ID, if not given the first adapter found with
 chosen position is used.
+{interactive} `(boolean)` Select a running position interactively
 
 neotest.run.adapters()                                  *neotest.run.adapters()*
                             `neotest.run.adapters`()

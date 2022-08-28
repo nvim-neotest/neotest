@@ -117,24 +117,44 @@ function neotest.run.run_last(args)
   end)
 end
 
+local function get_tree_interactive()
+  local running = client:running_positions()
+  local elem = async.ui.select(running, {
+    prompt = "Select a position",
+    format_item = function(elem)
+      return elem.position:data().name
+    end,
+  })
+  if not elem then
+    return
+  end
+  return elem.position, elem.position
+end
+
 --- Stop a running process
 ---
 ---@param args string|table? Position ID to stop or args. If args then args[1]
 --- should be the position ID.
 ---@field adapter string Adapter ID, if not given the first adapter found with
 --- chosen position is used.
+---@field interactive boolean Select a running position interactively
 function neotest.run.stop(args)
   args = args or {}
   if type(args) == "string" then
     args = { args }
   end
   async.run(function()
-    local tree = neotest.run.get_tree_from_args(args)
-    if not tree then
-      lib.notify("No tests found", "warn")
+    local pos
+    if args.interactive then
+      pos = get_tree_interactive()
+    else
+      pos = neotest.run.get_tree_from_args(args)
+    end
+    if not pos then
+      lib.notify(args.interactive and "No test selected" or "No tests found", "warn")
       return
     end
-    client:stop(tree, args)
+    client:stop(pos, args)
   end)
 end
 
@@ -145,15 +165,21 @@ end
 ---
 ---@field adapter string Adapter ID, if not given the first adapter found with
 --- chosen position is used.
+---@field interactive boolean Select a running position interactively
 function neotest.run.attach(args)
   args = args or {}
   if type(args) == "string" then
     args = { args }
   end
   async.run(function()
-    local pos = neotest.run.get_tree_from_args(args)
+    local pos
+    if args.interactive then
+      pos = get_tree_interactive()
+    else
+      pos = neotest.run.get_tree_from_args(args)
+    end
     if not pos then
-      lib.notify("No tests found in file", "warn")
+      lib.notify(args.interactive and "No test selected" or "No tests found", "warn")
       return
     end
     client:attach(pos, args)

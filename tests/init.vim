@@ -1,3 +1,4 @@
+set noswapfile
 set rtp+=.
 set rtp+=../plenary.nvim
 set rtp+=../nvim-dap
