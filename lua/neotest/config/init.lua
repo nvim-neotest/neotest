@@ -166,6 +166,8 @@ local default_config = {
       clear_marked = "M",
       target = "t",
       clear_target = "T",
+      next_failed = "J",
+      prev_failed = "K",
     },
   },
   output = {

@@ -3,6 +3,7 @@ local config = require("neotest.config")
 local icons = config.icons
 local hi = config.highlights
 local lib = require("neotest.lib")
+local namespace = require("neotest.consumers.summary.canvas").namespace
 
 ---@class SummaryComponent
 ---@field client neotest.InternalClient

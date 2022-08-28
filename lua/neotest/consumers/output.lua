@@ -125,11 +125,12 @@ local init = function()
         return
       end
       for _, pos in positions:iter() do
-        if pos.type == "test"
-            and results[pos.id]
-            and results[pos.id].status == "failed"
-            and pos.range[1] <= line
-            and pos.range[3] >= line
+        if
+          pos.type == "test"
+          and results[pos.id]
+          and results[pos.id].status == "failed"
+          and pos.range[1] <= line
+          and pos.range[3] >= line
         then
           open_output(
             results[pos.id],
