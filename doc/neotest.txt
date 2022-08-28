@@ -107,6 +107,7 @@ Default values:
       enabled = true,
       open_on_run = "short"
     },
+    projects = {},
     run = {
       enabled = true
     },
@@ -154,12 +155,16 @@ Default values:
 neotest.config                                                  *neotest.config*
 
 Class~
-{neotest.Config}
+{neotest.CoreConfig}
 Fields~
 {adapters} neotest.Adapter[]
-{consumers} `(table<string, neotest.Consumer>)`
 {discovery} neotest.Config.discovery
 {running} neotest.Config.running
+
+Class~
+{neotest.Config:} neotest.CoreConfig
+Fields~
+{consumers} `(table<string, neotest.Consumer>)`
 {icons} `(table<string, string>)`
 {highlights} `(table<string, string>)`
 {floating} neotest.Config.floating
@@ -168,6 +173,7 @@ Fields~
 {summary} neotest.Config.summary
 {output} neotest.Config.output
 {status} neotest.Config.status
+{projects} `(table<string, neotest.CoreConfig>)` Project specific settings, keys are project root directories
 
 Class~
 {neotest.Config.discovery}

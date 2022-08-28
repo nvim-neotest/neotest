@@ -76,7 +76,10 @@ async.run(function()
       local cwd = async.fn.getcwd()
       for _, adapter_id in ipairs(client:get_adapters()) do
         local tree = client:get_position(nil, { adapter = adapter_id })
-        canvas:write(adapter_id .. "\n", { group = config.highlights.adapter_name })
+        canvas:write(
+          vim.split(adapter_id, ":", { trimempty = true })[1] .. "\n",
+          { group = config.highlights.adapter_name }
+        )
         if tree:data().path ~= cwd then
           local root_dir = async.fn.fnamemodify(tree:data().path, ":.")
           canvas:write(root_dir .. "\n", { group = config.highlights.dir })
@@ -143,7 +146,7 @@ local function init()
     for pos_id, result in pairs(results) do
       if
         result.status == "failed"
-        and client:get_position(pos_id, { refresh = false, adapter = adapter_id })
+        and client:get_position(pos_id, { adapter = adapter_id })
         and #client:get_position(pos_id, { adapter = adapter_id }):children() > 0
       then
         expanded[pos_id] = true

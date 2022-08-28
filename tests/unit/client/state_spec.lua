@@ -24,20 +24,20 @@ describe("client state", function()
 
   describe("position state", function()
     it("stores update as root when given first tree", function()
-      local tree = create_tree({ id = "key" })
+      local tree = create_tree({ id = "key", path = vim.loop.cwd(), type = "dir" })
       state:update_positions(adapter_id, tree)
       local stored = state:positions(adapter_id)
-      assert.equal(stored, tree)
+      assert.same(stored, tree)
     end)
 
     it("emits discover_positions event on update", function()
-      local tree = create_tree({ id = "key" })
+      local tree = create_tree({ id = "key", path = vim.loop.cwd(), type = "dir" })
       state:update_positions(adapter_id, tree)
       assert.equal(emitted_event, events.DISCOVER_POSITIONS)
     end)
 
     it("emits event with new tree", function()
-      local tree = create_tree({ id = "key" })
+      local tree = create_tree({ id = "key", path = vim.loop.cwd(), type = "dir" })
       state:update_positions(adapter_id, tree)
       assert.equal(tree, emitted_args[2])
     end)
@@ -60,27 +60,6 @@ describe("client state", function()
       )
       local root = state:positions(adapter_id, "/root")
       assert.is.Not.Nil(root:get_key("test-1"))
-    end)
-
-    it("connects updated dir tree with existing tree", function()
-      state:update_positions(
-        adapter_id,
-        create_tree({
-          { type = "file", id = "file", path = "/root/file" },
-          { type = "test", id = "test-1", path = "/root/file" },
-        })
-      )
-
-      state:update_positions(
-        adapter_id,
-        create_tree({
-          { type = "dir", id = "/root", path = "/root" },
-          { type = "file", id = "file", path = "/root/file" },
-        })
-      )
-      local root = state:positions(adapter_id, "/root")
-      local test = root:get_key("test-1")
-      assert.equal(test:root():data(), root:data())
     end)
 
     it("updates child dir tree with existing tree", function()

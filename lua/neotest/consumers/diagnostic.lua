@@ -38,8 +38,7 @@ local function init(client)
   end
 
   function BufferDiagnostics:draw_buffer()
-    local positions =
-      client:get_position(self.file_path, { refresh = false, adapter = self.adapter_id })
+    local positions = client:get_position(self.file_path, { adapter = self.adapter_id })
     if not positions then
       return
     end
@@ -135,7 +134,7 @@ local function init(client)
         return
       end
       if not client:get_results(adapter_id)[path] then
-        local tree = client:get_position(path, { refresh = false, adapter = adapter_id })
+        local tree = client:get_position(path, { adapter = adapter_id })
         if not tree then
           return
         end

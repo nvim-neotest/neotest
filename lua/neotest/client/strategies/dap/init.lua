@@ -29,6 +29,11 @@ return function(spec)
   local finish_cond = async.control.Condvar.new()
   local result_code
 
+  local adapter_before = spec.strategy.before
+  local adapter_after = spec.strategy.after
+  spec.strategy.before =  nil
+  spec.strategy.after =  nil
+
   async.util.scheduler()
   dap.run(vim.tbl_extend("keep", spec.strategy, { env = spec.env, cwd = spec.cwd }), {
     before = function(config)
@@ -46,10 +51,13 @@ return function(spec)
         end)
       end
 
-      return config
+      return adapter_before and adapter_before() or config
     end,
     after = function()
       dap.listeners.after.event_output[handler_id] = nil
+      if adapter_after then
+        adapter_after()
+      end
     end,
   })
   return {

@@ -26,11 +26,13 @@ local augroup = vim.api.nvim_create_augroup("NeotestColorSchemeRefresh", {})
 vim.api.nvim_create_autocmd("ColorScheme", { callback = define_highlights, group = augroup })
 define_highlights()
 
----@class neotest.Config
+---@class neotest.CoreConfig
 ---@field adapters neotest.Adapter[]
----@field consumers table<string, neotest.Consumer>
 ---@field discovery neotest.Config.discovery
 ---@field running neotest.Config.running
+
+---@class neotest.Config: neotest.CoreConfig
+---@field consumers table<string, neotest.Consumer>
 ---@field icons table<string, string>
 ---@field highlights table<string, string>
 ---@field floating neotest.Config.floating
@@ -39,6 +41,7 @@ define_highlights()
 ---@field summary neotest.Config.summary
 ---@field output neotest.Config.output
 ---@field status neotest.Config.status
+---@field projects table<string, neotest.CoreConfig> Project specific settings, keys are project root directories
 
 ---@class neotest.Config.discovery
 ---@field enabled boolean
@@ -46,7 +49,7 @@ define_highlights()
 ---@class neotest.Config.running
 ---@field concurrent boolean Run tests concurrently when an adapter provides multiple commands to run
 
----@alias neotest.Consumer fun(client neotest.Client): table
+---@alias neotest.Consumer fun(client: neotest.Client): table
 
 ---@class neotest.Config.floating
 ---@field border string Border style
@@ -188,6 +191,7 @@ local default_config = {
   jump = {
     enabled = true,
   },
+  projects = {},
 }
 
 local user_config = default_config
@@ -200,6 +204,21 @@ local NeotestConfigModule = {}
 ---@private
 function NeotestConfigModule.setup(config)
   user_config = vim.tbl_deep_extend("force", default_config, config)
+
+  user_config.projects = setmetatable({}, {
+    __index = function(_, key)
+      return user_config
+    end,
+  })
+  for project_root, project_config in pairs(config.projects or {}) do
+    local path = vim.fn.fnamemodify(project_root, ":p")
+    path = path:sub(1, #path - 1) -- Trailing slash
+    user_config.projects[path] = vim.tbl_deep_extend("keep", project_config, {
+      adapters = user_config.adapters,
+      discovery = user_config.discovery,
+      running = user_config.running,
+    })
+  end
 end
 
 function NeotestConfigModule._format_default()

@@ -53,6 +53,11 @@ function NeotestClientState:update_positions(adapter_id, tree)
   local root_id = tree:data().id
   logger.debug("New positions at ID", root_id)
   if not self._positions[adapter_id] then
+    if tree:data().type ~= "dir" then
+      logger.info("File discovered without root, using cwd", root_id)
+      local root = lib.files.parse_dir_from_files(vim.loop.cwd(), { tree:data().path })
+      tree = lib.positions.merge(tree, root)
+    end
     self._positions[adapter_id] = tree
   else
     self._positions[adapter_id] = lib.positions.merge(self._positions[adapter_id], tree)
