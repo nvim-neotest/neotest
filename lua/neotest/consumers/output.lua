@@ -13,7 +13,17 @@ local function open_output(result, opts)
     return
   end
   local buf = async.api.nvim_create_buf(false, true)
+  -- nvim_open_term uses the current window for determining width/height for truncating lines
+  local temp_win = async.api.nvim_open_win(buf, true, {
+    relative = "editor",
+    width = async.api.nvim_get_option("columns"),
+    height = async.api.nvim_get_option("lines"),
+    row = 0,
+    col = 0,
+  })
   local chan = async.api.nvim_open_term(buf, {})
+  vim.api.nvim_win_close(temp_win, true)
+
   short_opened = opts.short
   -- See https://github.com/neovim/neovim/issues/14557
   local dos_newlines = string.find(output, "\r\n") ~= nil
@@ -115,12 +125,11 @@ local init = function()
         return
       end
       for _, pos in positions:iter() do
-        if
-          pos.type == "test"
-          and results[pos.id]
-          and results[pos.id].status == "failed"
-          and pos.range[1] <= line
-          and pos.range[3] >= line
+        if pos.type == "test"
+            and results[pos.id]
+            and results[pos.id].status == "failed"
+            and pos.range[1] <= line
+            and pos.range[3] >= line
         then
           open_output(
             results[pos.id],
