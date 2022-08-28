@@ -79,6 +79,40 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
       expansion_icon = icons.collapsed
     end
     canvas:write(expansion_icon, { group = config.highlights.expand_marker })
+    canvas:add_mapping("next_failed", function()
+      local row = vim.fn.line(".") - 1
+      local extmarks = vim.api.nvim_buf_get_extmarks(
+        0,
+        namespace,
+        { row + 1, 0 },
+        { -1, 0 },
+        { details = true }
+      )
+      for _, mark in ipairs(extmarks) do
+        local _, mark_row, _, details = unpack(mark)
+        if details.hl_group == config.highlights["failed"] then
+          vim.fn.setpos(".", { 0, mark_row + 1, 1, 0 })
+          return
+        end
+      end
+    end)
+    canvas:add_mapping("prev_failed", function()
+      local row = vim.fn.line(".") - 1
+      local extmarks = vim.api.nvim_buf_get_extmarks(
+        0,
+        namespace,
+        { 0, 0 },
+        { row, 0 },
+        { details = true }
+      )
+      for _, mark in lib.func_util.reverse(extmarks) do
+        local _, mark_row, _, details = unpack(mark)
+        if details.hl_group == config.highlights["failed"] then
+          vim.fn.setpos(".", { 0, mark_row + 1, 1, 0 })
+          return
+        end
+      end
+    end)
 
     if expandable then
       canvas:add_mapping(

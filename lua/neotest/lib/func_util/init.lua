@@ -27,6 +27,20 @@ function M.filter(f, t)
   return new_t
 end
 
+---@generic E
+---@param list E[]
+---@return fun(): E
+function M.reverse(list)
+  local i = #list + 1
+  return function()
+    i = i - 1
+    if i <= 0 then
+      return nil
+    end
+    return i, list[i]
+  end
+end
+
 function M.filter_list(f, t)
   local new_l = {}
   for _, v in pairs(t) do
