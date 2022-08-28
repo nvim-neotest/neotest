@@ -18,6 +18,13 @@ local function open_output(result, opts)
   -- See https://github.com/neovim/neovim/issues/14557
   local dos_newlines = string.find(output, "\r\n") ~= nil
   async.api.nvim_chan_send(chan, dos_newlines and output or output:gsub("\n", "\r\n"))
+
+  -- TODO: For some reason, NeoVim fills the buffer with empty lines
+  vim.api.nvim_buf_set_option(buf, "modifiable", true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, {})
+  vim.api.nvim_buf_set_option(buf, "modifiable", false)
+
+  -- async.api.nvim_chan_send(chan, dos_newlines and output or output:gsub("\n", "\r\n"))
   async.util.sleep(10) -- Wait for chan to send
   async.api.nvim_create_autocmd("TermEnter", {
     buffer = buf,
