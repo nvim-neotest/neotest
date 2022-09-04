@@ -34,7 +34,6 @@ local function open_output(result, opts)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, {})
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
 
-  -- async.api.nvim_chan_send(chan, dos_newlines and output or output:gsub("\n", "\r\n"))
   async.util.sleep(10) -- Wait for chan to send
   async.api.nvim_create_autocmd("TermEnter", {
     buffer = buf,
