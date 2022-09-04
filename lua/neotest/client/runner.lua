@@ -227,10 +227,6 @@ function TestRunner:_missing_results(tree, results, partial)
         parent_result.status = pos_result.status
       end
 
-      if pos_result.errors then
-        parent_result.errors = vim.list_extend(parent_result.errors or {}, pos_result.errors)
-      end
-
       results_proxy[parent_pos.id] = parent_result
     end
   end
