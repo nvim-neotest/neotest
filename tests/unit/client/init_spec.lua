@@ -29,7 +29,7 @@ describe("neotest client", function()
     stub(lib.files, "exists", function(path)
       return path ~= ""
     end)
-    require("neotest.config").setup({ adapters = { mock_adapter } })
+    require("neotest").setup({ adapters = { mock_adapter } })
 
     local send_exit, await_exit = async.control.channel.oneshot()
     exit_test = send_exit
@@ -170,7 +170,16 @@ describe("neotest client", function()
 
     describe("discovery.enabled = false", function()
       a.it("doesn't scan directories by default", function()
-        require("neotest.config").setup({
+        require("neotest").setup({
+          adapters = { mock_adapter },
+          discovery = { enabled = false },
+        })
+        assert.Nil(get_pos(dir))
+        assert.Nil(get_pos(dir .. "/test_file_1"))
+      end)
+
+      a.it("doesn't scan directories by default in configured project", function()
+        require("neotest").setup_project(dir, {
           adapters = { mock_adapter },
           discovery = { enabled = false },
         })
@@ -179,7 +188,7 @@ describe("neotest client", function()
       end)
 
       a.it("only scans buffers that are open when client starts", function()
-        require("neotest.config").setup({
+        require("neotest").setup({
           adapters = { mock_adapter },
           discovery = { enabled = false },
         })
@@ -191,7 +200,7 @@ describe("neotest client", function()
       end)
 
       a.it("parses buffers as they are added", function()
-        require("neotest.config").setup({
+        require("neotest").setup({
           adapters = { mock_adapter },
           discovery = { enabled = false },
         })
@@ -208,7 +217,7 @@ describe("neotest client", function()
         for _, buf in ipairs(vim.api.nvim_list_bufs()) do
           vim.api.nvim_buf_delete(buf, { force = true })
         end
-        require("neotest.config").setup({
+        require("neotest").setup({
           adapters = { mock_adapter },
           discovery = { enabled = false },
         })

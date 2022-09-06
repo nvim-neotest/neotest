@@ -150,6 +150,13 @@ Default values:
   }
 <
 
+neotest.setup_project()                                *neotest.setup_project()*
+               `neotest.setup_project`({path}, {project_config})
+Configure a project individually.
+Parameters~
+{path} `(string)`
+{project_config} neotest.CoreConfig
+
 
 ==============================================================================
 neotest.config                                                  *neotest.config*
