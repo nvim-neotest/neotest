@@ -81,9 +81,10 @@ To get started you will also need to install an adapter for your test runner.
 | rspec           |     [neotest-rspec](https://github.com/olimorris/neotest-rspec)      |
 | dart, flutter   |       [neotest-dart](https://github.com/sidlatau/neotest-dart)       |
 | testthat        | [neotest-testthat](https://github.com/shunsambongi/neotest-testthat) |
-| phpunit         | [neotest-phpunit](https://github.com/olimorris/neotest-phpunit)      |
-| rust            | [neotest-rust](https://github.com/rouge8/neotest-rust)               |
-| elixir          | [neotest-elixir](https://github.com/jfpedroza/neotest-elixir)        |
+| phpunit         |   [neotest-phpunit](https://github.com/olimorris/neotest-phpunit)    |
+| rust            |        [neotest-rust](https://github.com/rouge8/neotest-rust)        |
+| elixir          |    [neotest-elixir](https://github.com/jfpedroza/neotest-elixir)     |
+| dotnet          |    [neotest-dotnet](https://github.com/Issafalcon/neotest-dotnet)    |
 
 For any runner without an adapter you can use [neotest-vim-test](https://github.com/nvim-neotest/neotest-vim-test) which supports any runner that vim-test supports.
 The vim-test adapter does not support some of the more advanced features such as error locations or per-test output.
@@ -111,6 +112,7 @@ See `:h neotest.Config` for configuration options and `:h neotest.setup()` for t
 
 If you are using [lua-dev.nvim](https://github.com/folke/lua-dev.nvim), you can enable type checking for neotest to get
 autocomplete for the setup table.
+
 ```lua
 require("lua-dev").setup({
   library = { plugins = { "neotest" }, types = true },
