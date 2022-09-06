@@ -183,6 +183,7 @@ describe("neotest client", function()
           adapters = { mock_adapter },
           discovery = { enabled = false },
         })
+        local x = get_pos(dir)
         assert.Nil(get_pos(dir))
         assert.Nil(get_pos(dir .. "/test_file_1"))
       end)

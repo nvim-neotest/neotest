@@ -85,10 +85,10 @@ function neotest.setup(user_config)
 end
 
 --- Configure a project individually.
----@param path string
+---@param project_root string
 ---@param project_config neotest.CoreConfig
-function neotest.setup_project(path, project_config)
-  config.setup_project(path, project_config)
+function neotest.setup_project(project_root, project_config)
+  config.setup_project(project_root, project_config)
 end
 
 setmetatable(neotest, {

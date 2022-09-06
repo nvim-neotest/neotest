@@ -19,7 +19,7 @@ local function define_highlights()
   hi default NeotestMarked ctermfg=Brown guifg=#F79000 gui=bold
   hi default NeotestTarget ctermfg=Red guifg=#F70067
   hi default link NeotestUnknown Normal
-]] )
+]])
 end
 
 local augroup = vim.api.nvim_create_augroup("NeotestColorSchemeRefresh", {})
@@ -211,17 +211,13 @@ function NeotestConfigModule.setup(config)
     end,
   })
   for project_root, project_config in pairs(config.projects or {}) do
-    local path = vim.fn.fnamemodify(project_root, ":p")
-    path = path:sub(1, #path - 1) -- Trailing slash
-    user_config.projects[path] = vim.tbl_deep_extend("keep", project_config, {
-      adapters = user_config.adapters,
-      discovery = user_config.discovery,
-      running = user_config.running,
-    })
+    NeotestConfigModule.setup_project(project_root, config)
   end
 end
 
-function NeotestConfigModule.setup_project(path, config)
+function NeotestConfigModule.setup_project(project_root, config)
+  local path = vim.fn.fnamemodify(project_root, ":p")
+  path = path:sub(1, #path - 1) -- Trailing slash
   user_config.projects[path] = vim.tbl_deep_extend("keep", config, {
     adapters = user_config.adapters,
     discovery = user_config.discovery,

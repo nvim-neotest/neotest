@@ -31,8 +31,8 @@ return function(spec)
 
   local adapter_before = spec.strategy.before
   local adapter_after = spec.strategy.after
-  spec.strategy.before =  nil
-  spec.strategy.after =  nil
+  spec.strategy.before = nil
+  spec.strategy.after = nil
 
   async.util.scheduler()
   dap.run(vim.tbl_extend("keep", spec.strategy, { env = spec.env, cwd = spec.cwd }), {
