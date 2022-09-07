@@ -393,9 +393,12 @@ function NeotestClient:_start()
 end
 
 function NeotestClient:_update_open_buf_positions(adapter_id)
+  local adapter = self._adapters[adapter_id]
   for _, bufnr in ipairs(async.api.nvim_list_bufs()) do
     local file_path = async.api.nvim_buf_get_name(bufnr)
-    self:_update_positions(file_path, { adapter = adapter_id })
+    if adapter.is_test_file(file_path) then
+      self:_update_positions(file_path, { adapter = adapter_id })
+    end
   end
 end
 
