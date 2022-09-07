@@ -55,7 +55,6 @@
 local M = {}
 
 M.Tree = require("neotest.types.tree")
-M.FIFOQueue = require("neotest.types.queue")
 M.FanoutAccum = require("neotest.types.fanout_accum")
 
 return M

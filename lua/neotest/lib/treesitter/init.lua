@@ -1,6 +1,5 @@
 local async = require("neotest.async")
 local types = require("neotest.types")
-local FIFOQueue = types.FIFOQueue
 local Tree = types.Tree
 
 local M = {}
@@ -22,17 +21,18 @@ end
 ---@param query table
 ---@param source string
 ---@param root table
----@return neotest.FIFOQueue
+---@return table[]
 local function collect(file_path, query, source, root)
   local sep = require("neotest.lib").files.sep
-  local nodes = FIFOQueue()
   local path_elems = vim.split(file_path, sep, { plain = true })
-  nodes:push({
-    type = "file",
-    path = file_path,
-    name = path_elems[#path_elems],
-    range = { root:range() },
-  })
+  local nodes = {
+    {
+      type = "file",
+      path = file_path,
+      name = path_elems[#path_elems],
+      range = { root:range() },
+    },
+  }
   pcall(vim.tbl_add_reverse_lookup, query.captures)
   for _, match in query:iter_matches(root, source) do
     local type = get_query_type(query, match)
@@ -41,12 +41,12 @@ local function collect(file_path, query, source, root)
       local name = vim.treesitter.get_node_text(match[query.captures[type .. ".name"]], source)
       local definition = match[query.captures[type .. ".definition"]]
 
-      nodes:push({
+      nodes[#nodes + 1] = {
         type = type,
         path = file_path,
         name = name,
         range = { definition:range() },
-      })
+      }
     end
   end
   return nodes
@@ -69,11 +69,11 @@ local function contains(pos_a, pos_b)
   return true
 end
 
----@param positions neotest.FIFOQueue
----@return table[] Nested lists to be parsed as a tree object
+---@param positions table[]
+---@return table[]? Nested lists to be parsed as a tree object
 local function parse_tree(positions, namespaces, opts)
   ---@type neotest.Position
-  local parent = positions:pop()
+  local parent = table.remove(positions, 1)
   if not parent then
     return nil
   end
@@ -84,7 +84,7 @@ local function parse_tree(positions, namespaces, opts)
     child_namespaces[#child_namespaces + 1] = parent
   end
   while true do
-    local next_pos = positions:peek()
+    local next_pos = positions[1]
     if not next_pos or not contains(parent, next_pos) then
       -- Don't preserve empty namespaces
       if #current_level == 1 and parent.type == "namespace" then

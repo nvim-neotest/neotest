@@ -3,7 +3,6 @@ local async = require("neotest.async")
 local filetype = require("plenary.filetype")
 local fu = require("neotest.lib.func_util")
 local types = require("neotest.types")
-local FIFOQueue = types.FIFOQueue
 local Tree = types.Tree
 
 local M = {}
@@ -152,7 +151,7 @@ M.detect_filetype = fu.memoize(filetype.detect)
 function M.parse_dir_from_files(root, files)
   local function parse_tree(dirs)
     ---@type neotest.Position
-    local parent = dirs:pop()
+    local parent = table.remove(dirs, 1)
     if not parent then
       return nil
     end
@@ -162,7 +161,7 @@ function M.parse_dir_from_files(root, files)
 
     local current_level = { parent }
     while true do
-      local next_pos = dirs:peek()
+      local next_pos = dirs[1]
       if not next_pos or not dir_contains(parent, next_pos) then
         return current_level
       end
@@ -173,7 +172,7 @@ function M.parse_dir_from_files(root, files)
   ---@param paths table[]
   ---@return neotest.Position[]
   local function paths_to_positions(paths)
-    local positions = FIFOQueue()
+    local positions = {}
     local sep = M.sep
     if root == "/" then
       root = ""
@@ -186,13 +185,13 @@ function M.parse_dir_from_files(root, files)
         abs_path = root
       end
       local path_elems = vim.split(abs_path, sep, { plain = true, trimempty = true })
-      positions:push({
+      positions[#positions + 1] = {
         type = path.type,
         id = abs_path,
         path = abs_path,
         name = path_elems[#path_elems],
         range = nil,
-      })
+      }
     end
     return positions
   end
@@ -256,7 +255,7 @@ function M.match_root_pattern(...)
   return function(start_path)
     local start_parents = Path:new(start_path):parents()
     local potential_roots = M.is_dir(start_path) and vim.list_extend({ start_path }, start_parents)
-      or start_parents
+        or start_parents
     for _, path in ipairs(potential_roots) do
       for _, pattern in ipairs(patterns) do
         for _, p in ipairs(async.fn.glob(Path:new(path, pattern).filename, true, true)) do
