@@ -29,7 +29,6 @@ describe("neotest client", function()
     stub(lib.files, "exists", function(path)
       return path ~= ""
     end)
-    require("neotest").setup({ adapters = { mock_adapter } })
 
     local send_exit, await_exit = async.control.channel.oneshot()
     exit_test = send_exit
@@ -117,7 +116,8 @@ describe("neotest client", function()
         end,
       }
     end
-    client = NeotestClient(AdapterGroup({ mock_adapter }))
+    client = NeotestClient(AdapterGroup({}))
+    require("neotest").setup({ adapters = { mock_adapter } })
   end)
   after_each(function()
     lib.files.find:revert()
@@ -132,6 +132,20 @@ describe("neotest client", function()
       assert.Not.Nil(tree:get_key(dir .. "/test_file_1"))
       assert.Not.Nil(tree:get_key(dir .. "/test_file_2"))
       assert.Nil(tree:get_key(dir .. "/test_file_3"))
+    end)
+
+    a.it("uses projects adapters", function()
+      require("neotest").setup_project(dir, { adapters = { mock_adapter } })
+      local tree = get_pos(dir)
+      assert.Not.Nil(tree:get_key(dir .. "/test_file_1"))
+      assert.Not.Nil(tree:get_key(dir .. "/test_file_2"))
+      assert.Nil(tree:get_key(dir .. "/test_file_3"))
+    end)
+
+    a.it("doesn't use global adapters", function()
+      require("neotest").setup_project(dir, { adapters = {} })
+      local tree = get_pos(dir)
+      assert.Nil(tree)
     end)
 
     a.it("updates files when first requested", function()
