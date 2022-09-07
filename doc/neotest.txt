@@ -53,6 +53,9 @@ Default values:
 >
   {
     adapters = {},
+    benchmark = {
+      enabled = true
+    },
     consumers = {},
     default_strategy = "integrated",
     diagnostic = {
@@ -183,17 +186,17 @@ Fields~
 {summary} neotest.Config.summary
 {output} neotest.Config.output
 {status} neotest.Config.status
-{projects} `(table<string, neotest.CoreConfig>)` Project specific settings, keys 
+{projects} `(table<string, neotest.CoreConfig>)` Project specific settings, keys
 are project root directories (e.g "~/Dev/my_project")
 
 Class~
 {neotest.Config.discovery}
 Fields~
 {enabled} `(boolean)`
-{concurrent} `(integer)` Number of workers to parse files concurrently. 0 
+{concurrent} `(integer)` Number of workers to parse files concurrently. 0
 automatically assigns number based on CPU. Set to 1 if experiencing lag.
-{filter_dir} `(nil)` | fun(name: string, rel_path: string, root: string): boolean 
-A function to filter directories when searching for test files. Receives the name, 
+{filter_dir} `(nil)` | fun(name: string, rel_path: string, root: string): boolean
+A function to filter directories when searching for test files. Receives the name,
 path relative to project root and project root path
 
 Class~

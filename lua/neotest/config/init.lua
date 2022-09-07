@@ -183,6 +183,9 @@ local default_config = {
       prev_failed = "K",
     },
   },
+  benchmark = {
+    enabled = true,
+  },
   output = {
     enabled = true,
     open_on_run = "short",
