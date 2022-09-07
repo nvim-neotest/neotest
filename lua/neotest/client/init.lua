@@ -2,32 +2,29 @@ local async = require("neotest.async")
 local config = require("neotest.config")
 local logger = require("neotest.logging")
 local lib = require("neotest.lib")
+local NeotestState = require("neotest.client.state")
+local NeotestRunner = require("neotest.client.runner")
+local NeotestEventProcessor = require("neotest.client.events").processor
+local NeotestProcessTracker = require("neotest.client.strategies")
 
 ---@class neotest.InternalClient
 ---@field private _started boolean
 ---@field private _state neotest.ClientState
 ---@field private _events neotest.EventProcessor
----@field private _files_read table<string, boolean>
 ---@field private _adapters table<string, neotest.Adapter>
 ---@field private _adapter_group neotest.AdapterGroup
 ---@field private _runner neotest.TestRunner
 local NeotestClient = {}
 
 function NeotestClient:new(adapters)
-  local events = require("neotest.client.events").processor()
-  local state = require("neotest.client.state")(events)
-  local processes = require("neotest.client.strategies")()
-  local runner = require("neotest.client.runner")(processes)
+  local events = NeotestEventProcessor()
 
   local neotest = {
     _started = false,
     _adapters = {},
-    _events = events,
     _adapter_group = adapters,
-    _state = state,
-    _files_read = {},
+    _events = events,
     listeners = events.listeners,
-    _runner = runner,
   }
   self.__index = self
   setmetatable(neotest, self)
@@ -320,15 +317,23 @@ end
 
 ---@private
 ---@async
-function NeotestClient:_start()
-  if self._started then
+function NeotestClient:_start(args)
+  args = args or {}
+  if self._started and not args.force then
     return
   end
+  local process_tracker = NeotestProcessTracker()
+  self._runner = NeotestRunner(process_tracker)
+  self._state = NeotestState(self._events)
+
   logger.info("Initialising client")
-  local start = async.fn.localtime()
+  local start = vim.loop.now()
   self._started = true
   local augroup = async.api.nvim_create_augroup("NeotestClient", { clear = true })
   local function autocmd(event, callback)
+    if args.autocmds == false then
+      return
+    end
     async.api.nvim_create_autocmd(event, {
       callback = callback,
       group = augroup,
@@ -406,9 +411,10 @@ function NeotestClient:_start()
 
   self:_update_adapters(async.fn.getcwd())
 
-  local end_time = async.fn.localtime()
-  logger.info("Initialisation finished in", end_time - start, "seconds")
+  local run_time = (vim.loop.now() - start) / 1000
+  logger.info("Initialisation finished in", run_time, "seconds")
   self:_set_focused_file(async.fn.expand("%:p"))
+  return run_time
 end
 
 function NeotestClient:_update_open_buf_positions(adapter_id)
