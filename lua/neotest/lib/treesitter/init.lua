@@ -109,6 +109,18 @@ local function position_key(pos)
   return pos.id
 end
 
+--- Injections take a long time to run and are not needed.
+--- This does only the required parsing
+local function fast_parse(lang_tree)
+  if lang_tree._valid then
+    return lang_tree._trees
+  end
+
+  local parser = lang_tree._parser
+  local old_trees = lang_tree._trees
+  return parser:parse(old_trees[1], lang_tree._source)
+end
+
 ---@parma file_path string
 ---@param query table | string
 ---@param content string
@@ -117,11 +129,17 @@ local function parse_positions(file_path, query, content, opts)
   local ft = require("neotest.lib").files.detect_filetype(file_path)
   local lang = require("nvim-treesitter.parsers").ft_to_lang(ft)
   async.util.scheduler()
-  local parser = vim.treesitter.get_string_parser(content, lang)
+  local lang_tree = vim.treesitter.get_string_parser(content, lang)
   if type(query) == "string" then
     query = vim.treesitter.parse_query(lang, query)
   end
-  local root = parser:parse()[1]:root()
+
+  local root
+  if opts.fast ~= false then
+    root = fast_parse(lang_tree):root()
+  else
+    root = lang_tree:parse()[1]:root()
+  end
   local positions = collect(file_path, query, content, root)
   local structure = parse_tree(positions, {}, opts)
   local tree = Tree.from_list(structure, position_key)
@@ -129,7 +147,7 @@ local function parse_positions(file_path, query, content, opts)
 end
 
 ---Read a file's contents from disk and parse test positions using the given query.
----@async
+---@asyncthe
 ---@param file_path string
 ---@param query string | vim.treesitter.Query
 ---@param opts table
