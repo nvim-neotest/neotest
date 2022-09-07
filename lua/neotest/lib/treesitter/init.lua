@@ -126,16 +126,23 @@ end
 ---@param content string
 ---@return neotest.Tree
 local function parse_positions(file_path, query, content, opts)
+  local fast = opts.fast ~= false
   local ft = require("neotest.lib").files.detect_filetype(file_path)
   local lang = require("nvim-treesitter.parsers").ft_to_lang(ft)
   async.util.scheduler()
-  local lang_tree = vim.treesitter.get_string_parser(content, lang)
+  local lang_tree = vim.treesitter.get_string_parser(
+    content,
+    lang,
+    --- Providing an injection query for the lang prevents
+    --- it from trying to read the query from runtime files
+    fast and { injections = { [lang] = "" } } or {}
+  )
   if type(query) == "string" then
     query = vim.treesitter.parse_query(lang, query)
   end
 
   local root
-  if opts.fast ~= false then
+  if fast then
     root = fast_parse(lang_tree):root()
   else
     root = lang_tree:parse()[1]:root()
