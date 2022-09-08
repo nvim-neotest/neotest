@@ -30,18 +30,18 @@ define_highlights()
 ---@field adapters neotest.Adapter[]
 ---@field discovery neotest.Config.discovery
 ---@field running neotest.Config.running
+---@field default_strategy string|function
 
 ---@class neotest.Config: neotest.CoreConfig
 ---@field consumers table<string, neotest.Consumer>
 ---@field icons table<string, string>
 ---@field highlights table<string, string>
 ---@field floating neotest.Config.floating
----@field default_strategy string|function
 ---@field strategies neotest.Config.strategies
 ---@field summary neotest.Config.summary
 ---@field output neotest.Config.output
 ---@field status neotest.Config.status
----@field projects table<string, neotest.CoreConfig> Project specific settings, keys are project root directories
+---@field projects table<string, neotest.CoreConfig> Project specific settings, keys are project root directories (e.g "~/Dev/my_project")
 
 ---@class neotest.Config.discovery
 ---@field enabled boolean

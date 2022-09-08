@@ -124,7 +124,8 @@ function TestRunner:_run_broken_down_tree(tree, args, adapter_id, adapter, resul
     if #async_runners == 0 then
       return {}
     end
-    if args.concurrent ~= false and config.running.concurrent then
+    local root = tree:root():data().path
+    if args.concurrent ~= false and config.projects[root].running.concurrent then
       async.util.join(async_runners)
     else
       for _, runner in ipairs(async_runners) do
