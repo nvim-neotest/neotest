@@ -164,7 +164,7 @@ describe("neotest client", function()
       end)
       a.it("it reads the files", function()
         files[#files + 1] = dir .. "/test_file_3"
-        client:_update_positions(dir)
+        client:ensure_started()
         client:_update_positions(dir .. "/test_file_3")
         local file_tree = get_pos(dir .. "/test_file_3")
         assert.Not.same(file_tree:children(), {})
@@ -174,7 +174,7 @@ describe("neotest client", function()
     describe("when looking for new directory", function()
       a.it("it reads the new directory", function()
         dirs = { dir, dir .. "/new_dir" }
-        client:_update_positions(dir)
+        client:ensure_started()
         files[#files + 1] = dir .. "/new_dir/test_file_3"
         client:_update_positions(dir .. "/new_dir")
         local file_tree = get_pos(dir .. "/new_dir")
@@ -304,9 +304,8 @@ describe("neotest client", function()
           local positions_run = {}
 
           dirs = { dir, dir .. "/new_dir" }
-          client:_update_positions(dir)
           files[#files + 1] = dir .. "/new_dir/test_file_3"
-          client:_update_positions(dir .. "/new_dir")
+          client:ensure_started()
           local child_file = client:get_position(dir .. "/new_dir/test_file_3")
 
           mock_adapter.build_spec = function(args)

@@ -38,6 +38,14 @@ function AdapterGroup:adapters_matching_open_bufs()
   return adapters
 end
 
+function AdapterGroup:adapter_matching_path(path)
+  for _, adapter in ipairs(self:_path_adapters(path)) do
+    if adapter.is_test_file(path) then
+      return adapter
+    end
+  end
+end
+
 function AdapterGroup:get_file_adapter(file_path)
   for _, adapter in ipairs(self:_path_adapters(file_path)) do
     if adapter.is_test_file(file_path) then

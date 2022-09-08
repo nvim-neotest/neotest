@@ -343,7 +343,20 @@ function NeotestClient:_start()
     async.run(function()
       local adapter_id = self:_get_adapter(file_path)
       if not adapter_id then
-        return
+        local adapter = self._adapter_group:adapter_matching_path(file_path)
+        if not adapter then
+          return
+        end
+        --- Provide file paths parent because we could be outside of the root dir.
+        local root = adapter.root(lib.files.parent(file_path)) or vim.loop.cwd()
+        adapter_id = ("%s:%s"):format(adapter.name, root)
+        self._adapters[adapter_id] = adapter
+
+        if config.projects[root].discovery.enabled then
+          self:_update_positions(root, { adapter = adapter_id })
+        else
+          self:_update_open_buf_positions(adapter_id)
+        end
       end
       if not self:get_position(file_path, { adapter = adapter_id }) then
         local root = self._state:positions(adapter_id)

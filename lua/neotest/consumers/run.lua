@@ -17,6 +17,9 @@ neotest.run = {}
 function neotest.run.get_tree_from_args(args, store)
   local tree, adapter = (function()
     if args.suite then
+      if not args.adapter then
+        args.adapter = client:get_adapters()[1]
+      end
       return client:get_position(nil, args)
     end
     if args[1] then
