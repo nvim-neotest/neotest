@@ -107,6 +107,7 @@ Default values:
       enabled = true,
       open_on_run = "short"
     },
+    projects = {},
     run = {
       enabled = true
     },
@@ -149,25 +150,37 @@ Default values:
   }
 <
 
+neotest.setup_project()                                *neotest.setup_project()*
+           `neotest.setup_project`({project_root}, {project_config})
+Configure a project individually.
+Parameters~
+{project_root} `(string)`
+{project_config} neotest.CoreConfig
+
 
 ==============================================================================
 neotest.config                                                  *neotest.config*
 
 Class~
-{neotest.Config}
+{neotest.CoreConfig}
 Fields~
 {adapters} neotest.Adapter[]
-{consumers} `(table<string, neotest.Consumer>)`
 {discovery} neotest.Config.discovery
 {running} neotest.Config.running
+{default_strategy} `(string|function)`
+
+Class~
+{neotest.Config:} neotest.CoreConfig
+Fields~
+{consumers} `(table<string, neotest.Consumer>)`
 {icons} `(table<string, string>)`
 {highlights} `(table<string, string>)`
 {floating} neotest.Config.floating
-{default_strategy} `(string|function)`
 {strategies} neotest.Config.strategies
 {summary} neotest.Config.summary
 {output} neotest.Config.output
 {status} neotest.Config.status
+{projects} `(table<string, neotest.CoreConfig>)` Project specific settings, keys are project root directories (e.g "~/Dev/my_project")
 
 Class~
 {neotest.Config.discovery}

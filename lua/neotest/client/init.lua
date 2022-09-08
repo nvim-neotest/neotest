@@ -60,6 +60,7 @@ function NeotestClient:run_tree(tree, args)
     self._runner,
     tree,
     args,
+    adapter_id,
     adapter,
     function(results)
       self._state:update_results(adapter_id, results, true)
@@ -139,10 +140,10 @@ end
 function NeotestClient:get_adapters()
   self:ensure_started()
   local active_adapters = {}
-  for _, adapter in ipairs(self._adapters) do
-    local root = self._state:positions(adapter.name)
+  for adapter_id, _ in pairs(self._adapters) do
+    local root = self._state:positions(adapter_id)
     if root and #root:children() > 0 then
-      table.insert(active_adapters, adapter.name)
+      table.insert(active_adapters, adapter_id)
     end
   end
   return active_adapters
@@ -170,7 +171,7 @@ function NeotestClient:get_position(position_id, args)
   if position_id and vim.endswith(position_id, lib.files.sep) then
     position_id = string.sub(position_id, 1, #position_id - #lib.files.sep)
   end
-  local adapter_id = self:_get_adapter(position_id, args.adapter, args.refresh)
+  local adapter_id = self:_get_adapter(position_id, args.adapter)
   local positions = self._state:positions(adapter_id, position_id)
 
   return positions, adapter_id
@@ -218,9 +219,12 @@ end
 ---@async
 ---@param path string
 function NeotestClient:_update_positions(path, args)
+  if not lib.files.exists(path) then
+    return
+  end
   self:ensure_started()
   args = args or {}
-  local adapter_id, adapter = self:_get_adapter(path, args.adapter, args.refresh)
+  local adapter_id, adapter = self:_get_adapter(path, args.adapter)
   if not adapter then
     return
   end
@@ -250,68 +254,52 @@ function NeotestClient:_update_positions(path, args)
     return
   end
   self._state:update_positions(adapter_id, positions)
+
   if positions:data().type == "dir" then
-    local tree = self._state:positions(adapter_id, path)
-    local parse_funcs = {}
-    for _, node in tree:iter_nodes() do
-      local pos = node:data()
-      if pos.type == "file" and #node:children() == 0 then
-        table.insert(parse_funcs, function()
-          self:_update_positions(pos.id, args)
-        end)
-      end
+    self:_parse_dir_files(path, adapter_id)
+  end
+end
+
+function NeotestClient:_parse_dir_files(path, adapter_id)
+  local tree = self._state:positions(adapter_id, path)
+  local parse_funcs = {}
+  for _, node in tree:iter_nodes() do
+    local pos = node:data()
+    if pos.type == "file" and #node:children() == 0 then
+      table.insert(parse_funcs, function()
+        self:_update_positions(pos.id, { adapter = adapter_id })
+      end)
     end
-    -- This is extremely IO heavy so running together has large benefit thanks to using luv for IO.
-    -- More than twice as fast compared to running in sequence for cpython repo. (~18000 tests)
-    if #parse_funcs > 0 then
-      async.util.join(parse_funcs)
-    end
+  end
+  -- This is extremely IO heavy so running together has large benefit thanks to using luv for IO.
+  -- More than twice as fast compared to running in sequence for cpython repo. (~18000 tests)
+  if #parse_funcs > 0 then
+    async.util.join(parse_funcs)
   end
 end
 
 ---@private
 ---@async
 ---@return string | nil, neotest.Adapter | nil
-function NeotestClient:_get_adapter(position_id, adapter_id, refresh)
-  if not position_id and not adapter_id then
-    return self._adapters[1].name
-  end
+function NeotestClient:_get_adapter(position_id, adapter_id)
   if adapter_id then
-    for _, adapter in ipairs(self._adapters) do
-      if adapter_id == adapter.name then
-        return adapter_id, adapter
-      end
-    end
-  end
-  if not lib.files.is_dir(position_id) then
-    for _, adapter in ipairs(self._adapters) do
-      if
-        self._state:positions(adapter.name, position_id)
-        or (not lib.files.is_dir(position_id) and adapter.is_test_file(position_id))
-      then
-        return adapter.name, adapter
-      end
-    end
-  else
-    for _, adapter in ipairs(self._adapters) do
-      local root = self._state:positions(adapter.name)
-      if root and vim.startswith(position_id, root:data().path) then
-        return adapter.name, adapter
-      end
-    end
+    return adapter_id, self._adapters[adapter_id]
   end
 
-  if not lib.files.exists(position_id) or refresh == false then
-    return
-  end
+  assert(position_id)
+  for a_id, adapter in pairs(self._adapters) do
+    if self._state:positions(a_id, position_id) then
+      return a_id, adapter
+    end
 
-  local new_adapter = self._adapter_group:get_file_adapter(position_id)
-  if not new_adapter then
-    return
+    local root = self._state:positions(a_id)
+    if
+      (not root or vim.startswith(position_id, root:data().path))
+      and (lib.files.is_dir(position_id) or adapter.is_test_file(position_id))
+    then
+      return a_id, adapter
+    end
   end
-
-  table.insert(self._adapters, new_adapter)
-  return new_adapter.name, new_adapter
 end
 
 ---@private
@@ -344,12 +332,13 @@ function NeotestClient:_start()
   autocmd({ "BufAdd", "BufWritePost" }, function()
     local file_path = vim.fn.expand("<afile>:p")
     async.run(function()
-      local adapter_id = self:_get_adapter(file_path, nil, true)
+      local adapter_id = self:_get_adapter(file_path)
       if not adapter_id then
         return
       end
       if not self:get_position(file_path, { adapter = adapter_id }) then
-        if config.discovery.enabled then
+        local root = self._state:positions(adapter_id)
+        if config.projects[root and root:data().path or vim.loop.cwd()].discovery.enabled then
           self:_update_positions(lib.files.parent(file_path), { adapter = adapter_id })
         end
       end
@@ -366,11 +355,16 @@ function NeotestClient:_start()
 
   autocmd({ "BufAdd", "BufDelete" }, function()
     local updated_dir = vim.fn.expand("<afile>:p:h")
-    if config.discovery.enabled then
-      async.run(function()
+    async.run(function()
+      local adapter_id = self:_get_adapter(updated_dir, nil)
+      if not adapter_id then
+        return
+      end
+      local root = self._state:positions(adapter_id)
+      if config.projects[root and root:data().path or vim.loop.cwd()].discovery.enabled then
         self:_update_positions(updated_dir)
-      end)
-    end
+      end
+    end)
   end)
 
   autocmd("BufEnter", function()
@@ -393,51 +387,58 @@ function NeotestClient:_start()
 
   self:_update_adapters(async.fn.getcwd())
 
-  if not config.discovery.enabled then
-    self:_update_open_buf_poisitions()
-  end
   local end_time = async.fn.localtime()
   logger.info("Initialisation finished in", end_time - start, "seconds")
   self:_set_focused_file(async.fn.expand("%:p"))
 end
 
-function NeotestClient:_update_open_buf_poisitions()
+function NeotestClient:_update_open_buf_positions(adapter_id)
+  local adapter = self._adapters[adapter_id]
   for _, bufnr in ipairs(async.api.nvim_list_bufs()) do
     local file_path = async.api.nvim_buf_get_name(bufnr)
-    self:_update_positions(file_path)
+    if adapter.is_test_file(file_path) then
+      self:_update_positions(file_path, { adapter = adapter_id })
+    end
   end
 end
 
 ---@private
 ---@async
-function NeotestClient:_update_adapters(path)
-  local adapters_with_root = lib.files.is_dir(path)
-      and self._adapter_group:adapters_with_root_dir(path)
+function NeotestClient:_update_adapters(dir)
+  local adapters_with_root = lib.files.is_dir(dir)
+      and self._adapter_group:adapters_with_root_dir(dir)
     or {}
   local adapters_with_bufs = self._adapter_group:adapters_matching_open_bufs()
   local found = {}
-  for _, adapter in pairs(self._adapters) do
-    found[adapter.name] = true
+  for adapter_id, _ in pairs(self._adapters) do
+    found[adapter_id] = true
   end
   for _, entry in ipairs(adapters_with_root) do
     local adapter = entry.adapter
     local root = entry.root
-    if not found[adapter.name] then
-      table.insert(self._adapters, adapter)
-      found[adapter.name] = true
+    local adapter_id = ("%s:%s"):format(adapter.name, root)
+    if not found[adapter_id] then
+      self._adapters[adapter_id] = adapter
+      found[adapter_id] = true
     end
-    if config.discovery.enabled then
-      self:_update_positions(root, { adapter = adapter.name })
+    if config.projects[root].discovery.enabled then
+      self:_update_positions(root, { adapter = adapter_id })
+    else
+      self:_update_open_buf_positions(adapter_id)
     end
   end
-  local root = lib.files.is_dir(path) and path or async.fn.getcwd()
+  local root = lib.files.is_dir(dir) and dir or async.fn.getcwd()
   for _, adapter in ipairs(adapters_with_bufs) do
-    if not found[adapter.name] then
-      table.insert(self._adapters, adapter)
-      found[adapter.name] = true
+    local adapter_id = ("%s:%s"):format(adapter.name, root)
+    if not found[adapter_id] then
+      self._adapters[adapter_id] = adapter
+      found[adapter_id] = true
     end
-    if config.discovery.enabled then
-      self:_update_positions(root, { adapter = adapter.name })
+
+    if config.projects[root].discovery.enabled then
+      self:_update_positions(root, { adapter = adapter_id })
+    else
+      self:_update_open_buf_positions(adapter_id)
     end
   end
 end

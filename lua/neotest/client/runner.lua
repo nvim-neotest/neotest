@@ -21,12 +21,11 @@ end
 ---@param tree neotest.Tree
 ---@param args table
 ---@param adapter neotest.Adapter
-function TestRunner:run_tree(tree, args, adapter, on_results)
+function TestRunner:run_tree(tree, args, adapter_id, adapter, on_results)
   if self._running[tree:data().id] then
     logger.warn("Position already running:", tree:data().id)
   end
-  -- TODO: Change adapter.name to adapter ID when project configs are merged
-  self._running[tree:data().id] = { position = tree, adapter = adapter.name }
+  self._running[tree:data().id] = { position = tree, adapter = adapter_id }
   local all_results = {}
   local results_callback = function(root, results, output_path)
     local function fill_results(missing_results)
@@ -64,7 +63,7 @@ function TestRunner:run_tree(tree, args, adapter, on_results)
 
   args = vim.tbl_extend("keep", args or {}, { strategy = config.default_strategy })
 
-  self:_run_tree(tree, args, adapter, results_callback)
+  self:_run_tree(tree, args, adapter_id, adapter, results_callback)
 
   self._running[tree:data().id] = nil
   return all_results
@@ -74,19 +73,19 @@ function TestRunner:running()
   return vim.tbl_values(self._running)
 end
 
-function TestRunner:_run_tree(tree, args, adapter, results_callback)
+function TestRunner:_run_tree(tree, args, adapter_id, adapter, results_callback)
   local spec = adapter.build_spec(vim.tbl_extend("force", args, { tree = tree }))
 
   if not spec then
-    self:_run_broken_down_tree(tree, args, adapter, results_callback)
+    self:_run_broken_down_tree(tree, args, adapter_id, adapter, results_callback)
     return
   end
-  self:_run_spec(spec, tree, args, adapter, results_callback)
+  self:_run_spec(spec, tree, args, adapter_id, adapter, results_callback)
 end
 
 ---@param spec neotest.RunSpec
 ---@param adapter neotest.Adapter
-function TestRunner:_run_spec(spec, tree, args, adapter, results_callback)
+function TestRunner:_run_spec(spec, tree, args, adapter_id, adapter, results_callback)
   local position = tree:data()
   spec.strategy =
     vim.tbl_extend("force", spec.strategy or {}, config.strategies[args.strategy] or {})
@@ -96,7 +95,7 @@ function TestRunner:_run_spec(spec, tree, args, adapter, results_callback)
     spec.env = nil
   end
 
-  local proc_key = self:_create_process_key(adapter.name, position.id)
+  local proc_key = self:_create_process_key(adapter_id, position.id)
 
   local stream_processor = spec.stream
     and function(stream)
@@ -111,21 +110,22 @@ function TestRunner:_run_spec(spec, tree, args, adapter, results_callback)
   results_callback(tree, results, process_result.output)
 end
 
-function TestRunner:_run_broken_down_tree(tree, args, adapter, results_callback)
+function TestRunner:_run_broken_down_tree(tree, args, adapter_id, adapter, results_callback)
   local position = tree:data()
   local function run_pos_types(pos_type)
     local async_runners = {}
     for _, node in tree:iter_nodes() do
       if node:data().type == pos_type then
         table.insert(async_runners, function()
-          self:_run_tree(node, args, adapter, results_callback)
+          self:_run_tree(node, args, adapter_id, adapter, results_callback)
         end)
       end
     end
     if #async_runners == 0 then
       return {}
     end
-    if args.concurrent ~= false and config.running.concurrent then
+    local root = tree:root():data().path
+    if args.concurrent ~= false and config.projects[root].running.concurrent then
       async.util.join(async_runners)
     else
       for _, runner in ipairs(async_runners) do

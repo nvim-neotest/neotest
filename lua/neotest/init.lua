@@ -74,7 +74,11 @@ end
 ---@eval return require('neotest.config')._format_default()
 function neotest.setup(user_config)
   config.setup(user_config)
-  local adapter_group = require("neotest.adapters")(config.adapters)
+  local project_adapters = {}
+  for root, project_conf in pairs(config.projects) do
+    project_adapters[root] = project_conf.adapters
+  end
+  local adapter_group = require("neotest.adapters")(config.adapters, project_adapters)
   local client = require("neotest.client")(adapter_group)
   local all_consumers = vim.tbl_extend("error", require("neotest.consumers"), config.consumers)
   for name, consumer in pairs(all_consumers) do
@@ -82,6 +86,13 @@ function neotest.setup(user_config)
       consumers[name] = consumer(consumer_client(client, name)) or {}
     end
   end
+end
+
+--- Configure a project individually.
+---@param project_root string
+---@param project_config neotest.CoreConfig
+function neotest.setup_project(project_root, project_config)
+  config.setup_project(project_root, project_config)
 end
 
 setmetatable(neotest, {

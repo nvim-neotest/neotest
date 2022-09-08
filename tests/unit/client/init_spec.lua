@@ -5,9 +5,6 @@ local Tree = require("neotest.types").Tree
 local lib = require("neotest.lib")
 local NeotestClient = require("neotest.client")
 local AdapterGroup = require("neotest.adapters")
-A = function(...)
-  print(vim.inspect(...))
-end
 
 describe("neotest client", function()
   ---@type neotest.InternalClient
@@ -29,14 +26,16 @@ describe("neotest client", function()
     stub(lib.files, "is_dir", function(path)
       return vim.tbl_contains(dirs, path)
     end)
-    require("neotest.config").setup({ adapters = { mock_adapter } })
+    stub(lib.files, "exists", function(path)
+      return path ~= ""
+    end)
 
     local send_exit, await_exit = async.control.channel.oneshot()
     exit_test = send_exit
     mock_adapter = {
       name = "adapter",
-      is_test_file = function()
-        return true
+      is_test_file = function(file_path)
+        return file_path ~= "" and not vim.endswith(file_path, lib.files.sep)
       end,
       root = function()
         return dir
@@ -117,10 +116,14 @@ describe("neotest client", function()
         end,
       }
     end
-    client = NeotestClient(AdapterGroup({ mock_adapter }))
+    client = NeotestClient(AdapterGroup({}))
+    require("neotest").setup({ adapters = { mock_adapter } })
   end)
   after_each(function()
     lib.files.find:revert()
+    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+      vim.api.nvim_buf_delete(buf, { force = true })
+    end
   end)
 
   describe("reading positions", function()
@@ -129,6 +132,20 @@ describe("neotest client", function()
       assert.Not.Nil(tree:get_key(dir .. "/test_file_1"))
       assert.Not.Nil(tree:get_key(dir .. "/test_file_2"))
       assert.Nil(tree:get_key(dir .. "/test_file_3"))
+    end)
+
+    a.it("uses projects adapters", function()
+      require("neotest").setup_project(dir, { adapters = { mock_adapter } })
+      local tree = get_pos(dir)
+      assert.Not.Nil(tree:get_key(dir .. "/test_file_1"))
+      assert.Not.Nil(tree:get_key(dir .. "/test_file_2"))
+      assert.Nil(tree:get_key(dir .. "/test_file_3"))
+    end)
+
+    a.it("doesn't use global adapters", function()
+      require("neotest").setup_project(dir, { adapters = {} })
+      local tree = get_pos(dir)
+      assert.Nil(tree)
     end)
 
     a.it("updates files when first requested", function()
@@ -167,32 +184,66 @@ describe("neotest client", function()
 
     describe("discovery.enabled = false", function()
       a.it("doesn't scan directories by default", function()
-        require("neotest.config").setup({
+        require("neotest").setup({
           adapters = { mock_adapter },
           discovery = { enabled = false },
         })
-        local tree = get_pos(dir)
-        assert.Nil(tree)
-        tree = get_pos(dir .. "/test_file_1")
-        assert.Nil(tree)
+        assert.Nil(get_pos(dir))
+        assert.Nil(get_pos(dir .. "/test_file_1"))
+      end)
+
+      a.it("doesn't scan directories by default in configured project", function()
+        require("neotest").setup_project(dir, {
+          adapters = { mock_adapter },
+          discovery = { enabled = false },
+        })
+        local x = get_pos(dir)
+        assert.Nil(get_pos(dir))
+        assert.Nil(get_pos(dir .. "/test_file_1"))
       end)
 
       a.it("only scans buffers that are open when client starts", function()
-        require("neotest.config").setup({
+        require("neotest").setup({
           adapters = { mock_adapter },
           discovery = { enabled = false },
         })
-        local bufnr = async.fn.bufadd(dir .. "/test_file_1")
-        async.fn.bufload(bufnr)
+        vim.cmd("edit " .. dir .. "/test_file_1")
+
+        assert.Not.Nil(get_pos(dir))
+        assert.Not.Nil(get_pos(dir .. "/test_file_1"))
+        assert.Nil(get_pos(dir .. "/test_file_2"))
+      end)
+
+      a.it("parses buffers as they are added", function()
+        require("neotest").setup({
+          adapters = { mock_adapter },
+          discovery = { enabled = false },
+        })
+
+        assert.Nil(get_pos(dir))
+
+        vim.cmd("edit " .. dir .. "/test_file_1")
+
+        assert.Not.Nil(get_pos(dir .. "/test_file_1"))
+        assert.Nil(get_pos(dir .. "/test_file_2"))
+      end)
+
+      a.it("adds new buffers as to existing tree", function()
+        for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+          vim.api.nvim_buf_delete(buf, { force = true })
+        end
+        require("neotest").setup({
+          adapters = { mock_adapter },
+          discovery = { enabled = false },
+        })
+        vim.cmd("edit " .. dir .. "/test_file_1")
         local tree = get_pos(dir)
-        assert.Not.Nil(tree)
-        assert.Not.same(tree, {})
-        tree = get_pos(dir .. "/test_file_1")
-        assert.Not.Nil(tree)
-        assert.Not.same(tree, {})
         tree = get_pos(dir .. "/test_file_2")
         assert.Nil(tree)
-        async.api.nvim_buf_delete(bufnr, {})
+        vim.cmd("edit " .. dir .. "/test_file_2")
+        async.util.sleep(10)
+        tree = get_pos(dir .. "/test_file_2")
+        assert.Not.Nil(tree)
       end)
     end)
   end)
@@ -221,7 +272,8 @@ describe("neotest client", function()
       end)
       local running = client:running_positions()
       exit_test()
-      assert.same(running, { { adapter = mock_adapter.name, position = tree } })
+      local adapter_id = client:get_adapters()[1]
+      assert.same(running, { { adapter = adapter_id, position = tree } })
     end)
 
     describe("with unsupported roots", function()
@@ -263,7 +315,6 @@ describe("neotest client", function()
             if pos.type == "dir" then
               return
             end
-            positions_run[pos.id] = true
             return {
               stream = function()
                 local sent = false
@@ -291,7 +342,8 @@ describe("neotest client", function()
           end)
           async.util.sleep(10)
 
-          local results = client:get_results(mock_adapter.name)
+          local adapter_id = client:get_adapters()[1]
+          local results = client:get_results(adapter_id)
 
           assert.same({
             [dir .. "/new_dir"] = {
@@ -455,7 +507,8 @@ describe("neotest client", function()
         end)
         async.util.sleep(10)
 
-        local results = client:get_results(mock_adapter.name)
+        local adapter_id = client:get_adapters()[1]
+        local results = client:get_results(adapter_id)
         for i, pos in tree:iter() do
           if i % 2 == 0 and pos.type == "test" then
             assert.same({ status = "passed" }, results[pos.id])
@@ -509,7 +562,8 @@ describe("neotest client", function()
       local tree = get_pos(dir)
       exit_test()
       client:run_tree(tree, { strategy = mock_strategy })
-      local results = client:get_results(mock_adapter.name)
+      local adapter_id = client:get_adapters()[1]
+      local results = client:get_results(adapter_id)
       for _, pos in tree:iter() do
         if pos.type == "dir" then
           assert.equal(results[pos.id].status, "failed")
@@ -521,7 +575,8 @@ describe("neotest client", function()
       local tree = get_pos(dir)
       exit_test()
       client:run_tree(tree, { strategy = mock_strategy })
-      local results = client:get_results(mock_adapter.name)
+      local adapter_id = client:get_adapters()[1]
+      local results = client:get_results(adapter_id)
       for _, pos in tree:iter() do
         if pos.type == "file" then
           assert.equal(results[pos.id].status, "failed")
@@ -546,11 +601,12 @@ describe("neotest client", function()
           return pos.id
         end)
       end
-      client:_update_positions(dir .. "/dummy_file", { adapter = "adapter" })
+      local adapter_id = client:get_adapters()[1]
+      client:_update_positions(dir .. "/dummy_file", { adapter = adapter_id })
       local tree = get_pos(dir .. "/dummy_file")
       exit_test()
       client:run_tree(tree, { strategy = mock_strategy })
-      local results = client:get_results(mock_adapter.name)
+      local results = client:get_results(adapter_id)
       assert.equal(results[dir .. "/dummy_file"].status, "skipped")
     end)
 
@@ -558,7 +614,8 @@ describe("neotest client", function()
       local tree = get_pos(dir .. "/test_file_1")
       exit_test()
       client:run_tree(tree, { strategy = mock_strategy })
-      local results = client:get_results(mock_adapter.name)
+      local adapter_id = client:get_adapters()[1]
+      local results = client:get_results(adapter_id)
       for _, pos in tree:iter() do
         assert.Not.Nil(results[pos.id])
       end
@@ -582,7 +639,8 @@ describe("neotest client", function()
       local tree = get_pos(dir)
       exit_test()
       client:run_tree(tree, { strategy = mock_strategy })
-      local results = client:get_results(mock_adapter.name)
+      local adapter_id = client:get_adapters()[1]
+      local results = client:get_results(adapter_id)
       assert.equal(9, #vim.tbl_keys(results))
     end)
   end)
