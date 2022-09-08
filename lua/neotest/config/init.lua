@@ -45,6 +45,7 @@ define_highlights()
 
 ---@class neotest.Config.discovery
 ---@field enabled boolean
+---@field concurrent boolean Parse files concurrently. Disable if experiencing performance issues.
 
 ---@class neotest.Config.running
 ---@field concurrent boolean Run tests concurrently when an adapter provides multiple commands to run
@@ -100,6 +101,7 @@ local default_config = {
   adapters = {},
   discovery = {
     enabled = true,
+    concurrent = true,
   },
   running = {
     concurrent = true,

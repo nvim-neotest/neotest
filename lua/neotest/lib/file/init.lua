@@ -255,7 +255,7 @@ function M.match_root_pattern(...)
   return function(start_path)
     local start_parents = Path:new(start_path):parents()
     local potential_roots = M.is_dir(start_path) and vim.list_extend({ start_path }, start_parents)
-        or start_parents
+      or start_parents
     for _, path in ipairs(potential_roots) do
       for _, pattern in ipairs(patterns) do
         for _, p in ipairs(async.fn.glob(Path:new(path, pattern).filename, true, true)) do

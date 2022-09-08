@@ -261,7 +261,7 @@ function NeotestClient:_update_positions(path, args)
 end
 
 function NeotestClient:_parse_dir_files(path, adapter_id)
-  local tree = self._state:positions(adapter_id, path)
+  local tree = assert(self._state:positions(adapter_id, path))
   local parse_funcs = {}
   for _, node in tree:iter_nodes() do
     local pos = node:data()
@@ -271,10 +271,19 @@ function NeotestClient:_parse_dir_files(path, adapter_id)
       end)
     end
   end
-  -- This is extremely IO heavy so running together has large benefit thanks to using luv for IO.
-  -- More than twice as fast compared to running in sequence for cpython repo. (~18000 tests)
-  if #parse_funcs > 0 then
+
+  if #parse_funcs == 0 then
+    return
+  end
+
+  local root = tree:data().path
+
+  if config.projects[root].discovery.concurrent then
     async.util.join(parse_funcs)
+  else
+    for _, func in ipairs(parse_funcs) do
+      func()
+    end
   end
 end
 
