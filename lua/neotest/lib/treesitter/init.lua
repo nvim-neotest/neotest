@@ -154,7 +154,7 @@ local function parse_positions(file_path, query, content, opts)
 end
 
 ---Read a file's contents from disk and parse test positions using the given query.
----@asyncthe
+---@async
 ---@param file_path string
 ---@param query string | vim.treesitter.Query
 ---@param opts table
