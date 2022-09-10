@@ -133,4 +133,42 @@ describe("treesitter parsing", function()
     })
     assert.Not.Nil(tree:get_key('test_spec.lua__"test 3"'))
   end)
+
+  a.it("uses custom build function", function()
+    local tree = ts.parse_positions_from_string("test_spec.lua", test_file, plenary_queries, {
+      build_position = function(file_path)
+        return {
+          type = "test",
+          path = file_path,
+          name = "same_name",
+          range = { 0, 0, 0, 0 },
+        }
+      end,
+    })
+    for _, position in tree:iter() do
+      if position.type ~= "file" then
+        assert.are.same("same_name", position.name)
+      end
+    end
+  end)
+
+  a.it("allows custom build function to return list", function()
+    local tree = ts.parse_positions_from_string("test_spec.lua", test_file, plenary_queries, {
+      build_position = function(file_path)
+        return {
+          {
+            type = "test",
+            path = file_path,
+            name = "same_name",
+            range = { 0, 0, 0, 0 },
+          },
+        }
+      end,
+    })
+    for _, position in tree:iter() do
+      if position.type ~= "file" then
+        assert.are.same("same_name", position.name)
+      end
+    end
+  end)
 end)

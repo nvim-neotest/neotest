@@ -181,4 +181,72 @@ M.merge = function(orig, new)
   return orig
 end
 
+local function build_structure(positions, namespaces, opts)
+  ---@type neotest.Position
+  local parent = table.remove(positions, 1)
+  if not parent then
+    return nil
+  end
+  parent.id = parent.type == "file" and parent.path or opts.position_id(parent, namespaces)
+  local current_level = { parent }
+  local child_namespaces = vim.list_extend({}, namespaces)
+  if parent.type == "namespace" or (opts.nested_tests and parent.type == "test") then
+    child_namespaces[#child_namespaces + 1] = parent
+  end
+  while true do
+    local next_pos = positions[1]
+    if not next_pos or not M.contains(parent, next_pos) then
+      -- Don't preserve empty namespaces
+      if #current_level == 1 and parent.type == "namespace" then
+        return nil
+      end
+      if opts.require_namespaces and parent.type == "test" and #namespaces == 0 then
+        return nil
+      end
+      return current_level
+    end
+
+    local sub_tree = build_structure(positions, child_namespaces, opts)
+    if opts.nested_tests or parent.type ~= "test" then
+      current_level[#current_level + 1] = sub_tree
+    end
+  end
+end
+
+---@class neotest.positions.ParseOptions
+---@field nested_tests boolean Allow nested tests
+---@field require_namespaces boolean Require tests to be within namespaces
+---@field position_id fun(position: neotest.Position, parents: neotest.Position[]): string Position ID constructor
+
+--- Convert a flat list of sorted positions to a tree. Positions ID fields can be nil as they will be assigned.
+--- NOTE: This mutates the positions given by assigning the `id` field.
+---@param positions neotest.Position[]
+---@param opts neotest.positions.ParseOptions
+---@return neotest.Tree
+function M.parse_tree(positions, opts)
+  opts = vim.tbl_extend("force", {
+    nested_tests = false, -- Allow nested tests
+    require_namespaces = false, -- Only allow tests within namespaces
+    ---@param position neotest.Position The position to return an ID for
+    ---@param parents neotest.Position[] Parent positions for the position
+    position_id = function(position, parents)
+      return table.concat(
+        vim.tbl_flatten({
+          position.path,
+          vim.tbl_map(function(pos)
+            return pos.name
+          end, parents),
+          position.name,
+        }),
+        "::"
+      )
+    end,
+  }, opts or {})
+  local structure = assert(build_structure(positions, {}, opts))
+
+  return Tree.from_list(structure, function(pos)
+    return pos.id
+  end)
+end
+
 return M
