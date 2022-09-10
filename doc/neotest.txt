@@ -59,7 +59,7 @@ Default values:
       enabled = true
     },
     discovery = {
-      concurrent = true,
+      concurrent = 0,
       enabled = true
     },
     floating = {
@@ -187,7 +187,7 @@ Class~
 {neotest.Config.discovery}
 Fields~
 {enabled} `(boolean)`
-{concurrent} `(boolean)` Parse files concurrently. Disable if experiencing performance issues.
+{concurrent} `(integer)` Number of workers to parse files concurrently. 0 automatically assigns number based on CPU. Set to 1 if experiencing lag.
 
 Class~
 {neotest.Config.running}

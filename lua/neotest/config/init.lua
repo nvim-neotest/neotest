@@ -19,7 +19,7 @@ local function define_highlights()
   hi default NeotestMarked ctermfg=Brown guifg=#F79000 gui=bold
   hi default NeotestTarget ctermfg=Red guifg=#F70067
   hi default link NeotestUnknown Normal
-]])
+]] )
 end
 
 local augroup = vim.api.nvim_create_augroup("NeotestColorSchemeRefresh", {})
@@ -45,7 +45,7 @@ define_highlights()
 
 ---@class neotest.Config.discovery
 ---@field enabled boolean
----@field concurrent boolean Parse files concurrently. Disable if experiencing performance issues.
+---@field concurrent integer Number of workers to parse files concurrently. 0 automatically assigns number based on CPU. Set to 1 if experiencing lag.
 
 ---@class neotest.Config.running
 ---@field concurrent boolean Run tests concurrently when an adapter provides multiple commands to run
@@ -101,7 +101,7 @@ local default_config = {
   adapters = {},
   discovery = {
     enabled = true,
-    concurrent = true,
+    concurrent = 0,
   },
   running = {
     concurrent = true,
@@ -202,18 +202,35 @@ local user_config = default_config
 ---@type neotest.Config
 local NeotestConfigModule = {}
 
+local convert_concurrent = function(val)
+  if val == 0 or val == true then
+    return #vim.loop.cpu_info() + 4
+  end
+  if val == false then
+    return 1
+  end
+  assert(type(val) == "number", "concurrent must be a boolean or a number")
+  return val
+end
+
 ---@param config neotest.Config
 ---@private
 function NeotestConfigModule.setup(config)
   user_config = vim.tbl_deep_extend("force", default_config, config)
+  --- Avoid mutating default for docgen
+  user_config.discovery = vim.tbl_deep_extend(
+    "force",
+    user_config.discovery,
+    { concurrent = convert_concurrent(user_config.discovery.concurrent) }
+  )
 
   user_config.projects = setmetatable({}, {
-    __index = function(_, key)
+    __index = function()
       return user_config
     end,
   })
   for project_root, project_config in pairs(config.projects or {}) do
-    NeotestConfigModule.setup_project(project_root, config)
+    NeotestConfigModule.setup_project(project_root, project_config)
   end
 end
 
@@ -225,6 +242,8 @@ function NeotestConfigModule.setup_project(project_root, config)
     discovery = user_config.discovery,
     running = user_config.running,
   })
+  user_config.projects[path].discovery.concurrent =
+  convert_concurrent(user_config.projects[path].discovery.concurrent)
 end
 
 function NeotestConfigModule._format_default()

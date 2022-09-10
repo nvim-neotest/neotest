@@ -244,47 +244,34 @@ function NeotestClient:_update_positions(path, args)
         end
       end
       local files = lib.func_util.filter_list(adapter.is_test_file, lib.files.find(path))
-      return lib.files.parse_dir_from_files(path, files)
+      local positions = lib.files.parse_dir_from_files(path, files)
+      self._state:update_positions(adapter_id, positions)
+      self:_parse_files(adapter_id, path, files)
     else
-      return adapter.discover_positions(path)
+      local positions = adapter.discover_positions(path)
+      if positions then
+        self._state:update_positions(adapter_id, positions)
+      end
     end
   end)
   if not success or not positions then
     logger.error("Couldn't find positions in path", path, positions)
     return
   end
-  self._state:update_positions(adapter_id, positions)
-
-  if positions:data().type == "dir" then
-    self:_parse_dir_files(path, adapter_id)
-  end
 end
 
-function NeotestClient:_parse_dir_files(path, adapter_id)
-  local tree = assert(self._state:positions(adapter_id, path))
-  local parse_funcs = {}
-  for _, node in tree:iter_nodes() do
-    local pos = node:data()
-    if pos.type == "file" and #node:children() == 0 then
-      table.insert(parse_funcs, function()
-        self:_update_positions(pos.id, { adapter = adapter_id })
-      end)
+function NeotestClient:_parse_files(adapter_id, root, paths)
+  local function worker()
+    while #paths > 0 do
+      self:_update_positions(table.remove(paths), { adapter = adapter_id })
     end
   end
 
-  if #parse_funcs == 0 then
-    return
+  local workers = {}
+  for _ = 1, config.projects[root].discovery.concurrent do
+    table.insert(workers, worker)
   end
-
-  local root = tree:data().path
-
-  if config.projects[root].discovery.concurrent then
-    async.util.join(parse_funcs)
-  else
-    for _, func in ipairs(parse_funcs) do
-      func()
-    end
-  end
+  async.util.join(workers)
 end
 
 ---@private
