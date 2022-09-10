@@ -243,7 +243,7 @@ function NeotestClient:_update_positions(path, args)
           return
         end
       end
-      local files = lib.func_util.filter_list(adapter.is_test_file, lib.files.find({ path }))
+      local files = lib.func_util.filter_list(adapter.is_test_file, lib.files.find(path))
       return lib.files.parse_dir_from_files(path, files)
     else
       return adapter.discover_positions(path)

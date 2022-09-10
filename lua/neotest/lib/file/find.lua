@@ -1,82 +1,35 @@
-local async = require("neotest.async")
-local logger = require("neotest.logging")
+local uv = vim.loop
 local M = {}
 
--- Taken from telescope find_files
-local function get_find_command(search_dirs)
-  local find_command
-  if not find_command then
-    if 1 == async.fn.executable("fd") then
-      find_command = { "fd", "--type", "f" }
-      table.insert(find_command, ".")
-      for _, v in pairs(search_dirs) do
-        table.insert(find_command, v)
-      end
-    elseif 1 == async.fn.executable("fdfind") then
-      find_command = { "fdfind", "--type", "f" }
-      table.insert(find_command, ".")
-      for _, v in pairs(search_dirs) do
-        table.insert(find_command, v)
-      end
-    elseif 1 == async.fn.executable("rg") then
-      find_command = { "rg", "--files" }
-      for _, v in pairs(search_dirs) do
-        table.insert(find_command, v)
-      end
-    elseif 1 == async.fn.executable("find") and async.fn.has("win32") == 0 then
-      find_command = { "find", "-type", "f" }
-      for _, v in pairs(search_dirs) do
-        table.insert(find_command, 2, v)
-      end
-    end
-  end
-  return find_command
-end
-
+--- Find all files under the given directory.
+--- Does not search hidden directories.
 ---@async
----@param search_dirs? string[] directories to search, defaults to current directory
+---@param dir_path string
 ---@return string[] @Absolute paths of all files within directories to search
-function M.find(search_dirs)
-  local find_command = get_find_command(search_dirs or { async.api.nvim_eval("getcwd()") })
-  local finish_cond = async.control.Condvar.new()
-  local stdin = vim.loop.new_pipe()
-  local stdout = vim.loop.new_pipe()
-  local stderr = vim.loop.new_pipe()
-  local result_code
-  logger.debug("Searching for files using command ", find_command)
-  vim.loop.spawn(find_command[1], {
-    stdio = { stdin, stdout, stderr },
-    detached = true,
-    args = #find_command > 1 and vim.list_slice(find_command, 2, #find_command) or nil,
-    hide = true,
-  }, function(code, _)
-    result_code = code
-    stdin:close()
-    stdout:close()
-    stderr:close()
-    finish_cond:notify_all()
-  end)
-  local files_data = {}
-  stdout:read_start(function(err, data)
-    if err then
-      logger.error(err)
-      return
+function M.find(dir_path)
+  local sep = require("neotest.lib").files.sep
+  local dirs_to_scan = { dir_path }
+
+  local paths = {}
+  local dir, dir_handle
+  while dir_handle or #dirs_to_scan > 0 do
+    if not dir_handle then
+      dir = table.remove(dirs_to_scan, 1)
+      dir_handle = uv.fs_scandir(dir)
     end
-    table.insert(files_data, data)
-  end)
-  stderr:read_start(function(err, data)
-    if err or data then
-      logger.error(err or data)
+
+    local next_path, path_type = uv.fs_scandir_next(dir_handle)
+
+    if not next_path then
+      dir_handle = nil
+    elseif path_type == "directory" and next_path:sub(1, 1) ~= "." then
+      local i = #dirs_to_scan + 1
+      dirs_to_scan[i] = dir .. sep .. next_path
+    elseif path_type == "file" then
+      paths[#paths + 1] = dir .. sep .. next_path
     end
-  end)
-  finish_cond:wait()
-  logger.debug("Searching for files finished")
-  if result_code > 0 then
-    logger.error("Error while finding files")
-    return {}
   end
-  local files = vim.split(table.concat(files_data, ""), "\n", { plain = true, trimempty = true })
-  return files
+  return paths
 end
 
 return M
