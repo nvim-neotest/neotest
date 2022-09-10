@@ -141,7 +141,18 @@ function M.parent(path)
   return table.concat(elems, M.sep, 1, #elems - 1)
 end
 
-M.sep = vim.loop.os_uname().sysname == "Windows" and "\\" or "/"
+M.sep = (function()
+  if jit then
+    local os = string.lower(jit.os)
+    if os == "linux" or os == "osx" or os == "bsd" then
+      return "/"
+    else
+      return "\\"
+    end
+  else
+    return package.config:sub(1, 1)
+  end
+end)()
 
 ---@type fun(path: string): string
 M.detect_filetype = fu.memoize(filetype.detect)
