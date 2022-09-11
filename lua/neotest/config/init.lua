@@ -35,7 +35,7 @@ define_highlights()
 ---@class neotest.Config: neotest.CoreConfig
 ---@field log_level number Minimum log levels, one of vim.log.levels
 ---@field consumers table<string, neotest.Consumer>
----@field icons table<string, string>
+---@field icons table
 ---@field highlights table<string, string>
 ---@field floating neotest.Config.floating
 ---@field strategies neotest.Config.strategies
@@ -72,6 +72,7 @@ define_highlights()
 
 ---@class neotest.Config.summary
 ---@field enabled boolean
+---@field animated boolean Enable/disable animation of icons
 ---@field follow boolean Expand user's current file
 ---@field expand_errors boolean Expand all failed positions
 ---@field mappings neotest.Config.summary.mappings Buffer mappings for summary window
@@ -116,6 +117,20 @@ local default_config = {
   },
   consumers = {},
   icons = {
+    -- Ascii:
+    -- { "/", "|", "\\", "-", "/", "|", "\\", "-"},
+    -- Unicode:
+    -- { "", "🞅", "🞈", "🞉", "", "", "🞉", "🞈", "🞅", "", },
+    -- {"◴" ,"◷" ,"◶", "◵"},
+    -- {"◢", "◣", "◤", "◥"},
+    -- {"◐", "◓", "◑", "◒"},
+    -- {"◰", "◳", "◲", "◱"},
+    -- {"⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"},
+    -- {"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"},
+    -- {"⠋", "⠙", "⠚", "⠞", "⠖", "⠦", "⠴", "⠲", "⠳", "⠓"},
+    -- {"⠄", "⠆", "⠇", "⠋", "⠙", "⠸", "⠰", "⠠", "⠰", "⠸", "⠙", "⠋", "⠇", "⠆"},
+    -- { "⠋", "⠙", "⠚", "⠒", "⠂", "⠂", "⠒", "⠲", "⠴", "⠦", "⠖", "⠒", "⠐", "⠐", "⠒", "⠓", "⠋" },
+    running_animated = { "/", "|", "\\", "-", "/", "|", "\\", "-" },
     passed = "✔",
     running = "🗘",
     failed = "✖",
@@ -163,6 +178,7 @@ local default_config = {
   },
   summary = {
     enabled = true,
+    animated = true,
     follow = true,
     expand_errors = true,
     mappings = {

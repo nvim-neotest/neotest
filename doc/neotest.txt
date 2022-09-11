@@ -101,6 +101,7 @@ Default values:
       non_collapsible = "─",
       passed = "✔",
       running = "🗘",
+      running_animated = { "/", "|", "\\", "-", "/", "|", "\\", "-" },
       skipped = "ﰸ",
       unknown = "?"
     },
@@ -131,6 +132,7 @@ Default values:
       }
     },
     summary = {
+      animated = true,
       enabled = true,
       expand_errors = true,
       follow = true,
@@ -179,7 +181,7 @@ Class~
 Fields~
 {log_level} `(number)` Minimum log levels, one of vim.log.levels
 {consumers} `(table<string, neotest.Consumer>)`
-{icons} `(table<string, string>)`
+{icons} `(table)`
 {highlights} `(table<string, string>)`
 {floating} neotest.Config.floating
 {strategies} neotest.Config.strategies
@@ -226,6 +228,7 @@ Class~
 {neotest.Config.summary}
 Fields~
 {enabled} `(boolean)`
+{animated} `(boolean)` Enable/disable animation of icons
 {follow} `(boolean)` Expand user's current file
 {expand_errors} `(boolean)` Expand all failed positions
 {mappings} neotest.Config.summary.mappings Buffer mappings for summary window

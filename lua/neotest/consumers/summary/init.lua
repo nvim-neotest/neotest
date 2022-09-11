@@ -85,7 +85,12 @@ async.run(function()
           canvas:write(root_dir .. "\n", { group = config.highlights.dir })
         end
         components[adapter_id] = components[adapter_id] or SummaryComponent(client, adapter_id)
-        components[adapter_id]:render(canvas, tree, all_expanded, focused)
+        if config.summary.animated then
+          pending_render = components[adapter_id]:render(canvas, tree, all_expanded, focused)
+            or pending_render
+        else
+          components[adapter_id]:render(canvas, tree, all_expanded, focused)
+        end
         all_expanded = {}
         canvas:write("\n")
       end
