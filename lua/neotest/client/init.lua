@@ -228,7 +228,7 @@ function NeotestClient:_update_positions(path, args)
   if not adapter then
     return
   end
-  local success, positions = pcall(function()
+  local success, err = pcall(function()
     if lib.files.is_dir(path) then
       -- If existing tree then we have to find the point to merge the trees and update that path rather than trying to
       -- merge an orphan. This happens when a whole new directory is found (e.g. renamed an existing one).
@@ -243,20 +243,25 @@ function NeotestClient:_update_positions(path, args)
           return
         end
       end
+      logger.info("Searching", path, "for test files")
       local files = lib.func_util.filter_list(adapter.is_test_file, lib.files.find(path))
       local positions = lib.files.parse_dir_from_files(path, files)
+      logger.debug("Found", positions)
       self._state:update_positions(adapter_id, positions)
       self:_parse_files(adapter_id, path, files)
     else
+      logger.info("Parsing", path)
       local positions = adapter.discover_positions(path)
-      if positions then
-        self._state:update_positions(adapter_id, positions)
+      if not positions then
+        logger.info("No positions found in", path)
+        return
       end
+      logger.debug("Found", positions)
+      self._state:update_positions(adapter_id, positions)
     end
   end)
-  if not success or not positions then
-    logger.error("Couldn't find positions in path", path, positions)
-    return
+  if not success then
+    logger.error("Couldn't find positions in path", path, err)
   end
 end
 
@@ -271,6 +276,7 @@ function NeotestClient:_parse_files(adapter_id, root, paths)
   for _ = 1, config.projects[root].discovery.concurrent do
     table.insert(workers, worker)
   end
+  logger.info("Discovering files with", #workers, "workers")
   async.util.join(workers)
 end
 

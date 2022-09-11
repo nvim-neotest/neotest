@@ -1,3 +1,4 @@
+local logger = require("neotest.logging")
 local config = require("neotest.config")
 local async = require("neotest.async")
 local lib = require("neotest.lib")
@@ -14,6 +15,8 @@ function AdapterGroup:adapters_with_root_dir(cwd)
       table.insert(adapters, { adapter = adapter, root = root })
     end
   end
+  logger.info("Found", #adapters, "adapters for directory", cwd)
+  logger.debug("Adapters:", adapters)
   return adapters
 end
 
@@ -29,6 +32,7 @@ function AdapterGroup:adapters_matching_open_bufs()
   for _, path in ipairs(paths) do
     for _, adapter in ipairs(self:_path_adapters(path)) do
       if adapter.is_test_file(path) and not matched_files[path] then
+        logger.info("Adapter", adapter.name, "matched buffer", path)
         matched_files[path] = true
         table.insert(adapters, adapter)
         break
@@ -41,14 +45,7 @@ end
 function AdapterGroup:adapter_matching_path(path)
   for _, adapter in ipairs(self:_path_adapters(path)) do
     if adapter.is_test_file(path) then
-      return adapter
-    end
-  end
-end
-
-function AdapterGroup:get_file_adapter(file_path)
-  for _, adapter in ipairs(self:_path_adapters(file_path)) do
-    if adapter.is_test_file(file_path) then
+      logger.info("Adapter", adapter.name, "matched path", path)
       return adapter
     end
   end

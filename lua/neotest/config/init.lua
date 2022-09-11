@@ -19,7 +19,7 @@ local function define_highlights()
   hi default NeotestMarked ctermfg=Brown guifg=#F79000 gui=bold
   hi default NeotestTarget ctermfg=Red guifg=#F70067
   hi default link NeotestUnknown Normal
-]] )
+]])
 end
 
 local augroup = vim.api.nvim_create_augroup("NeotestColorSchemeRefresh", {})
@@ -33,6 +33,7 @@ define_highlights()
 ---@field default_strategy string|function
 
 ---@class neotest.Config: neotest.CoreConfig
+---@field log_level number Minimum log levels, one of vim.log.levels
 ---@field consumers table<string, neotest.Consumer>
 ---@field icons table<string, string>
 ---@field highlights table<string, string>
@@ -98,6 +99,7 @@ define_highlights()
 ---@private
 ---@type neotest.Config
 local default_config = {
+  log_level = vim.log.levels.WARN,
   adapters = {},
   discovery = {
     enabled = true,
@@ -216,6 +218,7 @@ end
 ---@param config neotest.Config
 ---@private
 function NeotestConfigModule.setup(config)
+  ---@type neotest.Config
   user_config = vim.tbl_deep_extend("force", default_config, config)
   --- Avoid mutating default for docgen
   user_config.discovery = vim.tbl_deep_extend(
@@ -232,6 +235,11 @@ function NeotestConfigModule.setup(config)
   for project_root, project_config in pairs(config.projects or {}) do
     NeotestConfigModule.setup_project(project_root, project_config)
   end
+
+  local logger = require("neotest.logging")
+  logger:set_level(user_config.log_level)
+  logger.info("Configuration complete")
+  logger.debug("User config", user_config)
 end
 
 function NeotestConfigModule.setup_project(project_root, config)
@@ -243,7 +251,10 @@ function NeotestConfigModule.setup_project(project_root, config)
     running = user_config.running,
   })
   user_config.projects[path].discovery.concurrent =
-  convert_concurrent(user_config.projects[path].discovery.concurrent)
+    convert_concurrent(user_config.projects[path].discovery.concurrent)
+  local logger = require("neotest.logging")
+  logger.info("Project", path, "configuration complete")
+  logger.debug("Project config", user_config.projects[path])
 end
 
 function NeotestConfigModule._format_default()

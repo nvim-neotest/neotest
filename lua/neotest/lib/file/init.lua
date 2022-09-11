@@ -1,3 +1,4 @@
+local logger = require("neotest.logging")
 local Path = require("plenary.path")
 local async = require("neotest.async")
 local filetype = require("plenary.filetype")
@@ -10,6 +11,7 @@ local M = {}
 ---@param file_path string
 ---@return string
 function M.read(file_path)
+  logger.debug("Reading file: " .. file_path)
   local open_err, file_fd = async.uv.fs_open(file_path, "r", 438)
   assert(not open_err, open_err)
   local stat_err, stat = async.uv.fs_fstat(file_fd)
@@ -19,6 +21,16 @@ function M.read(file_path)
   local close_err = async.uv.fs_close(file_fd)
   assert(not close_err, close_err)
   return data
+end
+
+function M.write(file_path, data)
+  logger.debug("Writing file: " .. file_path)
+  local open_err, file_fd = async.uv.fs_open(file_path, "w", 438)
+  assert(not open_err, open_err)
+  local write_err = async.uv.fs_write(file_fd, data, 0)
+  assert(not write_err, write_err)
+  local close_err = async.uv.fs_close(file_fd)
+  assert(not close_err, close_err)
 end
 
 ---@async
@@ -142,16 +154,19 @@ function M.parent(path)
 end
 
 M.sep = (function()
+  local res
   if jit then
     local os = string.lower(jit.os)
     if os == "linux" or os == "osx" or os == "bsd" then
-      return "/"
+      res = "/"
     else
-      return "\\"
+      res = "\\"
     end
   else
-    return package.config:sub(1, 1)
+    res = package.config:sub(1, 1)
   end
+  logger.debug("Path separator:", res)
+  return res
 end)()
 
 ---@type fun(path: string): string

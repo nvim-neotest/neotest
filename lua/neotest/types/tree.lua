@@ -37,6 +37,10 @@ function Tree.from_list(data, key)
   return x
 end
 
+function Tree:__tostring()
+  return vim.inspect(self:to_list())
+end
+
 function Tree:to_list()
   if #self._children == 0 then
     return { self._data }
