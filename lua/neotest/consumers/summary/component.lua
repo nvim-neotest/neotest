@@ -180,14 +180,19 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
     canvas:add_mapping(
       "output",
       async_func(function()
-        neotest.output.open({ position_id = position.id, adapter = self.adapter_id })
+        neotest.output.open({ position_id = position.id, adapter = self.adapter_id, enter = true })
       end)
     )
 
     canvas:add_mapping(
       "short",
       async_func(function()
-        neotest.output.open({ position_id = position.id, short = true, adapter = self.adapter_id })
+        neotest.output.open({
+          position_id = position.id,
+          short = true,
+          adapter = self.adapter_id,
+          enter = true,
+        })
       end)
     )
 

@@ -126,6 +126,7 @@ function Canvas:render_buffer(buffer)
     for _, key in ipairs(action_keys) do
       vim.api.nvim_buf_set_keymap(buffer, "n", key, "", {
         noremap = true,
+        nowait = true,
         callback = function()
           for _, callback in pairs(mappings[vim.fn.line(".")] or {}) do
             callback()
