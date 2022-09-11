@@ -1,6 +1,11 @@
 local uv = vim.loop
 local M = {}
 
+local ignored = vim.tbl_add_reverse_lookup({
+  "node_modules",
+  "venv",
+})
+
 --- Find all files under the given directory.
 --- Does not search hidden directories.
 ---@async
@@ -25,10 +30,10 @@ function M.find(root, opts)
 
     if not name then
       dir_handle = nil
-    elseif
-      path_type == "directory"
-      and name:sub(1, 1) ~= "."
-      and (not filter_dir or filter_dir(name, rel_path, root))
+    elseif path_type == "directory"
+        and name:sub(1, 1) ~= "."
+        and not ignored[name]
+        and (not filter_dir or filter_dir(name, rel_path, root))
     then
       dirs_to_scan[#dirs_to_scan + 1] = rel_path
     elseif path_type == "file" then
