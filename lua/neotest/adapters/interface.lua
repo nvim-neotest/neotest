@@ -21,7 +21,7 @@ function NeotestAdapter.is_test_file(file_path) end
 function NeotestAdapter.discover_positions(file_path) end
 
 ---@param args neotest.RunArgs
----@return neotest.RunSpec
+---@return nil | neotest.RunSpec | neotest.RunSpec[]
 function NeotestAdapter.build_spec(args) end
 
 ---@async

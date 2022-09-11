@@ -276,6 +276,22 @@ describe("neotest client", function()
       assert.same(running, { { adapter = adapter_id, position = tree } })
     end)
 
+    a.it("runs multiple specs returned", function()
+      mock_adapter.build_spec = function()
+        return { { strategy = { output = "not_a_file" } } }
+      end
+      local tree = get_pos(dir)
+      exit_test()
+      client:run_tree(tree, { strategy = mock_strategy })
+      local adapter_id = client:get_adapters()[1]
+      local results = client:get_results(adapter_id)
+      for _, pos in tree:iter() do
+        if pos.type == "dir" then
+          assert.equal(results[pos.id].status, "failed")
+        end
+      end
+    end)
+
     describe("with unsupported roots", function()
       describe("supporting files", function()
         a.it("breaks up directories to files", function()
@@ -557,90 +573,92 @@ describe("neotest client", function()
       end)
     end)
 
-    a.it("fills results for dir from child files", function()
-      local tree = get_pos(dir)
-      exit_test()
-      client:run_tree(tree, { strategy = mock_strategy })
-      local adapter_id = client:get_adapters()[1]
-      local results = client:get_results(adapter_id)
-      for _, pos in tree:iter() do
-        if pos.type == "dir" then
-          assert.equal(results[pos.id].status, "failed")
-        end
-      end
-    end)
-
-    a.it("fills results for files from child files", function()
-      local tree = get_pos(dir)
-      exit_test()
-      client:run_tree(tree, { strategy = mock_strategy })
-      local adapter_id = client:get_adapters()[1]
-      local results = client:get_results(adapter_id)
-      for _, pos in tree:iter() do
-        if pos.type == "file" then
-          assert.equal(results[pos.id].status, "failed")
-        end
-      end
-    end)
-
-    a.it("fills empty file as skipped", function()
-      get_pos(dir)
-      mock_adapter.results = function()
-        return {}
-      end
-      mock_adapter.discover_positions = function()
-        return Tree.from_list({
-          {
-            id = dir .. "/dummy_file",
-            type = "file",
-            path = dir .. "/dummy_file",
-            name = dir .. "/dummy_file",
-          },
-        }, function(pos)
-          return pos.id
-        end)
-      end
-      local adapter_id = client:get_adapters()[1]
-      client:_update_positions(dir .. "/dummy_file", { adapter = adapter_id })
-      local tree = get_pos(dir .. "/dummy_file")
-      exit_test()
-      client:run_tree(tree, { strategy = mock_strategy })
-      local results = client:get_results(adapter_id)
-      assert.equal(results[dir .. "/dummy_file"].status, "skipped")
-    end)
-
-    a.it("fills results for namespaces from child tests", function()
-      local tree = get_pos(dir .. "/test_file_1")
-      exit_test()
-      client:run_tree(tree, { strategy = mock_strategy })
-      local adapter_id = client:get_adapters()[1]
-      local results = client:get_results(adapter_id)
-      for _, pos in tree:iter() do
-        assert.Not.Nil(results[pos.id])
-      end
-    end)
-
-    a.it("fills test and namespace results fromm failed files", function()
-      mock_adapter.results = function(_, _, tree)
-        local results = {}
+    describe("filling results", function()
+      a.it("fills results for dir from child files", function()
+        local tree = get_pos(dir)
+        exit_test()
+        client:run_tree(tree, { strategy = mock_strategy })
+        local adapter_id = client:get_adapters()[1]
+        local results = client:get_results(adapter_id)
         for _, pos in tree:iter() do
-          if pos.type == "file" then
-            results[pos.id] = {
-              status = "failed",
-              short = pos.name,
-              errors = pos.range and { { message = "a", line = pos.range[1] } },
-            }
+          if pos.type == "dir" then
+            assert.equal(results[pos.id].status, "failed")
           end
         end
-        return results
-      end
+      end)
 
-      local tree = get_pos(dir)
-      exit_test()
-      client:run_tree(tree, { strategy = mock_strategy })
-      local adapter_id = client:get_adapters()[1]
-      local results = client:get_results(adapter_id)
-      assert.equal(9, #vim.tbl_keys(results))
+      a.it("fills results for files from child files", function()
+        local tree = get_pos(dir)
+        exit_test()
+        client:run_tree(tree, { strategy = mock_strategy })
+        local adapter_id = client:get_adapters()[1]
+        local results = client:get_results(adapter_id)
+        for _, pos in tree:iter() do
+          if pos.type == "file" then
+            assert.equal(results[pos.id].status, "failed")
+          end
+        end
+      end)
+
+      a.it("fills empty file as skipped", function()
+        get_pos(dir)
+        mock_adapter.results = function()
+          return {}
+        end
+        mock_adapter.discover_positions = function()
+          return Tree.from_list({
+            {
+              id = dir .. "/dummy_file",
+              type = "file",
+              path = dir .. "/dummy_file",
+              name = dir .. "/dummy_file",
+            },
+          }, function(pos)
+            return pos.id
+          end)
+        end
+        local adapter_id = client:get_adapters()[1]
+        client:_update_positions(dir .. "/dummy_file", { adapter = adapter_id })
+        local tree = get_pos(dir .. "/dummy_file")
+        exit_test()
+        client:run_tree(tree, { strategy = mock_strategy })
+        local results = client:get_results(adapter_id)
+        assert.equal(results[dir .. "/dummy_file"].status, "skipped")
+      end)
+
+      a.it("fills results for namespaces from child tests", function()
+        local tree = get_pos(dir .. "/test_file_1")
+        exit_test()
+        client:run_tree(tree, { strategy = mock_strategy })
+        local adapter_id = client:get_adapters()[1]
+        local results = client:get_results(adapter_id)
+        for _, pos in tree:iter() do
+          assert.Not.Nil(results[pos.id])
+        end
+      end)
+
+      a.it("fills test and namespace results fromm failed files", function()
+        mock_adapter.results = function(_, _, tree)
+          local results = {}
+          for _, pos in tree:iter() do
+            if pos.type == "file" then
+              results[pos.id] = {
+                status = "failed",
+                short = pos.name,
+                errors = pos.range and { { message = "a", line = pos.range[1] } },
+              }
+            end
+          end
+          return results
+        end
+
+        local tree = get_pos(dir)
+        exit_test()
+        client:run_tree(tree, { strategy = mock_strategy })
+        local adapter_id = client:get_adapters()[1]
+        local results = client:get_results(adapter_id)
+        assert.equal(9, #vim.tbl_keys(results))
+      end)
     end)
   end)
 end)

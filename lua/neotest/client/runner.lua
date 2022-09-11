@@ -74,13 +74,30 @@ function TestRunner:running()
 end
 
 function TestRunner:_run_tree(tree, args, adapter_id, adapter, results_callback)
-  local spec = adapter.build_spec(vim.tbl_extend("force", args, { tree = tree }))
+  local specs = adapter.build_spec(vim.tbl_extend("force", args, { tree = tree }))
 
-  if not spec then
+  if not specs then
     self:_run_broken_down_tree(tree, args, adapter_id, adapter, results_callback)
     return
   end
-  self:_run_spec(spec, tree, args, adapter_id, adapter, results_callback)
+
+  if not specs[1] then
+    specs = { specs }
+  end
+  local async_runners = {}
+  for _, spec in ipairs(specs) do
+    table.insert(async_runners, function()
+      self:_run_spec(spec, tree, args, adapter_id, adapter, results_callback)
+    end)
+  end
+  local root = tree:root():data().path
+  if args.concurrent ~= false and config.projects[root].running.concurrent then
+    async.util.join(async_runners)
+  else
+    for _, runner in ipairs(async_runners) do
+      runner()
+    end
+  end
 end
 
 ---@param spec neotest.RunSpec
