@@ -42,11 +42,16 @@ define_highlights()
 ---@field summary neotest.Config.summary
 ---@field output neotest.Config.output
 ---@field status neotest.Config.status
----@field projects table<string, neotest.CoreConfig> Project specific settings, keys are project root directories (e.g "~/Dev/my_project")
+---@field projects table<string, neotest.CoreConfig> Project specific settings, keys
+--- are project root directories (e.g "~/Dev/my_project")
 
 ---@class neotest.Config.discovery
 ---@field enabled boolean
----@field concurrent integer Number of workers to parse files concurrently. 0 automatically assigns number based on CPU. Set to 1 if experiencing lag.
+---@field concurrent integer Number of workers to parse files concurrently. 0
+--- automatically assigns number based on CPU. Set to 1 if experiencing lag.
+---@field filter_dir nil | fun(name: string, rel_path: string, root: string): boolean
+--- A function to filter directories when searching for test files. Receives the name,
+--- path relative to project root and project root path
 
 ---@class neotest.Config.running
 ---@field concurrent boolean Run tests concurrently when an adapter provides multiple commands to run
@@ -104,6 +109,7 @@ local default_config = {
   discovery = {
     enabled = true,
     concurrent = 0,
+    filter_dir = nil,
   },
   running = {
     concurrent = true,

@@ -104,6 +104,7 @@ Default values:
     jump = {
       enabled = true
     },
+    log_level = 3,
     output = {
       enabled = true,
       open_on_run = "short"
@@ -173,6 +174,7 @@ Fields~
 Class~
 {neotest.Config:} neotest.CoreConfig
 Fields~
+{log_level} `(number)` Minimum log levels, one of vim.log.levels
 {consumers} `(table<string, neotest.Consumer>)`
 {icons} `(table<string, string>)`
 {highlights} `(table<string, string>)`
@@ -181,13 +183,18 @@ Fields~
 {summary} neotest.Config.summary
 {output} neotest.Config.output
 {status} neotest.Config.status
-{projects} `(table<string, neotest.CoreConfig>)` Project specific settings, keys are project root directories (e.g "~/Dev/my_project")
+{projects} `(table<string, neotest.CoreConfig>)` Project specific settings, keys 
+are project root directories (e.g "~/Dev/my_project")
 
 Class~
 {neotest.Config.discovery}
 Fields~
 {enabled} `(boolean)`
-{concurrent} `(integer)` Number of workers to parse files concurrently. 0 automatically assigns number based on CPU. Set to 1 if experiencing lag.
+{concurrent} `(integer)` Number of workers to parse files concurrently. 0 
+automatically assigns number based on CPU. Set to 1 if experiencing lag.
+{filter_dir} `(nil)` | fun(name: string, rel_path: string, root: string): boolean 
+A function to filter directories when searching for test files. Receives the name, 
+path relative to project root and project root path
 
 Class~
 {neotest.Config.running}

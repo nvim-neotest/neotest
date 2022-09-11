@@ -244,7 +244,11 @@ function NeotestClient:_update_positions(path, args)
         end
       end
       logger.info("Searching", path, "for test files")
-      local files = lib.func_util.filter_list(adapter.is_test_file, lib.files.find(path))
+      local root_path = existing_root and existing_root:data().path or path
+      local files = lib.func_util.filter_list(
+        adapter.is_test_file,
+        lib.files.find(path, { filter_dir = config.projects[root_path].discovery.filter_dir })
+      )
       local positions = lib.files.parse_dir_from_files(path, files)
       logger.debug("Found", positions)
       self._state:update_positions(adapter_id, positions)
