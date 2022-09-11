@@ -64,49 +64,54 @@ local function render(expanded)
 end
 
 async.run(function()
-  while true do
-    if not pending_render then
-      render_cond:wait()
-    end
-    pending_render = false
-    local canvas = Canvas.new(config.summary)
-    if not client:has_started() then
-      canvas:write("Parsing tests")
-    else
-      local cwd = async.fn.getcwd()
-      for _, adapter_id in ipairs(client:get_adapters()) do
-        local tree = client:get_position(nil, { adapter = adapter_id })
-        canvas:write(
-          vim.split(adapter_id, ":", { trimempty = true })[1] .. "\n",
-          { group = config.highlights.adapter_name }
-        )
-        if tree:data().path ~= cwd then
-          local root_dir = async.fn.fnamemodify(tree:data().path, ":.")
-          canvas:write(root_dir .. "\n", { group = config.highlights.dir })
-        end
-        components[adapter_id] = components[adapter_id] or SummaryComponent(client, adapter_id)
-        if config.summary.animated then
-          pending_render = components[adapter_id]:render(canvas, tree, all_expanded, focused)
-              or pending_render
-        else
-          components[adapter_id]:render(canvas, tree, all_expanded, focused)
-        end
-        all_expanded = {}
-        canvas:write("\n")
+  local _, err = pcall(function()
+    while true do
+      if not pending_render then
+        render_cond:wait()
       end
-      if canvas:length() > 1 then
-        canvas:remove_line()
-        canvas:remove_line()
+      pending_render = false
+      local canvas = Canvas.new(config.summary)
+      if not client:has_started() then
+        canvas:write("Parsing tests")
       else
-        canvas:write("No tests found")
+        local cwd = async.fn.getcwd()
+        for _, adapter_id in ipairs(client:get_adapters()) do
+          local tree = client:get_position(nil, { adapter = adapter_id })
+          canvas:write(
+            vim.split(adapter_id, ":", { trimempty = true })[1] .. "\n",
+            { group = config.highlights.adapter_name }
+          )
+          if tree:data().path ~= cwd then
+            local root_dir = async.fn.fnamemodify(tree:data().path, ":.")
+            canvas:write(root_dir .. "\n", { group = config.highlights.dir })
+          end
+          components[adapter_id] = components[adapter_id] or SummaryComponent(client, adapter_id)
+          if config.summary.animated then
+            pending_render = components[adapter_id]:render(canvas, tree, all_expanded, focused)
+              or pending_render
+          else
+            components[adapter_id]:render(canvas, tree, all_expanded, focused)
+          end
+          all_expanded = {}
+          canvas:write("\n")
+        end
+        if canvas:length() > 1 then
+          canvas:remove_line()
+          canvas:remove_line()
+        else
+          canvas:write("No tests found")
+        end
       end
+      local rendered, err = pcall(canvas.render_buffer, canvas, summary_buf)
+      if not rendered then
+        logger.error("Couldn't render buffer", err)
+      end
+      async.api.nvim_exec("redraw", false)
+      async.util.sleep(100)
     end
-    local rendered, err = pcall(canvas.render_buffer, canvas, summary_buf)
-    if not rendered then
-      logger.error("Couldn't render buffer", err)
-    end
-    async.api.nvim_exec("redraw", false)
-    async.util.sleep(100)
+  end)
+  if err then
+    logger.error("Error in summary consumer", err)
   end
 end)
 
@@ -149,9 +154,10 @@ local function init()
     end
     local expanded = {}
     for pos_id, result in pairs(results) do
-      if result.status == "failed"
-          and client:get_position(pos_id, { adapter = adapter_id })
-          and #client:get_position(pos_id, { adapter = adapter_id }):children() > 0
+      if
+        result.status == "failed"
+        and client:get_position(pos_id, { adapter = adapter_id })
+        and #client:get_position(pos_id, { adapter = adapter_id }):children() > 0
       then
         expanded[pos_id] = true
       end

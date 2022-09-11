@@ -65,7 +65,6 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
     local is_last_child = index == #children
     local position = node:data()
 
-    has_running = has_running or self.client:is_running(position.id, { adapter = self.adapter_id })
     if expanded[position.id] then
       self.expanded_positions[position.id] = true
     end
@@ -213,7 +212,9 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
       neotest.summary.clear_marked({ adapter = self.adapter_id })
     end)
 
-    local state_icon, state_icon_group = self:_state_icon(position)
+    local status = self:_get_status(position)
+    has_running = has_running or status == "running"
+    local state_icon, state_icon_group = self:_state_icon(status)
     canvas:write(" " .. state_icon .. " ", { group = state_icon_group })
 
     local name_groups = { config.highlights[position.type] }
@@ -233,16 +234,22 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
   return has_running
 end
 
-function SummaryComponent:_state_icon(position)
+function SummaryComponent:_get_status(position)
   local result = self.client:get_results(self.adapter_id)[position.id]
-  if not result then
-    if self.client:is_running(position.id, { adapter = self.adapter_id }) then
-      return config.icons.running_animated[(self.renders % #config.icons.running_animated) + 1],
-        config.highlights.running
-    end
-    return config.icons.unknown, config.highlights.unknown
+  if result then
+    return result.status
+  elseif self.client:is_running(position.id, { adapter = self.adapter_id }) then
+    return "running"
   end
-  return config.icons[result.status], config.highlights[result.status]
+  return "unknown"
+end
+
+function SummaryComponent:_state_icon(status)
+  if status ~= "running" or not config.summary.animated then
+    return icons[status], config.highlights[status]
+  end
+  return config.icons.running_animated[(self.renders % #config.icons.running_animated) + 1],
+    config.highlights.running
 end
 
 ---@return SummaryComponent
