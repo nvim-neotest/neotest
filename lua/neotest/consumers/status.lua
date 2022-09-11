@@ -35,7 +35,7 @@ local function init(client)
     if config.status.virtual_text then
       async.api.nvim_buf_set_extmark(buf, namespace, pos.range[1], 0, {
         virt_text = {
-          { statuses[status].text, statuses[status].texthl },
+          { statuses[status].text .. " ", statuses[status].texthl },
         },
       })
     end

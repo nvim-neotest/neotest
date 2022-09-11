@@ -10,8 +10,9 @@ local namespace = require("neotest.consumers.summary.canvas").namespace
 ---@field expanded_positions table
 ---@field child_components table<number, SummaryComponent>
 ---@field marked table<string, boolean>
----@field adapter_id integer
+---@field adapter_id string
 ---@field target string?
+---@field renders integer
 local SummaryComponent = {}
 
 function SummaryComponent:new(client, adapter_id)
@@ -21,6 +22,7 @@ function SummaryComponent:new(client, adapter_id)
     expanded_positions = {},
     adapter_id = adapter_id,
     marked = {},
+    renders = 0,
   }
   setmetatable(elem, self)
   self.__index = self
@@ -40,6 +42,7 @@ end
 ---@param canvas Canvas
 ---@param tree neotest.Tree
 function SummaryComponent:render(canvas, tree, expanded, focused, indent)
+  self.renders = self.renders + 1
   if self.target then
     tree = tree:get_key(self.target)
     if not tree then
@@ -50,17 +53,19 @@ function SummaryComponent:render(canvas, tree, expanded, focused, indent)
     end)
     canvas:write(tree:data().name .. "\n", { group = config.highlights.target })
   end
-  self:_render(canvas, tree, expanded, focused, indent)
+  return self:_render(canvas, tree, expanded, focused, indent)
 end
 
 function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
   indent = indent or ""
   local children = tree:children()
   local neotest = require("neotest")
-  for index, node in pairs(children) do
+  local has_running = false
+  for index, node in ipairs(children) do
     local is_last_child = index == #children
     local position = node:data()
 
+    has_running = has_running or self.client:is_running(position.id, { adapter = self.adapter_id })
     if expanded[position.id] then
       self.expanded_positions[position.id] = true
     end
@@ -222,16 +227,18 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
     canvas:write(position.name .. "\n", { group = name_groups })
 
     if self.expanded_positions[position.id] then
-      self:_render(canvas, node, expanded, focused, chid_indent)
+      has_running = self:_render(canvas, node, expanded, focused, chid_indent) or has_running
     end
   end
+  return has_running
 end
 
 function SummaryComponent:_state_icon(position)
   local result = self.client:get_results(self.adapter_id)[position.id]
   if not result then
     if self.client:is_running(position.id, { adapter = self.adapter_id }) then
-      return config.icons.running, config.highlights.running
+      return config.icons.running_animated[(self.renders % #config.icons.running_animated) + 1],
+        config.highlights.running
     end
     return config.icons.unknown, config.highlights.unknown
   end
