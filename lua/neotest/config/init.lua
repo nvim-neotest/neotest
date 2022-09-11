@@ -35,7 +35,7 @@ define_highlights()
 ---@class neotest.Config: neotest.CoreConfig
 ---@field log_level number Minimum log levels, one of vim.log.levels
 ---@field consumers table<string, neotest.Consumer>
----@field icons table
+---@field icons table Icons used throughout the UI. Defaults use VSCode's codicons
 ---@field highlights table<string, string>
 ---@field floating neotest.Config.floating
 ---@field strategies neotest.Config.strategies
@@ -131,11 +131,11 @@ local default_config = {
     -- {"⠄", "⠆", "⠇", "⠋", "⠙", "⠸", "⠰", "⠠", "⠰", "⠸", "⠙", "⠋", "⠇", "⠆"},
     -- { "⠋", "⠙", "⠚", "⠒", "⠂", "⠂", "⠒", "⠲", "⠴", "⠦", "⠖", "⠒", "⠐", "⠐", "⠒", "⠓", "⠋" },
     running_animated = { "/", "|", "\\", "-", "/", "|", "\\", "-" },
-    passed = "✔",
-    running = "🗘",
-    failed = "✖",
-    skipped = "ﰸ",
-    unknown = "?",
+    passed = "",
+    running = "",
+    failed = "",
+    skipped = "",
+    unknown = "",
     non_collapsible = "─",
     collapsed = "─",
     expanded = "╮",
