@@ -87,7 +87,7 @@ async.run(function()
         components[adapter_id] = components[adapter_id] or SummaryComponent(client, adapter_id)
         if config.summary.animated then
           pending_render = components[adapter_id]:render(canvas, tree, all_expanded, focused)
-            or pending_render
+              or pending_render
         else
           components[adapter_id]:render(canvas, tree, all_expanded, focused)
         end
@@ -101,7 +101,7 @@ async.run(function()
         canvas:write("No tests found")
       end
     end
-    local rendered, err = canvas:render_buffer(summary_buf)
+    local rendered, err = pcall(canvas.render_buffer, canvas, summary_buf)
     if not rendered then
       logger.error("Couldn't render buffer", err)
     end
@@ -149,10 +149,9 @@ local function init()
     end
     local expanded = {}
     for pos_id, result in pairs(results) do
-      if
-        result.status == "failed"
-        and client:get_position(pos_id, { adapter = adapter_id })
-        and #client:get_position(pos_id, { adapter = adapter_id }):children() > 0
+      if result.status == "failed"
+          and client:get_position(pos_id, { adapter = adapter_id })
+          and #client:get_position(pos_id, { adapter = adapter_id }):children() > 0
       then
         expanded[pos_id] = true
       end
