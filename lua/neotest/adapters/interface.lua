@@ -9,6 +9,13 @@ local NeotestAdapter = {}
 ---@return string | nil @Absolute root dir of test suite
 function NeotestAdapter.root(dir) end
 
+---Filter directories when searching for test files
+---@async
+---@param name string Name of directory
+---@param rel_path string Path to directory, relative to root
+---@param root string Root directory of project
+function NeotestAdapter.filter_dir(name, rel_path, root) end
+
 ---@async
 ---@param file_path string
 ---@return boolean

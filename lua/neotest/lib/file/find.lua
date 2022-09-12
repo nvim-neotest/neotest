@@ -3,7 +3,6 @@ local M = {}
 
 local ignored = vim.tbl_add_reverse_lookup({
   "node_modules",
-  "venv",
 })
 
 --- Find all files under the given directory.

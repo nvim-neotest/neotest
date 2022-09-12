@@ -244,7 +244,16 @@ function NeotestClient:_update_positions(path, args)
       local root_path = existing_root and existing_root:data().path or path
       local files = lib.func_util.filter_list(
         adapter.is_test_file,
-        lib.files.find(path, { filter_dir = config.projects[root_path].discovery.filter_dir })
+
+        lib.files.find(path, {
+          filter_dir = function(...)
+            return (not adapter.filter_dir or adapter.filter_dir(...))
+              and (
+                not config.projects[root_path].discovery.filter_dir
+                or config.projects[root_path].discovery.filter_dir(...)
+              )
+          end,
+        })
       )
       local positions = lib.files.parse_dir_from_files(path, files)
       logger.debug("Found", positions)
