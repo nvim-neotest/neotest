@@ -11,6 +11,8 @@ local log_date_format = "%FT%H:%M:%SZ%z"
 ---@field error function
 local Logger = {}
 
+local LARGE = 1e9
+
 ---@return neotest.Logger
 function Logger.new(filename, opts)
   opts = opts or {}
@@ -47,6 +49,17 @@ function Logger.new(filename, opts)
 
   vim.fn.mkdir(logpath, "p")
   local logfile = assert(io.open(logger._filename, "a+"))
+
+  local log_info = vim.loop.fs_stat(logger._filename)
+  if log_info and log_info.size > LARGE then
+    local warn_msg = string.format(
+      "Neotest log is large (%d MB): %s",
+      log_info.size / (1000 * 1000),
+      logger._filename
+    )
+    vim.notify(warn_msg, vim.log.levels.WARN)
+  end
+
   for level, levelnr in pairs(vim.log.levels) do
     logger[level:lower()] = function(...)
       local argc = select("#", ...)
