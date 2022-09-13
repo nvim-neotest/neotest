@@ -130,7 +130,7 @@ local function init(client)
   local function draw_buffer(path, adapter_id)
     if not buf_diags[path] then
       local bufnr = async.fn.bufnr(path)
-      if bufnr == -1 then
+      if bufnr == -1 or async.fn.buflisted(bufnr) == 0 then
         return
       end
       if not client:get_results(adapter_id)[path] then

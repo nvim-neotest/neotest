@@ -45,11 +45,8 @@ function NeotestEventProcessor:emit(event, ...)
   async.run(function()
     logger.info("Emitting", event, "event")
     for name, listener in pairs(self.listeners[event] or {}) do
-      logger.debug("Calling listener", name, "for event", event)
-      local success, err = pcall(listener, unpack(args))
-      if not success then
-        logger.error("Error during listener", name, "for event:", err)
-      end
+      logger.info("Calling listener", name, "for event", event)
+      listener(unpack(args))
     end
   end)
 end

@@ -43,16 +43,18 @@ local function init(client)
 
   local function render_files(adapter_id, files)
     for _, file_path in pairs(files) do
-      local results = client:get_results(adapter_id)
-      async.fn.sign_unplace(sign_group, { buffer = file_path })
-      async.api.nvim_buf_clear_namespace(async.fn.bufnr(file_path), namespace, 0, -1)
-      local tree = client:get_position(file_path, { adapter = adapter_id })
-      if not tree then
-        return
-      end
-      for _, pos in tree:iter() do
-        if pos.type ~= "file" then
-          place_sign(async.fn.bufnr(file_path), pos, adapter_id, results)
+      if async.fn.buflisted(async.fn.bufnr(file_path)) ~= 0 then
+        local results = client:get_results(adapter_id)
+        async.fn.sign_unplace(sign_group, { buffer = file_path })
+        async.api.nvim_buf_clear_namespace(async.fn.bufnr(file_path), namespace, 0, -1)
+        local tree = client:get_position(file_path, { adapter = adapter_id })
+        if not tree then
+          return
+        end
+        for _, pos in tree:iter() do
+          if pos.type ~= "file" then
+            place_sign(async.fn.bufnr(file_path), pos, adapter_id, results)
+          end
         end
       end
     end
@@ -60,7 +62,7 @@ local function init(client)
 
   client.listeners.discover_positions = function(adapter_id, tree)
     local file_path = tree:data().id
-    if tree:data().type == "file" and async.fn.bufnr(file_path) ~= -1 then
+    if tree:data().type == "file" then
       render_files(adapter_id, { file_path })
     end
   end
