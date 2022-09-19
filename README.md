@@ -86,6 +86,7 @@ To get started you will also need to install an adapter for your test runner.
 | rust            |        [neotest-rust](https://github.com/rouge8/neotest-rust)        |
 | elixir          |    [neotest-elixir](https://github.com/jfpedroza/neotest-elixir)     |
 | dotnet          |    [neotest-dotnet](https://github.com/Issafalcon/neotest-dotnet)    |
+| scala           |    [neotest-scala](https://github.com/stevanmilic/neotest-scala)     |
 
 For any runner without an adapter you can use [neotest-vim-test](https://github.com/nvim-neotest/neotest-vim-test) which supports any runner that vim-test supports.
 The vim-test adapter does not support some of the more advanced features such as error locations or per-test output.
