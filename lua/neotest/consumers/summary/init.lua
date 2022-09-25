@@ -64,7 +64,7 @@ local function render(expanded)
 end
 
 async.run(function()
-  local _, err = pcall(function()
+  xpcall(function()
     while true do
       if not pending_render then
         render_cond:wait()
@@ -109,10 +109,9 @@ async.run(function()
       async.api.nvim_exec("redraw", false)
       async.util.sleep(100)
     end
+  end, function(msg)
+    logger.error("Error in summary consumer", debug.traceback(msg, 2))
   end)
-  if err then
-    logger.error("Error in summary consumer", err)
-  end
 end)
 
 local function expand(pos_id, recursive, focus)

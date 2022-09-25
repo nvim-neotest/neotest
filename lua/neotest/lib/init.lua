@@ -1,7 +1,9 @@
-local xml = require("neotest.lib.xml")
-local xml_tree = require("neotest.lib.xml.tree")
-
 local M = {}
+
+local lazy_require = require("neotest.lib.require")
+
+local xml = lazy_require("neotest.lib.xml")
+local xml_tree = lazy_require("neotest.lib.xml.tree")
 
 M.xml = {
   ---@param xml_data string
@@ -14,11 +16,14 @@ M.xml = {
   end,
 }
 
-M.files = require("neotest.lib.file")
+---@module 'neotest.lib.file'
+M.files = lazy_require("neotest.lib.file")
 
-M.func_util = require("neotest.lib.func_util")
+---@module 'neotest.lib.func_util'
+M.func_util = lazy_require("neotest.lib.func_util")
 
-M.treesitter = require("neotest.lib.treesitter")
+---@module 'neotest.lib.treesitter''
+M.treesitter = lazy_require("neotest.lib.treesitter")
 
 M.notify = function(msg, level, opts)
   vim.schedule(function()
@@ -33,12 +38,22 @@ M.notify = function(msg, level, opts)
   end)
 end
 
-M.vim_test = require("neotest.lib.vim_test")
+---@module 'neotest.lib.vim_test''
+M.vim_test = lazy_require("neotest.lib.vim_test")
 
-M.ui = require("neotest.lib.ui")
+---@module 'neotest.lib.ui''
+M.ui = lazy_require("neotest.lib.ui")
 
-M.positions = require("neotest.lib.positions")
+---@module 'neotest.lib.positions''
+M.positions = lazy_require("neotest.lib.positions")
 
-M.process = require("neotest.lib.process")
+---@module 'neotest.lib.process''
+M.process = lazy_require("neotest.lib.process")
+
+---Module to interact with a child Neovim instance.
+---This can be used for CPU intensive work like treesitter parsing.
+---All usage should be guarded by checking that the subprocess has been started using the `enabled` function.
+---@module 'neotest.lib.subprocess''
+M.subprocess = lazy_require("neotest.lib.subprocess")
 
 return M

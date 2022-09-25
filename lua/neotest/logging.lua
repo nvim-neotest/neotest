@@ -74,6 +74,9 @@ function Logger.new(filename, opts)
       local parts = {
         table.concat({ level, "|", os.date(log_date_format), "|", fileinfo, "|" }, " "),
       }
+      if _G._NEOTEST_IS_CHILD then
+        table.insert(parts, "CHILD |")
+      end
       for i = 1, argc do
         local arg = select(i, ...)
         if arg == nil then
@@ -90,7 +93,6 @@ function Logger.new(filename, opts)
       logfile:flush()
     end
   end
-  logfile:write("\n")
   return logger
 end
 
