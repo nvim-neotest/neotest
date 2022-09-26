@@ -35,7 +35,7 @@ end
 
 function Canvas:write(text, opts)
   opts = opts or {}
-  local lines = vim.split(text, "[\r]?\n", false)
+  local lines = vim.split(text, "[\r]?\n", { plain = false })
   for i, line in pairs(lines) do
     local cur_line = self.lines[#self.lines]
     self.lines[#self.lines] = cur_line .. line
