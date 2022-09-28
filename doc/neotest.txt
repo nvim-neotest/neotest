@@ -95,15 +95,15 @@ Default values:
       child_prefix = "├",
       collapsed = "─",
       expanded = "╮",
-      failed = "✖",
+      failed = "",
       final_child_indent = " ",
       final_child_prefix = "╰",
       non_collapsible = "─",
-      passed = "✔",
-      running = "🗘",
+      passed = "",
+      running = "",
       running_animated = { "/", "|", "\\", "-", "/", "|", "\\", "-" },
-      skipped = "ﰸ",
-      unknown = "?"
+      skipped = "",
+      unknown = ""
     },
     jump = {
       enabled = true
@@ -181,7 +181,7 @@ Class~
 Fields~
 {log_level} `(number)` Minimum log levels, one of vim.log.levels
 {consumers} `(table<string, neotest.Consumer>)`
-{icons} `(table)`
+{icons} `(table)` Icons used throughout the UI. Defaults use VSCode's codicons
 {highlights} `(table<string, string>)`
 {floating} neotest.Config.floating
 {strategies} neotest.Config.strategies
