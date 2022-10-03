@@ -89,6 +89,10 @@ define_highlights()
 ---@field mark string|string[] Mark the selected position
 ---@field run_marked string|string[] Run the marked positions for selected suite.
 ---@field clear_marked string|string[] Clear the marked positions for selected suite.
+---@field target string|string[] Target a position to be the only shown position for its adapter
+---@field clear_target string|string[] Clear the target position for the selected adapter
+---@field next_failed string|string[] Jump to the next failed position
+---@field prev_failed string|string[] Jump to the previous failed position
 
 ---@class neotest.Config.output
 ---@field enabled boolean

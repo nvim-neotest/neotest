@@ -247,6 +247,10 @@ Fields~
 {mark} `(string|string[])` Mark the selected position
 {run_marked} `(string|string[])` Run the marked positions for selected suite.
 {clear_marked} `(string|string[])` Clear the marked positions for selected suite.
+{target} `(string|string[])` Target a position to be the only shown position for its adapter
+{clear_target} `(string|string[])` Clear the target position for the selected adapter
+{next_failed} `(string|string[])` Jump to the next failed position
+{prev_failed} `(string|string[])` Jump to the previous failed position
 
 Class~
 {neotest.Config.output}
