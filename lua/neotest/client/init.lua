@@ -454,11 +454,11 @@ function NeotestClient:_update_adapters(dir)
     if not found[adapter_id] then
       self._adapters[adapter_id] = adapter
       found[adapter_id] = true
-    end
-    if config.projects[root].discovery.enabled then
-      self:_update_positions(root, { adapter = adapter_id })
-    else
-      self:_update_open_buf_positions(adapter_id)
+      if config.projects[root].discovery.enabled then
+        self:_update_positions(root, { adapter = adapter_id })
+      else
+        self:_update_open_buf_positions(adapter_id)
+      end
     end
   end
   local root = lib.files.is_dir(dir) and dir or async.fn.getcwd()
@@ -467,12 +467,11 @@ function NeotestClient:_update_adapters(dir)
     if not found[adapter_id] then
       self._adapters[adapter_id] = adapter
       found[adapter_id] = true
-    end
-
-    if config.projects[root].discovery.enabled then
-      self:_update_positions(root, { adapter = adapter_id })
-    else
-      self:_update_open_buf_positions(adapter_id)
+      if config.projects[root].discovery.enabled then
+        self:_update_positions(root, { adapter = adapter_id })
+      else
+        self:_update_open_buf_positions(adapter_id)
+      end
     end
   end
 end
