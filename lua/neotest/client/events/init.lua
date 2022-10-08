@@ -45,7 +45,7 @@ function NeotestEventProcessor:emit(event, ...)
   async.run(function()
     logger.info("Emitting", event, "event")
     for name, listener in pairs(self.listeners[event] or {}) do
-      logger.info("Calling listener", name, "for event", event)
+      logger.debug("Calling listener", name, "for event", event)
       listener(unpack(args))
     end
   end)

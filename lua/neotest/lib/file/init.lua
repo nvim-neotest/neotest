@@ -146,7 +146,14 @@ function M.is_dir(path)
   return M.exists(path .. M.sep)
 end
 
-M.find = require("neotest.lib.file.find").find
+--- Find all files under the given directory.
+--- Does not search hidden directories.
+---@async
+---@param root string
+---@return string[] @Absolute paths of all files within directories to search
+M.find = function(root, opts)
+  return require("neotest.lib.file.find").find(root, opts)
+end
 
 function M.parent(path)
   local elems = vim.split(path, M.sep, { plain = true })

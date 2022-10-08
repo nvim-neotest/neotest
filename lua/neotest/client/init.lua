@@ -331,6 +331,9 @@ function NeotestClient:_start(args)
   if self._started and not args.force then
     return
   end
+  if not lib.subprocess.enabled() then
+    lib.subprocess.init()
+  end
   local process_tracker = NeotestProcessTracker()
   self._runner = NeotestRunner(process_tracker)
   self._state = NeotestState(self._events)

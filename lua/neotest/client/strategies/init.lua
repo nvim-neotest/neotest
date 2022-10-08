@@ -1,12 +1,11 @@
 local lib = require("neotest.lib")
 local async = require("neotest.async")
 local logger = require("neotest.logging")
-local fu = lib.func_util
 
 ---@return neotest.Strategy
-local get_strategy = fu.memoize(function(name)
+local get_strategy = function(name)
   return require("neotest.client.strategies." .. name)
-end)
+end
 
 ---@class neotest.ProcessTracker
 ---@field _instances table<integer, neotest.Process>

@@ -1,4 +1,11 @@
+local logger = require("neotest.logging")
+local lazy_require = require("neotest.lib.require")
 local async = require("neotest.async")
+---@module 'neotest.lib'
+local lib = lazy_require("neotest.lib")
+
+local Tree = require("neotest.types").Tree
+local child_failed = false
 
 local M = {}
 
@@ -34,7 +41,7 @@ end
 ---@param opts neotest.treesitter.ParseOptions
 ---@return table[]
 local function collect(file_path, query, source, root, opts)
-  local sep = require("neotest.lib").files.sep
+  local sep = lib.files.sep
   local path_elems = vim.split(file_path, sep, { plain = true })
   local nodes = {
     {
@@ -89,14 +96,30 @@ local ParseOptions = {}
 function ParseOptions.build_position(file_path, source, captured_nodes) end
 
 ---Same as `parse_positions` but uses the provided content instead of reading file.
+---Do not use this directly unless you have a good reason. `parse_positions` is preferred
+---because it will parse in a subprocess and thus will never block the current editor instance.
 ---@parma file_path string
 ---@param content string
 ---@param query table | string
 ---@param opts neotest.treesitter.ParseOptions
 ---@return neotest.Tree
 function M.parse_positions_from_string(file_path, content, query, opts)
+  ---@type neotest.treesitter.ParseOptions
   opts = vim.tbl_extend("force", { build_position = build_position }, opts or {})
-  local lib = require("neotest.lib")
+  if opts.build_position then
+    if type(opts.build_position) == "string" then
+      local loaded, err = loadstring("return " .. opts.build_position)
+      assert(loaded, ("Couldn't parse `build_position` option: %s"):format(err))
+      opts.build_position = loaded()
+    end
+  end
+  if opts.position_id then
+    if type(opts.position_id) == "string" then
+      local loaded, err = loadstring("return " .. opts.position_id)
+      assert(loaded, ("Couldn't parse `position_id` option: %s"):format(err))
+      opts.position_id = loaded()
+    end
+  end
   local fast = opts.fast ~= false
   local ft = lib.files.detect_filetype(file_path)
   local lang = require("nvim-treesitter.parsers").ft_to_lang(ft)
@@ -123,16 +146,49 @@ function M.parse_positions_from_string(file_path, content, query, opts)
 end
 
 ---Read a file's contents from disk and parse test positions using the given query.
----See lib.positions.parse_tree for more options options
+---Executed in a subprocess to avoid blocking the editor if possible.
+---Since functions can't be serialised for RPC the build_position and position_id options
+---can be strings that will evaluate to globally referencable functions (e.g. `'require("my_adapter")._build_position'`).
 ---@async
 ---@param file_path string
----@param query string | vim.treesitter.Query
+---@param query string
 ---@param opts neotest.treesitter.ParseOptions
 ---@return neotest.Tree
 function M.parse_positions(file_path, query, opts)
-  async.util.sleep(10) -- Prevent completely hogging main thread
-  local content = require("neotest.lib").files.read(file_path)
-  return M.parse_positions_from_string(file_path, content, query, opts)
+  opts = opts or {}
+  if child_failed or not lib.subprocess.enabled() then
+    return M._parse_positions(file_path, query, opts)
+  end
+
+  if type(opts.build_position) == "function" or type(opts.position_id) == "function" then
+    logger.warn(
+      "Using `build_position` or `position_id` functions with subprocess parsing is not supported, switch to using strings for remote calls"
+    )
+    return M._parse_positions(file_path, query, opts)
+  end
+
+  local raw_result, err = lib.subprocess.call(
+    "require('neotest.lib').treesitter._parse_positions",
+    { file_path, query, opts, true }
+  )
+  if err then
+    logger.error("Child process failed to parse, disabling suprocess usage")
+    child_failed = true
+    return M._parse_positions(file_path, query, opts)
+  end
+  local tree = Tree.from_list(raw_result, function(pos)
+    return pos.id
+  end)
+  return tree
+end
+
+function M._parse_positions(file_path, query, opts, to_list)
+  local content = lib.files.read(file_path)
+  local tree = M.parse_positions_from_string(file_path, content, query, opts)
+  if to_list then
+    return tree:to_list()
+  end
+  return tree
 end
 
 return M

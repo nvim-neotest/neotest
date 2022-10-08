@@ -1,5 +1,6 @@
 local uv = vim.loop
 local M = {}
+local lib = require("neotest.lib")
 
 local ignored = vim.tbl_add_reverse_lookup({
   "node_modules",
@@ -13,7 +14,7 @@ local ignored = vim.tbl_add_reverse_lookup({
 function M.find(root, opts)
   opts = opts or {}
   local filter_dir = opts.filter_dir
-  local sep = require("neotest.lib").files.sep
+  local sep = lib.files.sep
   local dirs_to_scan = {}
 
   local paths = {}
