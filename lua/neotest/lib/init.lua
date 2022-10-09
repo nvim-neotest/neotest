@@ -9,7 +9,7 @@ M.xml = {
   ---@param xml_data string
   ---@return table
   parse = function(xml_data)
-    local handler = xml_tree:new()
+    local handler = xml_tree()
     local parser = xml.parser(handler)
     parser:parse(xml_data)
     return handler.root

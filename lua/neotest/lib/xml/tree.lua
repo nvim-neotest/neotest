@@ -164,4 +164,6 @@ end
 ---Parses CDATA tag content.
 tree.cdata = tree.text
 tree.__index = tree
-return tree
+return function()
+  return tree:new()
+end
