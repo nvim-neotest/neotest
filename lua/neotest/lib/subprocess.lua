@@ -8,6 +8,17 @@ local enabled = false
 
 local M = {}
 
+local function cleanup()
+  if child_chan then
+    logger.info("Closing child channel")
+    xpcall(function()
+      async.fn.chanclose(child_chan, "rpc")
+    end, function(msg)
+      logger.error("Failed to close child channel: " .. msg)
+    end)
+  end
+end
+
 ---Initialize the subprocess module.
 ---Do not call this, neotest core will initialize.
 function M.init()
@@ -39,8 +50,10 @@ function M.init()
       { parent_address }
     )
     enabled = true
+    async.api.nvim_create_autocmd("VimLeavePre", { callback = cleanup })
   end, function(msg)
     logger.error("Failed to initialize child process", debug.traceback(msg, 2))
+    cleanup()
     child_chan = nil
   end)
 end
