@@ -30,7 +30,6 @@ function neotest.benchmark.start(args)
     profile.start(log_path, { flame = true })
     for _ = 1, count, 1 do
       io.stdout:write("Starting client\n")
-      client._started = false
       local time = client:_start({ autocmds = false, force = true })
       total_time = total_time + time
       io.stdout:write("Startup Complete\nTime: " .. time .. "(s)\n")

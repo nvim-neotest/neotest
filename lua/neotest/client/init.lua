@@ -331,6 +331,7 @@ function NeotestClient:_start(args)
   if self._started and not args.force then
     return
   end
+  self._adapters = {}
   if not lib.subprocess.enabled() then
     lib.subprocess.init()
   end
