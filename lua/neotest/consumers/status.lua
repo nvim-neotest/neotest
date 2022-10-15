@@ -8,6 +8,7 @@ local function init(client)
     skipped = { text = config.icons.skipped, texthl = config.highlights.skipped },
     failed = { text = config.icons.failed, texthl = config.highlights.failed },
     running = { text = config.icons.running, texthl = config.highlights.running },
+    unknown = { text = config.icons.unknown, texthl = config.highlights.unknown },
   }
   for status, conf in pairs(statuses) do
     async.fn.sign_define("neotest_" .. status, conf)
