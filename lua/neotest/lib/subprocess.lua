@@ -25,7 +25,9 @@ function M.init()
   logger.info("Starting child process")
   local parent_address = async.fn.serverstart()
   local success
-  success, child_chan = pcall(async.fn.jobstart, { vim.loop.exepath(), "--embed", "--headless" }, {
+  local cmd = { vim.loop.exepath(), "--embed", "--headless" }
+  logger.info("Starting child process with command: " .. table.concat(cmd, " "))
+  success, child_chan = pcall(async.fn.jobstart, cmd, {
     rpc = true,
     on_exit = function()
       logger.info("Child process exited")
@@ -36,11 +38,11 @@ function M.init()
     logger.error("Failed to start child process", child_chan)
     return
   end
-  local mode = async.fn.rpcrequest(child_chan, "nvim_get_mode")
-  if mode.blocking then
-    logger.error("Child process is waiting for input at startup. Aborting.")
-  end
   xpcall(function()
+    local mode = async.fn.rpcrequest(child_chan, "nvim_get_mode")
+    if mode.blocking then
+      logger.error("Child process is waiting for input at startup. Aborting.")
+    end
     -- Trigger lazy loading of neotest
     async.fn.rpcrequest(child_chan, "nvim_exec_lua", "return require('neotest') and 0", {})
     async.fn.rpcrequest(
