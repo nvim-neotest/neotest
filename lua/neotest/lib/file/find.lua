@@ -26,7 +26,7 @@ function M.find(root, opts)
   while dir_handle or #dirs_to_scan > 0 do
     if not dir_handle then
       dir = table.remove(dirs_to_scan, 1)
-      err, dir_handle = async_opendir(dir, max_entries)
+      err, dir_handle = async_opendir(root .. sep .. dir, max_entries)
       assert(not err, err)
     end
 
