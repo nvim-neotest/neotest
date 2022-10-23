@@ -424,7 +424,7 @@ neotest.run.get_last_run()                          *neotest.run.get_last_run()*
                           `neotest.run.get_last_run`()
 Get last test run tree and adapter id.
 Return~
-neotest.Tree | `(nil,)` integer | nil
+`(string)` | nil, table | nil Position id and last args table
 
 
 ==============================================================================
