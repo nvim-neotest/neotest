@@ -174,7 +174,10 @@ function neotest.output.open(opts)
   async.run(function()
     local tree, adapter_id
     if opts.last_run then
-      tree, adapter_id = run.get_last_run()
+      local position_id, last_args = run.get_last_run()
+      if position_id and last_args then
+        tree, adapter_id = client:get_position(position_id, last_args)
+      end
       if not tree then
         lib.notify("Last test run no longer exists")
         return
