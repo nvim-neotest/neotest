@@ -1,7 +1,6 @@
 local async = require("neotest.async")
 local lib = require("neotest.lib")
 local config = require("neotest.config")
-local run = require("neotest").run
 
 local win, short_opened
 
@@ -174,7 +173,7 @@ function neotest.output.open(opts)
   async.run(function()
     local tree, adapter_id
     if opts.last_run then
-      local position_id, last_args = run.get_last_run()
+      local position_id, last_args = require("neotest").run.get_last_run()
       if position_id and last_args then
         tree, adapter_id = client:get_position(position_id, last_args)
       end
