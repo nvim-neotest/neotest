@@ -154,6 +154,7 @@ end
 ---@field short boolean Show shortened output
 ---@field enter boolean Enter output window
 ---@field quiet boolean Suppress warnings of no output
+---@field last_run boolean Open output for last test run
 ---@field position_id string Open output for position with this ID, opens nearest
 --- position if not given
 ---@field adapter string Adapter ID, defaults to first found with matching position
@@ -171,7 +172,16 @@ function neotest.output.open(opts)
   end
   async.run(function()
     local tree, adapter_id
-    if not opts.position_id then
+    if opts.last_run then
+      local position_id, last_args = require("neotest").run.get_last_run()
+      if position_id and last_args then
+        tree, adapter_id = client:get_position(position_id, last_args)
+      end
+      if not tree then
+        lib.notify("Last test run no longer exists")
+        return
+      end
+    elseif not opts.position_id then
       local file_path = vim.fn.expand("%:p")
       local row = vim.fn.getbufinfo(file_path)[1].lnum - 1
       tree, adapter_id = client:get_nearest(file_path, row, opts)

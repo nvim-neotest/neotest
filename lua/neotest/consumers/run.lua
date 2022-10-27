@@ -197,6 +197,15 @@ function neotest.run.adapters()
   return client:get_adapters()
 end
 
+--- Get last test run tree and adapter id.
+---@return string | nil, table | nil Position id and last args table
+function neotest.run.get_last_run()
+  if not last_run then
+    return nil, nil
+  end
+  return unpack(last_run)
+end
+
 neotest.run = setmetatable(neotest.run, {
   __call = function(_, client_)
     client = client_
