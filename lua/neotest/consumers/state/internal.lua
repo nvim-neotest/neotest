@@ -168,7 +168,7 @@ function state:get_status_count(path_query, opts)
   return status and status[opts.status] or 0
 end
 
----Return entire status cache
+---Return entire status cache for all paths
 ---@return table<string, table>
 function state:get_status_all()
   return self._cache

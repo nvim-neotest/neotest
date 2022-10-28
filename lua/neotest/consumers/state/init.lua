@@ -32,8 +32,7 @@ function neotest.state.get_status_count(path_query, opts)
   return internal_state:get_status_count(path_query, opts)
 end
 
----Return entire status cache from the last run.
----ONLY returns the results from the last run per file, not the enire test history.
+---Return entire status cache for all paths
 ---@return table<string, table>
 function neotest.state.get_status_all()
   return internal_state:get_status_all()
