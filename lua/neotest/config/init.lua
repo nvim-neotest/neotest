@@ -2,7 +2,7 @@
 ---@toc_entry Configuration Options
 
 local function define_highlights()
-  vim.cmd([[
+	vim.cmd([[
   hi default NeotestPassed ctermfg=Green guifg=#96F291
   hi default NeotestFailed ctermfg=Red guifg=#F70067
   hi default NeotestRunning ctermfg=Yellow guifg=#FFEC63
@@ -109,122 +109,125 @@ define_highlights()
 ---@private
 ---@type neotest.Config
 local default_config = {
-  log_level = vim.log.levels.WARN,
-  adapters = {},
-  discovery = {
-    enabled = true,
-    concurrent = 0,
-    filter_dir = nil,
-  },
-  running = {
-    concurrent = true,
-  },
-  consumers = {},
-  icons = {
-    -- Ascii:
-    -- { "/", "|", "\\", "-", "/", "|", "\\", "-"},
-    -- Unicode:
-    -- { "", "🞅", "🞈", "🞉", "", "", "🞉", "🞈", "🞅", "", },
-    -- {"◴" ,"◷" ,"◶", "◵"},
-    -- {"◢", "◣", "◤", "◥"},
-    -- {"◐", "◓", "◑", "◒"},
-    -- {"◰", "◳", "◲", "◱"},
-    -- {"⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"},
-    -- {"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"},
-    -- {"⠋", "⠙", "⠚", "⠞", "⠖", "⠦", "⠴", "⠲", "⠳", "⠓"},
-    -- {"⠄", "⠆", "⠇", "⠋", "⠙", "⠸", "⠰", "⠠", "⠰", "⠸", "⠙", "⠋", "⠇", "⠆"},
-    -- { "⠋", "⠙", "⠚", "⠒", "⠂", "⠂", "⠒", "⠲", "⠴", "⠦", "⠖", "⠒", "⠐", "⠐", "⠒", "⠓", "⠋" },
-    running_animated = { "/", "|", "\\", "-", "/", "|", "\\", "-" },
-    passed = "",
-    running = "",
-    failed = "",
-    skipped = "",
-    unknown = "",
-    non_collapsible = "─",
-    collapsed = "─",
-    expanded = "╮",
-    child_prefix = "├",
-    final_child_prefix = "╰",
-    child_indent = "│",
-    final_child_indent = " ",
-  },
-  highlights = {
-    passed = "NeotestPassed",
-    running = "NeotestRunning",
-    failed = "NeotestFailed",
-    skipped = "NeotestSkipped",
-    test = "NeotestTest",
-    namespace = "NeotestNamespace",
-    focused = "NeotestFocused",
-    file = "NeotestFile",
-    dir = "NeotestDir",
-    border = "NeotestBorder",
-    indent = "NeotestIndent",
-    expand_marker = "NeotestExpandMarker",
-    adapter_name = "NeotestAdapterName",
-    select_win = "NeotestWinSelect",
-    marked = "NeotestMarked",
-    target = "NeotestTarget",
-    unknown = "NeotestUnknown",
-  },
-  floating = {
-    border = "rounded",
-    max_height = 0.6,
-    max_width = 0.6,
-    options = {},
-  },
-  default_strategy = "integrated",
-  strategies = {
-    integrated = {
-      width = 120,
-      height = 40,
-    },
-  },
-  summary = {
-    enabled = true,
-    animated = true,
-    follow = true,
-    expand_errors = true,
-    mappings = {
-      expand = { "<CR>", "<2-LeftMouse>" },
-      expand_all = "e",
-      output = "o",
-      short = "O",
-      attach = "a",
-      jumpto = "i",
-      stop = "u",
-      run = "r",
-      mark = "m",
-      run_marked = "R",
-      clear_marked = "M",
-      target = "t",
-      clear_target = "T",
-      next_failed = "J",
-      prev_failed = "K",
-    },
-  },
-  benchmark = {
-    enabled = true,
-  },
-  output = {
-    enabled = true,
-    open_on_run = "short",
-  },
-  diagnostic = {
-    enabled = true,
-  },
-  status = {
-    enabled = true,
-    virtual_text = false,
-    signs = true,
-  },
-  run = {
-    enabled = true,
-  },
-  jump = {
-    enabled = true,
-  },
-  projects = {},
+	log_level = vim.log.levels.WARN,
+	adapters = {},
+	discovery = {
+		enabled = true,
+		concurrent = 0,
+		filter_dir = nil,
+	},
+	running = {
+		concurrent = true,
+	},
+	consumers = {},
+	icons = {
+		-- Ascii:
+		-- { "/", "|", "\\", "-", "/", "|", "\\", "-"},
+		-- Unicode:
+		-- { "", "🞅", "🞈", "🞉", "", "", "🞉", "🞈", "🞅", "", },
+		-- {"◴" ,"◷" ,"◶", "◵"},
+		-- {"◢", "◣", "◤", "◥"},
+		-- {"◐", "◓", "◑", "◒"},
+		-- {"◰", "◳", "◲", "◱"},
+		-- {"⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"},
+		-- {"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"},
+		-- {"⠋", "⠙", "⠚", "⠞", "⠖", "⠦", "⠴", "⠲", "⠳", "⠓"},
+		-- {"⠄", "⠆", "⠇", "⠋", "⠙", "⠸", "⠰", "⠠", "⠰", "⠸", "⠙", "⠋", "⠇", "⠆"},
+		-- { "⠋", "⠙", "⠚", "⠒", "⠂", "⠂", "⠒", "⠲", "⠴", "⠦", "⠖", "⠒", "⠐", "⠐", "⠒", "⠓", "⠋" },
+		running_animated = { "/", "|", "\\", "-", "/", "|", "\\", "-" },
+		passed = "",
+		running = "",
+		failed = "",
+		skipped = "",
+		unknown = "",
+		non_collapsible = "─",
+		collapsed = "─",
+		expanded = "╮",
+		child_prefix = "├",
+		final_child_prefix = "╰",
+		child_indent = "│",
+		final_child_indent = " ",
+	},
+	highlights = {
+		passed = "NeotestPassed",
+		running = "NeotestRunning",
+		failed = "NeotestFailed",
+		skipped = "NeotestSkipped",
+		test = "NeotestTest",
+		namespace = "NeotestNamespace",
+		focused = "NeotestFocused",
+		file = "NeotestFile",
+		dir = "NeotestDir",
+		border = "NeotestBorder",
+		indent = "NeotestIndent",
+		expand_marker = "NeotestExpandMarker",
+		adapter_name = "NeotestAdapterName",
+		select_win = "NeotestWinSelect",
+		marked = "NeotestMarked",
+		target = "NeotestTarget",
+		unknown = "NeotestUnknown",
+	},
+	floating = {
+		border = "rounded",
+		max_height = 0.6,
+		max_width = 0.6,
+		options = {},
+	},
+	default_strategy = "integrated",
+	strategies = {
+		integrated = {
+			width = 120,
+			height = 40,
+		},
+	},
+	summary = {
+		enabled = true,
+		animated = true,
+		follow = true,
+		expand_errors = true,
+		mappings = {
+			expand = { "<CR>", "<2-LeftMouse>" },
+			expand_all = "e",
+			output = "o",
+			short = "O",
+			attach = "a",
+			jumpto = "i",
+			stop = "u",
+			run = "r",
+			mark = "m",
+			run_marked = "R",
+			clear_marked = "M",
+			target = "t",
+			clear_target = "T",
+			next_failed = "J",
+			prev_failed = "K",
+		},
+	},
+	benchmark = {
+		enabled = true,
+	},
+	output = {
+		enabled = true,
+		open_on_run = "short",
+	},
+	diagnostic = {
+		enabled = true,
+	},
+	status = {
+		enabled = true,
+		virtual_text = false,
+		signs = true,
+	},
+	run = {
+		enabled = true,
+	},
+	jump = {
+		enabled = true,
+	},
+	state = {
+		enabled = true,
+	},
+	projects = {},
 }
 
 local user_config = default_config
@@ -234,71 +237,71 @@ local user_config = default_config
 local NeotestConfigModule = {}
 
 local convert_concurrent = function(val)
-  if val == 0 or val == true then
-    return #vim.loop.cpu_info() + 4
-  end
-  if val == false then
-    return 1
-  end
-  assert(type(val) == "number", "concurrent must be a boolean or a number")
-  return val
+	if val == 0 or val == true then
+		return #vim.loop.cpu_info() + 4
+	end
+	if val == false then
+		return 1
+	end
+	assert(type(val) == "number", "concurrent must be a boolean or a number")
+	return val
 end
 
 ---@param config neotest.Config
 ---@private
 function NeotestConfigModule.setup(config)
-  ---@type neotest.Config
-  user_config = vim.tbl_deep_extend("force", default_config, config)
-  --- Avoid mutating default for docgen
-  user_config.discovery = vim.tbl_deep_extend(
-    "force",
-    user_config.discovery,
-    { concurrent = convert_concurrent(user_config.discovery.concurrent) }
-  )
+	---@type neotest.Config
+	user_config = vim.tbl_deep_extend("force", default_config, config)
+	--- Avoid mutating default for docgen
+	user_config.discovery = vim.tbl_deep_extend(
+		"force",
+		user_config.discovery,
+		{ concurrent = convert_concurrent(user_config.discovery.concurrent) }
+	)
 
-  user_config.projects = setmetatable({}, {
-    __index = function()
-      return user_config
-    end,
-  })
-  for project_root, project_config in pairs(config.projects or {}) do
-    NeotestConfigModule.setup_project(project_root, project_config)
-  end
+	user_config.projects = setmetatable({}, {
+		__index = function()
+			return user_config
+		end,
+	})
+	for project_root, project_config in pairs(config.projects or {}) do
+		NeotestConfigModule.setup_project(project_root, project_config)
+	end
 
-  local logger = require("neotest.logging")
-  logger:set_level(user_config.log_level)
-  logger.info("Configuration complete")
-  logger.debug("User config", user_config)
+	local logger = require("neotest.logging")
+	logger:set_level(user_config.log_level)
+	logger.info("Configuration complete")
+	logger.debug("User config", user_config)
 end
 
 function NeotestConfigModule.setup_project(project_root, config)
-  local path = vim.fn.fnamemodify(project_root, ":p")
-  path = path:sub(1, #path - 1) -- Trailing slash
-  user_config.projects[path] = vim.tbl_deep_extend("keep", config, {
-    adapters = user_config.adapters,
-    discovery = user_config.discovery,
-    running = user_config.running,
-  })
-  user_config.projects[path].discovery.concurrent =
-    convert_concurrent(user_config.projects[path].discovery.concurrent)
-  local logger = require("neotest.logging")
-  logger.info("Project", path, "configuration complete")
-  logger.debug("Project config", user_config.projects[path])
+	local path = vim.fn.fnamemodify(project_root, ":p")
+	path = path:sub(1, #path - 1) -- Trailing slash
+	user_config.projects[path] = vim.tbl_deep_extend("keep", config, {
+		adapters = user_config.adapters,
+		discovery = user_config.discovery,
+		running = user_config.running,
+	})
+	user_config.projects[path].discovery.concurrent =
+	convert_concurrent(user_config.projects[path].discovery.concurrent)
+	local logger = require("neotest.logging")
+	logger.info("Project", path, "configuration complete")
+	logger.debug("Project config", user_config.projects[path])
 end
 
 function NeotestConfigModule._format_default()
-  local lines = { "Default values:", ">" }
-  for line in vim.gsplit(vim.inspect(default_config), "\n", true) do
-    table.insert(lines, "  " .. line)
-  end
-  table.insert(lines, "<")
-  return lines
+	local lines = { "Default values:", ">" }
+	for line in vim.gsplit(vim.inspect(default_config), "\n", true) do
+		table.insert(lines, "  " .. line)
+	end
+	table.insert(lines, "<")
+	return lines
 end
 
 setmetatable(NeotestConfigModule, {
-  __index = function(_, key)
-    return user_config[key]
-  end,
+	__index = function(_, key)
+		return user_config[key]
+	end,
 })
 
 return NeotestConfigModule

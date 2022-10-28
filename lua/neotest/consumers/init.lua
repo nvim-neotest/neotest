@@ -35,6 +35,7 @@ neotest.consumers = {
   summary = require("neotest.consumers.summary"),
   jump = require("neotest.consumers.jump"),
   benchmark = require("neotest.consumers.benchmark"),
+  state = require("neotest.consumers.state"),
 }
 
 return neotest.consumers
