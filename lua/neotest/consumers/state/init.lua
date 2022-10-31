@@ -13,23 +13,15 @@ function neotest.state.get_adapters()
   return internal_state:get_adapters()
 end
 
----Get back results from cache. Fetches all results by default.
+---Get back status results from cache. Fetches all results by default.
+---Can be used to fetch the count for a specific status.
 ---@param opts table
----@field path_query string optionally get result back for specific file or path
+---@field status string optionally fetch count for specific status (passed | failed | skipped | unknown)
+---@field query string optionally get result back for specific file or path
 ---@field fuzzy string use string.match instead of direct comparison for key
 ---@return table | nil
 function neotest.state.get_status(opts)
   return internal_state:get_status(opts)
-end
-
----Get status count (passed | failed | skipped | unknown)
----@param path_query string
----@param opts table
----       :fuzzy use string.match instead of direct comparison for key
----       :status get count for status
----@return integer returns status count, -1 if no status is provided
-function neotest.state.get_status_count(path_query, opts)
-  return internal_state:get_status_count(path_query, opts)
 end
 
 ---Gives back unparsed results

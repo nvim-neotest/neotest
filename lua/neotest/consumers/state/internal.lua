@@ -141,34 +141,35 @@ end
 
 ---Get back results from cache. Fetches all results by default.
 ---@param opts table
----@field path_query string optionally get result back for specific file or path
+---@field status string fetch count for specific status (passed | failed | skipped | unknown)
+---@field query string optionally get result back for specific file or path
 ---@field fuzzy string use string.match instead of direct comparison for key
 ---@return table | nil
 function state:get_status(opts)
   opts = opts or {}
-  if not opts.path_query then
+  local status = self:_get_status(opts)
+  if opts.status then
+    return status and status[opts.status]
+  end
+  return status
+end
+
+---Get back results from cache
+---@param opts table
+---@field query string optionally get result back for specific file or path
+---@field fuzzy string use string.match instead of direct comparison for key
+---@return table | nil
+function state:_get_status(opts)
+  opts = opts or {}
+  if not opts.query then
     return self._cache
   end
   for key, val in pairs(self._cache) do
-    if key == opts.path_query or (opts.fuzzy and fuzzy_match(key, opts.path_query)) then
+    if key == opts.query or (opts.fuzzy and fuzzy_match(key, opts.query)) then
       return val
     end
   end
   return nil
-end
-
----Get status count (passed | failed | skipped | unknown)
----@param path_query string
----@param opts table
----       :fuzzy use string.match instead of direct comparison for key
----       :status get count for status
----@return integer returns status count, -1 if no status is provided
-function state:get_status_count(path_query, opts)
-  if not opts and not opts.status then
-    return -1
-  end
-  local status = self:get_status(path_query, opts)
-  return status and status[opts.status] or 0
 end
 
 ---Gives back unparsed results
