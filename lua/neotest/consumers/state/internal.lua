@@ -77,12 +77,15 @@ end
 
 ---Update the cache status count
 function state:_update_cache()
+  local total = { passed = 0, failed = 0, skipped = 0, unknown = 0 }
   for path, results in pairs(self._status) do
     local count = { passed = 0, failed = 0, skipped = 0, unknown = 0 }
     for _, status in pairs(results) do
       count[status] = count[status] + 1
+      total[status] = total[status] + 1
     end
     self._cache[path] = count
+    self._cache["total"] = total
   end
 end
 
@@ -158,16 +161,23 @@ end
 ---@param opts table
 ---@field query string optionally get result back for specific file or path
 ---@field fuzzy string use string.match instead of direct comparison for key
+---@field total boolean return total results. If used in combination with a query
+---       the query result will take precent if present, otherwise total will be used as fallback.
+---       This is useful when you want to return package wide results on non-code windows
 ---@return table | nil
 function state:_get_status(opts)
   opts = opts or {}
-  if not opts.query then
+  if not opts.query and not opts.total then
     return self._cache
-  end
-  for key, val in pairs(self._cache) do
-    if key == opts.query or (opts.fuzzy and fuzzy_match(key, opts.query)) then
-      return val
+  elseif opts.query then
+    for key, val in pairs(self._cache) do
+      if key == opts.query or (opts.fuzzy and fuzzy_match(key, opts.query)) then
+        return val
+      end
     end
+  end
+  if opts.total then
+    return self._cache["total"] or nil
   end
   return nil
 end

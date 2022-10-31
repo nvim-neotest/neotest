@@ -19,6 +19,9 @@ end
 ---@field status string optionally fetch count for specific status (passed | failed | skipped | unknown)
 ---@field query string optionally get result back for specific file or path
 ---@field fuzzy string use string.match instead of direct comparison for key
+---@field total boolean return total results. If used in combination with a query
+---       the query result will take precent if present, otherwise total will be used as fallback.
+---       This is useful when you want to return package wide results on non-code windows
 ---@return table | nil
 function neotest.state.get_status(opts)
   return internal_state:get_status(opts)
