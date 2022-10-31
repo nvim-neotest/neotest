@@ -1,5 +1,5 @@
 -- The state consumer acts as a cache for the internal test state as provided by
--- by the neovim client. It can be used to query get the current number of
+-- by the neotest core. It can be used to query get the current number of
 -- passed/failed/skipped tests in a simple manner, to display in e.g. a statusbar.
 
 local internal_state = require("neotest.consumers.state.internal")
@@ -7,19 +7,19 @@ local internal_state = require("neotest.consumers.state.internal")
 local neotest = {}
 neotest.state = {}
 
----Alias for client:get_adapters to get registerd adapters
+---Get the list of all known adapter IDs
 ---@return string[]
 function neotest.state.get_adapters()
   return internal_state:get_adapters()
 end
 
----Get back results from cache
----@param path_query string
+---Get back results from cache. Fetches all results by default.
 ---@param opts table
----       :fuzzy use string.match instead of direct comparison for key
+---@field path_query string optionally get result back for specific file or path
+---@field fuzzy string use string.match instead of direct comparison for key
 ---@return table | nil
-function neotest.state.get_status(path_query, opts)
-  return internal_state:get_status(path_query, opts)
+function neotest.state.get_status(opts)
+  return internal_state:get_status(opts)
 end
 
 ---Get status count (passed | failed | skipped | unknown)
@@ -32,12 +32,6 @@ function neotest.state.get_status_count(path_query, opts)
   return internal_state:get_status_count(path_query, opts)
 end
 
----Return entire status cache for all paths
----@return table<string, table>
-function neotest.state.get_status_all()
-  return internal_state:get_status_all()
-end
-
 ---Gives back unparsed results
 ---Get back results from cache
 function neotest.state.get_raw_results()
@@ -45,17 +39,15 @@ function neotest.state.get_raw_results()
 end
 
 ---Check if there are tests running
----Optionally, provide a "<adapter_id>:<file_path>" argument to filter on.
----If no argument is provided, all running processes will be returned.
----If nil is returned your adapter_id found no match, otherwise an emtpy
+---If no options are provided, all running processes will be returned.
+---If nil is returned your adapter_id found no match, otherwise an empty
 ---table is returned.
----@param adapter_id string optional
 ---@param opts table
----       :fuzzy use string.match instead of direct comparison for key
----       :as_array if no addapter_id provided, return entire list as array
+---@field adapter_id string Optionally, provide a "<adapter_id>:<file_path>" argument to filter on.
+---@field fuzzy string use string.match instead of direct comparison for key
 ---@return table<string, string> | string[] | nil
-function neotest.state.running(adapter_id, opts)
-  return internal_state:running(adapter_id, opts)
+function neotest.state.running(opts)
+  return internal_state:running(opts)
 end
 
 neotest.state = setmetatable(neotest.state, {

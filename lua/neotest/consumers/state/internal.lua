@@ -1,14 +1,14 @@
-local au_result = "NeoTestStatus"
-local au_running = "NeoTestStarted"
+local au_result = "NeotestResult"
+local au_started = "NeotestStarted"
 
----@class state
+---@class neotest.StateConsumer
 ---@field private _result table<integer, table<string, neotest.Tree> >
 ---@field private _status table
 ---@field private _cache table
 ---@field private _running table<string, table<string, string>>
 ---@field private _adapters table<integer, string>
 ---@field private _client neotest.Client
-state = {
+local state = {
   _result = {},
   _status = {},
   _cache = {},
@@ -25,6 +25,14 @@ local function escape(text)
   return text
 end
 
+---Perform a double fuzzy match on two strings
+---@param a string
+---@param b string
+---@return boolean
+local function fuzzy_match(a, b)
+  return string.match(a, escape(b)) or string.match(b, escape(a))
+end
+
 ---Update the internal list of currently running tests
 ---@param adapter_id string
 ---@param position_ids string
@@ -33,23 +41,25 @@ function state:_update_running(adapter_id, position_ids)
     adapter = string.match(adapter_id, "(.-):"),
     path = position_ids,
   }
-
   -- Trigger Event
   vim.api.nvim_exec_autocmds(
     "User",
-    { pattern = au_running, data = { id = adapter_id, running = position_ids } }
+    { pattern = au_started, data = { adapter_id = adapter_id, running = position_ids } }
   )
 end
 
 ---Process results and count pass/fail rates, save to cache
--- Passed, Failed, Skipped
----@param results table<string, neotest.Result>
-function state:_process_result(results)
-  for path, data in pairs(results) do
-    local test_path = string.match(path, "^([^:]*)::")
-    if test_path ~= nil then
-      local test_name = string.match(path, escape(test_path) .. "::(.*)")
-      self:_set_status(test_path, test_name, data.status)
+---Passed, Failed, Skipped
+---@param tree neotest.Tree|nil
+function state:_process_result(tree, results)
+  if not tree then
+    return
+  end
+  for _, pos in tree:iter() do
+    if pos.type == "test" then
+      if results[pos.id].status then
+        self:_set_status(pos.path, pos.name, results[pos.id].status)
+      end
     end
   end
   self:_update_cache()
@@ -80,10 +90,14 @@ end
 ---@param adapter_id string
 ---@param results table<string, neotest.Result>
 function state:_update_results(adapter_id, results)
-  self._running[string.match(adapter_id, "^[^:]*:(.*)")] = nil
+  local position_id = string.match(adapter_id, "^[^:]*:(.*)")
+
+  self._running[position_id] = nil
   self._result[adapter_id] = results
 
-  self:_process_result(results)
+  local tree, _ = self._client:get_position(position_id, { adapter = adapter_id })
+
+  self:_process_result(tree, results)
 
   -- Trigger Event
   vim.api.nvim_exec_autocmds(
@@ -92,47 +106,32 @@ function state:_update_results(adapter_id, results)
   )
 end
 
----Alias for client:get_adapters to get registerd adapters
+---Get the list of all known adapter IDs
 ---@return string[]
 function state:get_adapters()
+  if not self._client:has_started() then
+    return {}
+  end
   return self._client:get_adapters()
 end
 
 ---Check if there are tests running
----Optionally, provide a "<adapter_id>:<file_path>" argument to filter on.
----If no argument is provided, all running processes will be returned.
----If nil is returned your adapter_id found no match, otherwise an emtpy
+---If no options are provided, all running processes will be returned.
+---If nil is returned your adapter_id found no match, otherwise an empty
 ---table is returned.
----@param adapter_id string optional
 ---@param opts table
----       :fuzzy use string.match instead of direct comparison for key
----       :as_array if no addapter_id provided, return entire list as array
+---@field adapter_id string Optionally, provide a "<adapter_id>:<file_path>" argument to filter on.
+---@field fuzzy string use string.match instead of direct comparison for key
 ---@return table<string, string> | string[] | nil
-function state:running(adapter_id, opts)
-  if adapter_id == nil or (type(adapter_id) ~= string and #adapter_id == 0) then
-    if opts and not opts.as_array then
-      return next(self._running) and self._running or nil
-    end
-
-    local array = {}
-    local i = 1
-    for _, v in pairs(self._running) do
-      array[i] = v
-      i = i + 1
-    end
-    return array
+function state:running(opts)
+  opts = opts or {}
+  if not opts.adapter_id or (type(opts.adapter_id) ~= string and #opts.adapter_id == 0) then
+    return next(self._running) and self._running or nil
   end
-
   for key, value in pairs(self._running) do
     if
-      (
-        key == adapter_id
-        or (
-          opts
-          and opts.fuzzy
-          and (string.match(adapter_id, escape(key)) or string.match(key, escape(adapter_id)))
-        )
-      ) and next(value) ~= nil
+      (key == opts.adapter_id or (opts.fuzzy and fuzzy_match(opts.adapter_id, key)))
+      and next(value) ~= nil
     then
       return value
     end
@@ -140,14 +139,18 @@ function state:running(adapter_id, opts)
   return nil
 end
 
----Get back results from cache
----@param path_query string
+---Get back results from cache. Fetches all results by default.
 ---@param opts table
----       :fuzzy use string.match instead of direct comparison for key
+---@field path_query string optionally get result back for specific file or path
+---@field fuzzy string use string.match instead of direct comparison for key
 ---@return table | nil
-function state:get_status(path_query, opts)
+function state:get_status(opts)
+  opts = opts or {}
+  if not opts.path_query then
+    return self._cache
+  end
   for key, val in pairs(self._cache) do
-    if key == path_query or (opts and opts.fuzzy and string.match(key, path_query)) then
+    if key == opts.path_query or (opts.fuzzy and fuzzy_match(key, opts.path_query)) then
       return val
     end
   end
@@ -166,12 +169,6 @@ function state:get_status_count(path_query, opts)
   end
   local status = self:get_status(path_query, opts)
   return status and status[opts.status] or 0
-end
-
----Return entire status cache for all paths
----@return table<string, table>
-function state:get_status_all()
-  return self._cache
 end
 
 ---Gives back unparsed results
@@ -193,6 +190,8 @@ function state:init(client)
   client.listeners.run = function(adapter_id, position_ids)
     self:_update_running(adapter_id, position_ids)
   end
+
+  --TODO: Listen for client.listeners.discover_positions to also track untested tests
 end
 
 return state
