@@ -327,6 +327,7 @@ window will be used
 {position_id} `(string)` Open output for position with this ID, opens nearest
 position if not given
 {adapter} `(string)` Adapter ID, defaults to first found with matching position
+{auto_close} `(boolean)` Close output window when leaving it, or when cursor moves outside of window
 
 
 ==============================================================================

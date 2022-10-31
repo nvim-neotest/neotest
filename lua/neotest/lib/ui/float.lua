@@ -106,7 +106,7 @@ function M.open(settings)
   ---@type neotest.Float
   local win = Float:new(win_id, position)
 
-  if opts.auto_close ~= false then
+  if settings.auto_close ~= false then
     local function auto_close()
       if not win:close(false) then
         vim.api.nvim_create_autocmd(
