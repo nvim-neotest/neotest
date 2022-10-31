@@ -92,13 +92,7 @@ local function open_output(result, opts)
     win = float.win_id
   end
 
-  async.api.nvim_buf_set_keymap(buf, "n", "q", "", {
-    noremap = true,
-    silent = true,
-    callback = function()
-      pcall(vim.api.nvim_win_close, win, true)
-    end,
-  })
+  vim.api.nvim_buf_set_option(buf, "filetype", "neotest-output")
 end
 
 local neotest = {}

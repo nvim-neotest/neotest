@@ -209,7 +209,7 @@ end
 ---@return string, neotest.Adapter
 function NeotestClient:get_adapter(file_path)
   self:ensure_started()
-  return self:_get_adapter(file_path, nil, false)
+  return self:_get_adapter(file_path, nil)
 end
 
 ---@private
