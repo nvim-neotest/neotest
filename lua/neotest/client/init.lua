@@ -356,30 +356,7 @@ function NeotestClient:_start(args)
   autocmd({ "BufAdd", "BufWritePost" }, function()
     local file_path = vim.fn.expand("<afile>:p")
     async.run(function()
-      local adapter_id = self:_get_adapter(file_path)
-      if not adapter_id then
-        local adapter = self._adapter_group:adapter_matching_path(file_path)
-        if not adapter then
-          return
-        end
-        --- Provide file paths parent because we could be outside of the root dir.
-        local root = adapter.root(lib.files.parent(file_path)) or vim.loop.cwd()
-        adapter_id = ("%s:%s"):format(adapter.name, root)
-        self._adapters[adapter_id] = adapter
-
-        if config.projects[root].discovery.enabled then
-          self:_update_positions(root, { adapter = adapter_id })
-        else
-          self:_update_open_buf_positions(adapter_id)
-        end
-      end
-      if not self:get_position(file_path, { adapter = adapter_id }) then
-        local root = self._state:positions(adapter_id)
-        if config.projects[root and root:data().path or vim.loop.cwd()].discovery.enabled then
-          self:_update_positions(lib.files.parent(file_path), { adapter = adapter_id })
-        end
-      end
-      self:_update_positions(file_path, { adapter = adapter_id })
+      self:_handle_buffer_change(file_path)
     end)
   end)
 
@@ -427,6 +404,7 @@ function NeotestClient:_start(args)
   local run_time = (vim.loop.now() - start) / 1000
   logger.info("Initialisation finished in", run_time, "seconds")
   self:_set_focused_file(async.fn.expand("%:p"))
+  self:_handle_buffer_change(async.fn.expand("%:p"))
   return run_time
 end
 
@@ -438,6 +416,33 @@ function NeotestClient:_update_open_buf_positions(adapter_id)
       self:_update_positions(file_path, { adapter = adapter_id })
     end
   end
+end
+
+function NeotestClient:_handle_buffer_change(file_path)
+  local adapter_id = self:_get_adapter(file_path)
+  if not adapter_id then
+    local adapter = self._adapter_group:adapter_matching_path(file_path)
+    if not adapter then
+      return
+    end
+    --- Provide file paths parent because we could be outside of the root dir.
+    local root = adapter.root(lib.files.parent(file_path)) or vim.loop.cwd()
+    adapter_id = ("%s:%s"):format(adapter.name, root)
+    self._adapters[adapter_id] = adapter
+
+    if config.projects[root].discovery.enabled then
+      self:_update_positions(root, { adapter = adapter_id })
+    else
+      self:_update_open_buf_positions(adapter_id)
+    end
+  end
+  if not self:get_position(file_path, { adapter = adapter_id }) then
+    local root = self._state:positions(adapter_id)
+    if config.projects[root and root:data().path or vim.loop.cwd()].discovery.enabled then
+      self:_update_positions(lib.files.parent(file_path), { adapter = adapter_id })
+    end
+  end
+  self:_update_positions(file_path, { adapter = adapter_id })
 end
 
 ---@private
