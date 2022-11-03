@@ -384,7 +384,7 @@ function NeotestClient:_start(args)
   end)
 
   autocmd("DirChanged", function()
-    local dir = vim.fn.getcwd()
+    local dir = vim.loop.cwd()
     async.run(function()
       self:_update_adapters(dir)
     end)
@@ -422,7 +422,7 @@ function NeotestClient:_start(args)
     end)
   end)
 
-  self:_update_adapters(async.fn.getcwd())
+  self:_update_adapters(vim.loop.cwd())
 
   local run_time = (vim.loop.now() - start) / 1000
   logger.info("Initialisation finished in", run_time, "seconds")
@@ -445,12 +445,12 @@ end
 function NeotestClient:_update_adapters(dir)
   local adapters_with_root = lib.files.is_dir(dir)
       and self._adapter_group:adapters_with_root_dir(dir)
-      or {}
+    or {}
 
   local adapters_with_bufs =
-  self._adapter_group:adapters_matching_open_bufs(lib.func_util.map(function(i, entry)
-    return i, entry.root
-  end, adapters_with_root))
+    self._adapter_group:adapters_matching_open_bufs(lib.func_util.map(function(i, entry)
+      return i, entry.root
+    end, adapters_with_root))
 
   local found = {}
   for adapter_id, _ in pairs(self._adapters) do
@@ -470,7 +470,7 @@ function NeotestClient:_update_adapters(dir)
       end
     end
   end
-  local root = lib.files.is_dir(dir) and dir or async.fn.getcwd()
+  local root = lib.files.is_dir(dir) and dir or vim.loop.cwd()
   for _, adapter in ipairs(adapters_with_bufs) do
     local adapter_id = ("%s:%s"):format(adapter.name, root)
     if not found[adapter_id] then

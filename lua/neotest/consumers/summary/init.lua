@@ -74,7 +74,7 @@ async.run(function()
       if not client:has_started() then
         canvas:write("Parsing tests")
       else
-        local cwd = async.fn.getcwd()
+        local cwd = vim.loop.cwd()
         for _, adapter_id in ipairs(client:get_adapters()) do
           local tree = client:get_position(nil, { adapter = adapter_id })
           canvas:write(

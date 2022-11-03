@@ -12,7 +12,7 @@ describe("neotest client", function()
   ---@type neotest.Adapter
   local mock_adapter
   local mock_strategy, attached, stopped, exit_test, provided_spec
-  local dir = async.fn.getcwd()
+  local dir = vim.loop.cwd()
   local files
   local dirs = { dir }
   ---@return neotest.Tree
@@ -197,7 +197,6 @@ describe("neotest client", function()
           adapters = { mock_adapter },
           discovery = { enabled = false },
         })
-        local x = get_pos(dir)
         assert.Nil(get_pos(dir))
         assert.Nil(get_pos(dir .. "/test_file_1"))
       end)
