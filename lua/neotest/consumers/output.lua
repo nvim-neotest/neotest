@@ -68,12 +68,14 @@ local function open_output(result, opts)
 
   opts.open_win = opts.open_win
     or function(win_opts)
-      return lib.ui.float.open({
+      local float = lib.ui.float.open({
         width = win_opts.width,
         height = win_opts.height,
         buffer = buf,
         auto_close = opts.auto_close,
-      }).win_id
+      })
+      float:listen("close", on_close)
+      return float.win_id
     end
 
   local cur_win = vim.api.nvim_get_current_win()
