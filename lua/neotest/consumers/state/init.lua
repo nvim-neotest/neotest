@@ -33,12 +33,11 @@ function neotest.state.get_raw_results()
   return internal_state:get_raw_results()
 end
 
----Check if there are tests running
+---Check if there are tests currently running
 ---If no options are provided, all running processes will be returned.
----If nil is returned your adapter_id found no match, otherwise an empty
----table is returned.
+---If either no tests are running, or the query found no match, nil is returned
 ---@param opts table
----@field adapter_id string Optionally, provide a "<adapter_id>:<file_path>" argument to filter on.
+---@field query string Optionally, provide a query to filter on.
 ---@field fuzzy string use string.match instead of direct comparison for key
 ---@return table<string, string> | string[] | nil
 function neotest.state.running(opts)

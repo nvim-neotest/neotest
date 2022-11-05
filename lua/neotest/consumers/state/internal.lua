@@ -56,8 +56,8 @@ function state:_process_result(tree, results)
     return
   end
   for _, pos in tree:iter() do
-    if pos.type == "test" then
-      if results[pos.id].status then
+    if pos and pos.type == "test" then
+      if results and results[pos.id] and results[pos.id].status then
         self:_set_status(pos.path, pos.name, results[pos.id].status)
       end
     end
@@ -95,6 +95,12 @@ end
 function state:_update_results(adapter_id, results)
   local position_id = string.match(adapter_id, "^[^:]*:(.*)")
 
+  self._client:ensure_started()
+  vim.notify(vim.inspect({
+    adapter_id = adapter_id,
+    adapter = { self._client:get_adapter(adapter_id) },
+  }))
+
   self._running[position_id] = nil
   self._result[adapter_id] = results
 
@@ -118,22 +124,21 @@ function state:get_adapters()
   return self._client:get_adapters()
 end
 
----Check if there are tests running
+---Check if there are tests currently running
 ---If no options are provided, all running processes will be returned.
----If nil is returned your adapter_id found no match, otherwise an empty
----table is returned.
+---If either no tests are running, or the query found no match, nil is returned
 ---@param opts table
----@field adapter_id string Optionally, provide a "<adapter_id>:<file_path>" argument to filter on.
+---@field query string Optionally, provide a query to filter on.
 ---@field fuzzy string use string.match instead of direct comparison for key
----@return table<string, string> | string[] | nil
+---@return table<string, string> | nil
 function state:running(opts)
   opts = opts or {}
-  if not opts.adapter_id or (type(opts.adapter_id) ~= string and #opts.adapter_id == 0) then
+  if not opts.query or (type(opts.query) ~= string and #opts.query == 0) then
     return next(self._running) and self._running or nil
   end
   for key, value in pairs(self._running) do
     if
-      (key == opts.adapter_id or (opts.fuzzy and fuzzy_match(opts.adapter_id, key)))
+      (key == opts.query or (opts.fuzzy and fuzzy_match(opts.query, key)))
       and next(value) ~= nil
     then
       return value
