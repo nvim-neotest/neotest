@@ -256,6 +256,20 @@ function neotest.summary.run_marked(args)
   end
 end
 
+--- Are there any marked tests?
+---
+--- @return boolean
+function neotest.summary.any_marked()
+  for _, component in pairs(components) do
+    for _, marked in pairs(component.marked) do
+      if marked then
+        return true
+      end
+    end
+  end
+  return false
+end
+
 --- Clear all marked positions
 ---@param args table
 ---
