@@ -117,6 +117,7 @@ function Canvas:render_buffer(buffer)
     return false, "Window not found"
   end
 
+  local map_in_visual = { "expand", "expand_all", "mark", "run", "stop" }
   for action, mappings in pairs(self.mappings) do
     local action_keys = self.config.mappings[action]
     if type(action_keys) ~= "table" then
@@ -133,6 +134,21 @@ function Canvas:render_buffer(buffer)
           end
         end,
       })
+      if vim.tbl_contains(map_in_visual, action) then
+        vim.api.nvim_buf_set_keymap(buffer, "v", key, "", {
+          noremap = true,
+          nowait = true,
+          callback = function()
+            local start_line = vim.fn.getpos("v")[2]
+            local end_line = vim.fn.getpos(".")[2]
+            for lineno = start_line,end_line do
+              for _, callback in pairs(mappings[lineno] or {}) do
+                callback()
+              end
+            end
+          end,
+        })
+      end
     end
   end
 
