@@ -167,7 +167,8 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
         if position.type == "file" then
           lib.ui.open_buf(buf)
         else
-          lib.ui.open_buf(buf, position.range[1], position.range[2])
+          local range = node:closest_value_for("range")
+          lib.ui.open_buf(buf, range[1], range[2])
         end
       end)
     end
