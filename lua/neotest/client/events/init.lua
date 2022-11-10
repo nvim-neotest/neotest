@@ -6,11 +6,15 @@ local M = {}
 ---@alias neotest.Event "discover_positions" | "run" | "results" | "test_file_focused" | "test_focused"
 ---@class neotest.Events
 local NeotestEvents = {
+  -- Core
   DISCOVER_POSITIONS = "discover_positions",
   RUN = "run",
   RESULTS = "results",
   TEST_FILE_FOCUSED = "test_file_focused",
   TEST_FOCUSED = "test_focused",
+
+  -- Summary
+  SUMMARY_TOGGLE = "summary_toggle",
 }
 
 M.events = NeotestEvents

@@ -33,6 +33,7 @@ local function open_window(buf)
   async.api.nvim_win_set_buf(win, buf)
   async.api.nvim_set_current_win(cur_win)
   async.api.nvim_buf_set_option(summary_buf, "filetype", "neotest-summary")
+  client._events:emit("summary_toggle", true)
 end
 
 local components = {}
@@ -183,6 +184,7 @@ local function close()
   if is_open() then
     local win = async.fn.win_getid(async.fn.bufwinnr(summary_buf))
     async.api.nvim_win_close(win, true)
+    client._events:emit("summary_toggle", false)
   end
 end
 
