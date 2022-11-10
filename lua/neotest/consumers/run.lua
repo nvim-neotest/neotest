@@ -23,8 +23,7 @@ function neotest.run.get_tree_from_args(args, store)
       return client:get_position(nil, args)
     end
     if args[1] then
-      local position_id = lib.files.exists(args[1]) and async.fn.fnamemodify(args[1], ":p")
-        or args[1]
+      local position_id = lib.files.path.real(args[1]) or args[1]
       return client:get_position(position_id, args)
     end
     local file_path = async.fn.expand("%:p")

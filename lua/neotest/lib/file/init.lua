@@ -176,6 +176,15 @@ M.sep = (function()
   return res
 end)()
 
+M.path = {
+  sep = M.sep,
+  exists = M.exists,
+  real = function(path)
+    local err, real = async.uv.fs_realpath(path)
+    return real, err
+  end,
+}
+
 ---@type fun(path: string): string
 M.detect_filetype = fu.memoize(filetype.detect)
 
