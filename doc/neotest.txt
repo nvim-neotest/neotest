@@ -148,7 +148,9 @@ Default values:
         output = "o",
         prev_failed = "K",
         run = "r",
+        debug = "d",
         run_marked = "R",
+        debug_marked = "D",
         short = "O",
         stop = "u",
         target = "t"
@@ -244,8 +246,10 @@ Fields~
 {jumpto} `(string|string[])` Jump to the selected position
 {stop} `(string|string[])` Stop selected position
 {run} `(string|string[])` Run selected position
+{debug} `(string|string[])` Debug selected position
 {mark} `(string|string[])` Mark the selected position
 {run_marked} `(string|string[])` Run the marked positions for selected suite.
+{debug_marked} `(string|string[])` Debug the marked positions for selected suite.
 {clear_marked} `(string|string[])` Clear the marked positions for selected suite.
 {target} `(string|string[])` Target a position to be the only shown position for its adapter
 {clear_target} `(string|string[])` Clear the target position for the selected adapter

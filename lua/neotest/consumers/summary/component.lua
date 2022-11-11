@@ -204,6 +204,10 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
       neotest.run.run({ position.id, adapter = self.adapter_id })
     end)
 
+    canvas:add_mapping("debug", function()
+      neotest.run.run({ position.id, adapter = self.adapter_id, strategy = "dap" })
+    end)
+
     canvas:add_mapping("mark", function()
       self.marked[position.id] = not self.marked[position.id]
       neotest.summary.render()
@@ -211,6 +215,10 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
 
     canvas:add_mapping("run_marked", function()
       neotest.summary.run_marked({ adapter = self.adapter_id })
+    end)
+
+    canvas:add_mapping("debug_marked", function()
+      neotest.summary.run_marked({ adapter = self.adapter_id, strategy = "dap" })
     end)
 
     canvas:add_mapping("clear_marked", function()
