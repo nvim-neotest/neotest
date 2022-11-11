@@ -95,6 +95,43 @@ local ParseOptions = {}
 ---@return neotest.Position | neotest.Position[] | nil
 function ParseOptions.build_position(file_path, source, captured_nodes) end
 
+---Build a parsed Query object from a string
+---@param lang string
+---@param query table | string
+---@return table
+function M.normalise_query(lang, query)
+  if type(query) == "string" then
+    query = vim.treesitter.parse_query(lang, query)
+  end
+  return query
+end
+
+-- Return a treesitter tree root for file_path and the TreeSitter lang value for it
+---@param file_path string
+---@param content string
+---@param opts neotest.treesitter.ParseOptions
+---@return userdata, string
+function M.get_parse_root(file_path, content, opts)
+  local fast = opts.fast ~= false
+  local ft = lib.files.detect_filetype(file_path)
+  local lang = require("nvim-treesitter.parsers").ft_to_lang(ft)
+  async.util.scheduler()
+  local lang_tree = vim.treesitter.get_string_parser(
+    content,
+    lang,
+    --- Providing an injection query for the lang prevents
+    --- it from trying to read the query from runtime files
+    fast and { injections = { [lang] = "" } } or {}
+  )
+  local root
+  if fast then
+    root = M.fast_parse(lang_tree):root()
+  else
+    root = lang_tree:parse()[1]:root()
+  end
+  return root, lang
+end
+
 ---Same as `parse_positions` but uses the provided content instead of reading file.
 ---Do not use this directly unless you have a good reason. `parse_positions` is preferred
 ---because it will parse in a subprocess and thus will never block the current editor instance.
@@ -120,28 +157,9 @@ function M.parse_positions_from_string(file_path, content, query, opts)
       opts.position_id = loaded()
     end
   end
-  local fast = opts.fast ~= false
-  local ft = lib.files.detect_filetype(file_path)
-  local lang = require("nvim-treesitter.parsers").ft_to_lang(ft)
-  async.util.scheduler()
-  local lang_tree = vim.treesitter.get_string_parser(
-    content,
-    lang,
-    --- Providing an injection query for the lang prevents
-    --- it from trying to read the query from runtime files
-    fast and { injections = { [lang] = "" } } or {}
-  )
-  if type(query) == "string" then
-    query = vim.treesitter.parse_query(lang, query)
-  end
-
-  local root
-  if fast then
-    root = M.fast_parse(lang_tree):root()
-  else
-    root = lang_tree:parse()[1]:root()
-  end
-  local positions = collect(file_path, query, content, root, opts)
+  local root, lang = M.get_parse_root(file_path, content, opts)
+  local parsed_query = M.normalise_query(lang, query)
+  local positions = collect(file_path, parsed_query, content, root, opts)
   return lib.positions.parse_tree(positions, opts)
 end
 
