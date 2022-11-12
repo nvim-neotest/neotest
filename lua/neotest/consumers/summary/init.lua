@@ -10,6 +10,8 @@ local async = require("neotest.async")
 local client
 local buf_name = "Neotest Summary"
 local summary_buf
+local au_open = "NeotestSummaryOpen"
+local au_close = "NeotestSummaryClose"
 
 local function create_buf()
   if summary_buf then
@@ -33,6 +35,7 @@ local function open_window(buf)
   async.api.nvim_win_set_buf(win, buf)
   async.api.nvim_set_current_win(cur_win)
   async.api.nvim_buf_set_option(summary_buf, "filetype", "neotest-summary")
+  vim.api.nvim_exec_autocmds("User", { pattern = au_open })
 end
 
 local components = {}
@@ -183,6 +186,7 @@ local function close()
   if is_open() then
     local win = async.fn.win_getid(async.fn.bufwinnr(summary_buf))
     async.api.nvim_win_close(win, true)
+    vim.api.nvim_exec_autocmds("User", { pattern = au_close })
   end
 end
 
