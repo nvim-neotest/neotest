@@ -86,8 +86,10 @@ define_highlights()
 ---@field jumpto string|string[] Jump to the selected position
 ---@field stop string|string[] Stop selected position
 ---@field run string|string[] Run selected position
+---@field debug string|string[] Debug selected position
 ---@field mark string|string[] Mark the selected position
 ---@field run_marked string|string[] Run the marked positions for selected suite.
+---@field debug_marked string|string[] Debug the marked positions for selected suite.
 ---@field clear_marked string|string[] Clear the marked positions for selected suite.
 ---@field target string|string[] Target a position to be the only shown position for its adapter
 ---@field clear_target string|string[] Clear the target position for the selected adapter
@@ -194,8 +196,10 @@ local default_config = {
       jumpto = "i",
       stop = "u",
       run = "r",
+      debug = "d",
       mark = "m",
       run_marked = "R",
+      debug_marked = "D",
       clear_marked = "M",
       target = "t",
       clear_target = "T",
