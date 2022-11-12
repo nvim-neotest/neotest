@@ -34,12 +34,14 @@ function AdapterGroup:adapters_matching_open_bufs(existing_roots)
   local buffers = async.api.nvim_list_bufs()
 
   local paths = lib.func_util.map(function(i, buf)
-    return i, async.fn.fnamemodify(async.fn.bufname(buf), ":p")
+    local path = async.api.nvim_buf_get_name(buf)
+    local real = lib.files.path.real(path)
+    return i, real or false
   end, buffers)
 
   local matched_files = {}
   for _, path in ipairs(paths) do
-    if not is_under_roots(path) then
+    if path and not is_under_roots(path) then
       for _, adapter in ipairs(self:_path_adapters(path)) do
         if adapter.is_test_file(path) and not matched_files[path] then
           logger.info("Adapter", adapter.name, "matched buffer", path)

@@ -1,3 +1,4 @@
+local lib = require("neotest.lib")
 local logger = require("neotest.logging")
 local async = require("neotest.async")
 
@@ -198,8 +199,11 @@ local function init(client)
     --- vimscript call to bufnr, we create the set of buffers that are loaded and check against that.
     local valid_bufs = {}
     for _, bufnr in ipairs(async.api.nvim_list_bufs()) do
-      local bufpath = async.fn.fnamemodify(async.api.nvim_buf_get_name(bufnr), ":p")
-      valid_bufs[bufpath] = true
+      local name = async.api.nvim_buf_get_name(bufnr)
+      local bufpath, _ = lib.files.path.real(name)
+      if bufpath then
+        valid_bufs[bufpath] = true
+      end
     end
 
     for pos_id, _ in pairs(results) do
