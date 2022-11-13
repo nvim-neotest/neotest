@@ -139,9 +139,9 @@ function Canvas:render_buffer(buffer)
           noremap = true,
           nowait = true,
           callback = function()
-            local linenos = {vim.fn.getpos("v")[2], vim.fn.getpos(".")[2]}
+            local linenos = { vim.fn.getpos("v")[2], vim.fn.getpos(".")[2] }
             table.sort(linenos)
-            for lineno = linenos[1],linenos[2] do
+            for lineno = linenos[1], linenos[2] do
               for _, callback in pairs(mappings[lineno] or {}) do
                 callback()
               end
