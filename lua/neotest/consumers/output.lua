@@ -13,18 +13,8 @@ local function open_output(result, opts)
     return
   end
   local buf = async.api.nvim_create_buf(false, true)
-  -- nvim_open_term uses the current window for determining width/height for truncating lines
-  local success, temp_win = pcall(async.api.nvim_open_win, buf, true, {
-    relative = "editor",
-    width = async.api.nvim_get_option("columns"),
-    height = async.api.nvim_get_option("lines"),
-    row = 0,
-    col = 0,
-  })
-  local chan = async.api.nvim_open_term(buf, {})
-  if success then
-    vim.api.nvim_win_close(temp_win, true)
-  end
+
+  local chan = lib.ui.open_term(buf)
 
   short_opened = opts.short
   -- See https://github.com/neovim/neovim/issues/14557

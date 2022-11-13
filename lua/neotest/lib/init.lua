@@ -38,6 +38,9 @@ M.notify = function(msg, level, opts)
   end)
 end
 
+---@module 'neotest.lib.window''
+M.persistent_window = lazy_require("neotest.lib.window")
+
 ---@module 'neotest.lib.vim_test''
 M.vim_test = lazy_require("neotest.lib.vim_test")
 

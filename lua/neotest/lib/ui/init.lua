@@ -1,9 +1,27 @@
 local config = require("neotest.config")
 local api = vim.api
+local async = require("neotest.async")
 
 local M = {}
 
 M.float = require("neotest.lib.ui.float")
+
+---Wrapper aroung vim.api.nvim_open_term. Forces the terminal window to render at the full size of Neovim.
+function M.open_term(buf, opts)
+  -- nvim_open_term uses the current window for determining width/height for truncating lines
+  local success, temp_win = pcall(async.api.nvim_open_win, 0, true, {
+    relative = "editor",
+    width = async.api.nvim_get_option("columns"),
+    height = async.api.nvim_get_option("lines"),
+    row = 0,
+    col = 0,
+  })
+  local chan = async.api.nvim_open_term(buf, opts or {})
+  if success then
+    async.api.nvim_win_close(temp_win, true)
+  end
+  return chan
+end
 
 local function set_opts(win, opts)
   for opt, value in pairs(opts) do
