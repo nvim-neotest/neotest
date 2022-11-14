@@ -296,9 +296,17 @@ function M.match_root_pattern(...)
   local patterns = vim.tbl_flatten({ ... })
   return function(start_path)
     local start_parents = Path:new(start_path):parents()
+    local home = os.getenv("HOME")
     local potential_roots = M.is_dir(start_path) and vim.list_extend({ start_path }, start_parents)
-      or start_parents
-    for _, path in ipairs(potential_roots) do
+        or start_parents
+    local valid_roots = {}
+    for index, value in ipairs(potential_roots) do
+      if value == home then
+        break
+      end
+      valid_roots[index] = value
+    end
+    for _, path in ipairs(valid_roots) do
       for _, pattern in ipairs(patterns) do
         for _, p in ipairs(async.fn.glob(Path:new(path, pattern).filename, true, true)) do
           if M.exists(p) then
