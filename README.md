@@ -83,6 +83,7 @@ To get started you will also need to install an adapter for your test runner.
 | dart, flutter   |       [neotest-dart](https://github.com/sidlatau/neotest-dart)       |
 | testthat        | [neotest-testthat](https://github.com/shunsambongi/neotest-testthat) |
 | phpunit         |   [neotest-phpunit](https://github.com/olimorris/neotest-phpunit)    |
+| pest            | [neotest-pest](https://github.com/theutz/neotest-pest)               |
 | rust            |        [neotest-rust](https://github.com/rouge8/neotest-rust)        |
 | elixir          |    [neotest-elixir](https://github.com/jfpedroza/neotest-elixir)     |
 | dotnet          |    [neotest-dotnet](https://github.com/Issafalcon/neotest-dotnet)    |
