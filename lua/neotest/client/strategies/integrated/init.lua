@@ -77,21 +77,12 @@ return function(spec)
     end,
     attach = function()
       if not attach_buf then
-        attach_buf = vim.api.nvim_create_buf(false, true)
-        -- nvim_open_term uses the current window for determining width/height for truncating lines
-        local temp_win = async.api.nvim_open_win(attach_buf, true, {
-          relative = "editor",
-          width = async.api.nvim_get_option("columns"),
-          height = async.api.nvim_get_option("lines"),
-          row = 0,
-          col = 0,
-        })
-        attach_chan = vim.api.nvim_open_term(attach_buf, {
+        attach_buf = async.api.nvim_create_buf(false, true)
+        attach_chan = lib.ui.open_term(attach_buf, {
           on_input = function(_, _, _, data)
             pcall(async.api.nvim_chan_send, job, data)
           end,
         })
-        vim.api.nvim_win_close(temp_win, true)
         data_accum:subscribe(function(data)
           async.api.nvim_chan_send(attach_chan, data)
         end)

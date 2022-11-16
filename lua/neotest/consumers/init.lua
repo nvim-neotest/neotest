@@ -32,6 +32,7 @@ neotest.consumers = {
   diagnostic = require("neotest.consumers.diagnostic"),
   status = require("neotest.consumers.status"),
   output = require("neotest.consumers.output"),
+  output_panel = require("neotest.consumers.output_panel"),
   summary = require("neotest.consumers.summary"),
   jump = require("neotest.consumers.jump"),
   benchmark = require("neotest.consumers.benchmark"),

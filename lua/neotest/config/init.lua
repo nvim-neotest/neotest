@@ -41,6 +41,7 @@ define_highlights()
 ---@field strategies neotest.Config.strategies
 ---@field summary neotest.Config.summary
 ---@field output neotest.Config.output
+---@field output_panel neotest.Config.output_panel
 ---@field status neotest.Config.status
 ---@field projects table<string, neotest.CoreConfig> Project specific settings, keys
 --- are project root directories (e.g "~/Dev/my_project")
@@ -99,6 +100,10 @@ define_highlights()
 ---@class neotest.Config.output
 ---@field enabled boolean
 ---@field open_on_run string|boolean Open nearest test result after running
+
+---@class neotest.Config.output_panel
+---@field enabled boolean
+---@field open string | fun(): integer A command or function to open a window for the output panel
 
 ---@class neotest.Config.diagnostic
 ---@field enabled boolean
@@ -213,6 +218,10 @@ local default_config = {
   output = {
     enabled = true,
     open_on_run = "short",
+  },
+  output_panel = {
+    enabled = true,
+    open = "botright split | resize 15",
   },
   diagnostic = {
     enabled = true,

@@ -45,7 +45,7 @@
 ---@class neotest.ConsumerListeners
 ---@field discover_positions fun(adapter_id: string, path: string, tree: neotest.Tree)
 ---@field run fun(adapter_id: string, position_ids: string[])
----@field results fun(adapter_id: string, results: table<string, neotest.Result>)
+---@field results fun(adapter_id: string, results: table<string, neotest.Result>, partial: boolean)
 ---@field test_file_focused fun(adapter_id: string, file_path: string)>
 ---@field test_focused fun(adapter_id: string, position_id: string)>
 

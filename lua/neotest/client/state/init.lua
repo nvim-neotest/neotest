@@ -78,7 +78,7 @@ function NeotestClientState:update_results(adapter_id, results, partial)
       self._running[adapter_id][id] = nil
     end
   end
-  self._events:emit(NeotestEvents.RESULTS, adapter_id, results)
+  self._events:emit(NeotestEvents.RESULTS, adapter_id, results, partial or false)
 end
 
 function NeotestClientState:update_running(adapter_id, root_id, position_ids)

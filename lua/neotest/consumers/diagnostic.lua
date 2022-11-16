@@ -199,10 +199,12 @@ local function init(client)
     --- vimscript call to bufnr, we create the set of buffers that are loaded and check against that.
     local valid_bufs = {}
     for _, bufnr in ipairs(async.api.nvim_list_bufs()) do
-      local name = async.api.nvim_buf_get_name(bufnr)
-      local bufpath, _ = lib.files.path.real(name)
-      if bufpath then
-        valid_bufs[bufpath] = true
+      local valid, name = pcall(async.api.nvim_buf_get_name, bufnr)
+      if valid then
+        local bufpath, _ = lib.files.path.real(name)
+        if bufpath then
+          valid_bufs[bufpath] = true
+        end
       end
     end
 

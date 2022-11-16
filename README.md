@@ -175,6 +175,14 @@ Displays output of tests
 Displays per-test output
 ![image](https://user-images.githubusercontent.com/24252670/166143189-0f51b544-3aec-4cfc-93d7-74f3d209aef6.png)
 
+### Output Panel
+
+`:h neotest.output_panel`
+
+Records all output of tests over time in a single window
+![image](https://user-images.githubusercontent.com/24252670/201535290-d726c781-a780-4318-b595-a10832b9f191.png)
+
+
 ### Summary Window
 
 `:h neotest.summary`
