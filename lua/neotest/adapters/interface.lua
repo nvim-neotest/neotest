@@ -14,6 +14,7 @@ function NeotestAdapter.root(dir) end
 ---@param name string Name of directory
 ---@param rel_path string Path to directory, relative to root
 ---@param root string Root directory of project
+---@return boolean
 function NeotestAdapter.filter_dir(name, rel_path, root) end
 
 ---@async
