@@ -118,6 +118,8 @@ function Canvas:render_buffer(buffer)
   end
 
   local map_in_visual = { "expand", "expand_all", "mark", "run", "stop" }
+  local bufname = vim.fn.bufname(buffer)
+
   for action, mappings in pairs(self.mappings) do
     local action_keys = self.config.mappings[action]
     if type(action_keys) ~= "table" then
@@ -133,6 +135,7 @@ function Canvas:render_buffer(buffer)
             callback()
           end
         end,
+        desc = string.format('%s (%s)', action, bufname),
       })
       if vim.tbl_contains(map_in_visual, action) then
         vim.api.nvim_buf_set_keymap(buffer, "v", key, "", {
