@@ -115,6 +115,27 @@ function neotest.summary.run_marked(args)
   end
 end
 
+--- Return a table<adapter id, position_id[]> of all marked positions
+---
+--- @return table
+function neotest.summary.marked()
+  local all_marked = {}
+  for adapter_id, component in pairs(summary.components) do
+    local adapter_marked = {}
+    local has_marked = false
+    for pos_id, marked in pairs(component.marked) do
+      if marked then
+        table.insert(adapter_marked, pos_id)
+        has_marked = true
+      end
+    end
+    if has_marked then
+      all_marked[adapter_id] = adapter_marked
+    end
+  end
+  return all_marked
+end
+
 --- Clear all marked positions
 ---@param args table
 ---
