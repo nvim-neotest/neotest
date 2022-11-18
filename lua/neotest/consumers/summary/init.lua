@@ -5,6 +5,7 @@ local config = require("neotest.config")
 
 ---@type neotest.Summary
 local summary
+---@param client neotest.Client
 local function init(client)
   summary = Summary(client)
 
@@ -31,6 +32,14 @@ local function init(client)
       end
     end
     summary:render(expanded)
+  end
+
+  client.listeners.starting = function()
+    summary:set_starting()
+  end
+
+  client.listeners.started = function()
+    summary:set_started()
   end
 
   if config.summary.follow then

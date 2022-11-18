@@ -5,6 +5,7 @@ local lib = require("neotest.lib")
 ---@type neotest.Client
 local client
 local last_run
+local client_ready = false
 
 local neotest = {}
 
@@ -190,7 +191,7 @@ end
 
 --- Get the list of all known adapter IDs.
 function neotest.run.adapters()
-  if not client:has_started() then
+  if not client_ready then
     return {}
   end
   return client:get_adapters()
@@ -206,8 +207,12 @@ function neotest.run.get_last_run()
 end
 
 neotest.run = setmetatable(neotest.run, {
+  ---@param client_ neotest.Client
   __call = function(_, client_)
     client = client_
+    client.listeners.starting = function()
+      client_ready = true
+    end
     return neotest.run
   end,
 })

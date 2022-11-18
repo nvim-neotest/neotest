@@ -3,7 +3,7 @@ local logger = require("neotest.logging")
 
 local M = {}
 
----@alias neotest.Event "discover_positions" | "run" | "results" | "test_file_focused" | "test_focused"
+---@alias neotest.Event "discover_positions" | "run" | "results" | "test_file_focused" | "test_focused" | "starting" | "started"
 ---@class neotest.Events
 local NeotestEvents = {
   DISCOVER_POSITIONS = "discover_positions",
@@ -11,6 +11,8 @@ local NeotestEvents = {
   RESULTS = "results",
   TEST_FILE_FOCUSED = "test_file_focused",
   TEST_FOCUSED = "test_focused",
+  STARTING = "starting",
+  STARTED = "started",
 }
 
 M.events = NeotestEvents

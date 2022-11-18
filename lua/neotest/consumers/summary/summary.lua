@@ -62,18 +62,6 @@ function Summary:render(expanded)
       self:run()
     end)
   end
-  local ready = self.client:has_started()
-  if not ready then
-    async.run(function()
-      self.client:ensure_started()
-      -- In case no tests are found, we re-render.
-      -- Want to do async because otherwise the "No tests found" render will
-      -- happen before the "Parsing tests" render
-      vim.schedule(function()
-        self:render()
-      end)
-    end)
-  end
   for pos_id, _ in pairs(expanded or {}) do
     all_expanded[pos_id] = true
   end
@@ -81,7 +69,18 @@ function Summary:render(expanded)
   self.render_cond:notify_all()
 end
 
+function Summary:set_starting()
+  self._starting = true
+end
+
+function Summary:set_started()
+  self._started = true
+end
+
 function Summary:run()
+  if self.running then
+    return
+  end
   self.running = true
   xpcall(function()
     while true do
@@ -90,41 +89,39 @@ function Summary:run()
       end
       pending_render = false
       local canvas = Canvas.new(config.summary)
-      if not self.client:has_started() then
+      local cwd = vim.loop.cwd()
+      for _, adapter_id in ipairs(self.client:get_adapters()) do
+        local tree = assert(self.client:get_position(nil, { adapter = adapter_id }))
+        canvas:write(
+          vim.split(adapter_id, ":", { trimempty = true })[1] .. "\n",
+          { group = config.highlights.adapter_name }
+        )
+        if tree:data().path ~= cwd then
+          local root_dir = async.fn.fnamemodify(tree:data().path, ":.")
+          canvas:write(root_dir .. "\n", { group = config.highlights.dir })
+        end
+        self.components[adapter_id] = self.components[adapter_id]
+          or SummaryComponent(self.client, adapter_id)
+        if config.summary.animated then
+          pending_render = self.components[adapter_id]:render(
+            canvas,
+            tree,
+            all_expanded,
+            self.focused
+          ) or pending_render
+        else
+          self.components[adapter_id]:render(canvas, tree, all_expanded, self.focused)
+        end
+        all_expanded = {}
+        canvas:write("\n")
+      end
+      if canvas:length() > 1 then
+        canvas:remove_line()
+        canvas:remove_line()
+      elseif not self._started then
         canvas:write("Parsing tests")
       else
-        local cwd = vim.loop.cwd()
-        for _, adapter_id in ipairs(self.client:get_adapters()) do
-          local tree = assert(self.client:get_position(nil, { adapter = adapter_id }))
-          canvas:write(
-            vim.split(adapter_id, ":", { trimempty = true })[1] .. "\n",
-            { group = config.highlights.adapter_name }
-          )
-          if tree:data().path ~= cwd then
-            local root_dir = async.fn.fnamemodify(tree:data().path, ":.")
-            canvas:write(root_dir .. "\n", { group = config.highlights.dir })
-          end
-          self.components[adapter_id] = self.components[adapter_id]
-            or SummaryComponent(self.client, adapter_id)
-          if config.summary.animated then
-            pending_render = self.components[adapter_id]:render(
-              canvas,
-              tree,
-              all_expanded,
-              self.focused
-            ) or pending_render
-          else
-            self.components[adapter_id]:render(canvas, tree, all_expanded, self.focused)
-          end
-          all_expanded = {}
-          canvas:write("\n")
-        end
-        if canvas:length() > 1 then
-          canvas:remove_line()
-          canvas:remove_line()
-        else
-          canvas:write("No tests found")
-        end
+        canvas:write("No tests found")
       end
       local rendered, err = pcall(canvas.render_buffer, canvas, self.win:buffer())
       if not rendered then
