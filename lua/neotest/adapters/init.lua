@@ -34,8 +34,11 @@ function AdapterGroup:adapters_matching_open_bufs(existing_roots)
   local buffers = async.api.nvim_list_bufs()
 
   local paths = lib.func_util.map(function(i, buf)
-    local path = async.api.nvim_buf_get_name(buf)
-    local real = lib.files.path.real(path)
+    local real
+    if async.api.nvim_buf_is_loaded(buf) then
+      local path = async.api.nvim_buf_get_name(buf)
+      real = lib.files.path.real(path)
+    end
     return i, real or false
   end, buffers)
 
