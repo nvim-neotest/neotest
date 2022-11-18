@@ -90,30 +90,36 @@ function Summary:run()
       pending_render = false
       local canvas = Canvas.new(config.summary)
       local cwd = vim.loop.cwd()
-      for _, adapter_id in ipairs(self.client:get_adapters()) do
-        local tree = assert(self.client:get_position(nil, { adapter = adapter_id }))
-        canvas:write(
-          vim.split(adapter_id, ":", { trimempty = true })[1] .. "\n",
-          { group = config.highlights.adapter_name }
-        )
-        if tree:data().path ~= cwd then
-          local root_dir = async.fn.fnamemodify(tree:data().path, ":.")
-          canvas:write(root_dir .. "\n", { group = config.highlights.dir })
+      if self._starting then
+        for _, adapter_id in ipairs(self.client:get_adapters()) do
+          local tree = assert(self.client:get_position(nil, { adapter = adapter_id }))
+          canvas:write(
+            vim.split(adapter_id, ":", { trimempty = true })[1] .. "\n",
+            { group = config.highlights.adapter_name }
+          )
+          if tree:data().path ~= cwd then
+            local root_dir = async.fn.fnamemodify(tree:data().path, ":.")
+            canvas:write(root_dir .. "\n", { group = config.highlights.dir })
+          end
+          self.components[adapter_id] = self.components[adapter_id]
+            or SummaryComponent(self.client, adapter_id)
+          if config.summary.animated then
+            pending_render = self.components[adapter_id]:render(
+              canvas,
+              tree,
+              all_expanded,
+              self.focused
+            ) or pending_render
+          else
+            self.components[adapter_id]:render(canvas, tree, all_expanded, self.focused)
+          end
+          all_expanded = {}
+          canvas:write("\n")
         end
-        self.components[adapter_id] = self.components[adapter_id]
-          or SummaryComponent(self.client, adapter_id)
-        if config.summary.animated then
-          pending_render = self.components[adapter_id]:render(
-            canvas,
-            tree,
-            all_expanded,
-            self.focused
-          ) or pending_render
-        else
-          self.components[adapter_id]:render(canvas, tree, all_expanded, self.focused)
-        end
-        all_expanded = {}
-        canvas:write("\n")
+      else
+        async.run(function()
+          self.client:get_adapters()
+        end)
       end
       if canvas:length() > 1 then
         canvas:remove_line()
