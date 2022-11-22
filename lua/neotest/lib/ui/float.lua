@@ -72,6 +72,10 @@ function Float:jump_to()
   api.nvim_set_current_win(self.win_id)
 end
 
+function Float:is_floating()
+  return api.nvim_win_is_valid(self.win_id) and api.nvim_win_get_config(self.win_id).relative ~= ""
+end
+
 function Float:close(force)
   if not force and api.nvim_get_current_win() == self.win_id then
     return false
@@ -108,6 +112,11 @@ function M.open(settings)
 
   if settings.auto_close ~= false then
     local function auto_close()
+      if not win:is_floating() then
+        -- if no longer a floating window (e.g., moved through wincmd H/J/K/L),
+        -- do not bind the autocmd again so the window won't be automatically closed afterwards.
+        return
+      end
       if not win:close(false) then
         vim.api.nvim_create_autocmd(
           { "WinEnter", "CursorMoved" },
