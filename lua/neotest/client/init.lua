@@ -135,7 +135,7 @@ end
 ---@async
 ---@return string[]
 function NeotestClient:get_adapters()
-  self:ensure_started()
+  self:_ensure_started()
   local active_adapters = {}
   for adapter_id, _ in pairs(self._adapters) do
     local root = self._state:positions(adapter_id)
@@ -146,12 +146,8 @@ function NeotestClient:get_adapters()
   return active_adapters
 end
 
-function NeotestClient:has_started()
-  return self._started
-end
-
 ---Ensure that the client has initialised adapters and begun parsing files
-function NeotestClient:ensure_started()
+function NeotestClient:_ensure_started()
   if not self._started then
     self:_start()
   end
@@ -163,7 +159,7 @@ end
 ---@field adapter string Adapter ID
 ---@return neotest.Tree | nil, integer | nil
 function NeotestClient:get_position(position_id, args)
-  self:ensure_started()
+  self:_ensure_started()
   args = args or {}
   if position_id and vim.endswith(position_id, lib.files.sep) then
     position_id = string.sub(position_id, 1, #position_id - #lib.files.sep)
@@ -208,7 +204,7 @@ end
 ---@param file_path string
 ---@return string, neotest.Adapter
 function NeotestClient:get_adapter(file_path)
-  self:ensure_started()
+  self:_ensure_started()
   return self:_get_adapter(file_path, nil)
 end
 
@@ -219,7 +215,7 @@ function NeotestClient:_update_positions(path, args)
   if not lib.files.exists(path) then
     return
   end
-  self:ensure_started()
+  self:_ensure_started()
   args = args or {}
   local adapter_id, adapter = self:_get_adapter(path, args.adapter)
   if not adapter then
@@ -342,6 +338,7 @@ function NeotestClient:_start(args)
   logger.info("Initialising client")
   local start = vim.loop.now()
   self._started = true
+  self._events:emit("starting")
   local augroup = async.api.nvim_create_augroup("NeotestClient", { clear = true })
   local function autocmd(event, callback)
     if args.autocmds == false then
@@ -438,6 +435,7 @@ function NeotestClient:_start(args)
   local run_time = (vim.loop.now() - start) / 1000
   logger.info("Initialisation finished in", run_time, "seconds")
   self:_set_focused_file(async.fn.expand("%:p"))
+  self._events:emit("started")
   return run_time
 end
 
