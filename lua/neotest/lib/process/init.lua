@@ -2,15 +2,21 @@ local async = require("neotest.async")
 
 local M = {}
 
+---@class neotest.lib.process.RunArgs
+---@field stdout boolean Read stdout
+---@field stderr boolean Read stderr
+
+---@class neotest.lib.process.RunResult
+---@field stdout? string
+---@field stderr? string
+
 ---Runs a process using libuv. This is designed for a simple, quick async alternative to io.popen and so will wait until
 ---the process exits to read the stdout/stderr. Do not use this for long running jobs or for large outputs.
 ---Use vim.jobstart instead.
 ---@async
 ---@param command string[]
----@param args table
----@field stdout bool Read stdout
----@field stderr bool Read stderr
----@return integer, table Exit code and table containing stdout/stderr keys if requested
+---@param args neotest.lib.process.RunArgs
+---@return integer, neotest.lib.process.RunResult Exit code and table containing stdout/stderr keys if requested
 function M.run(command, args)
   args = args or {}
   local stdin = vim.loop.new_pipe()
@@ -35,13 +41,16 @@ function M.run(command, args)
   await_exit()
   handle:close()
 
-  local stdout_data, stderr_data
+  local stdout_data, stderr_data = "", ""
   if args.stdout then
     local send_read, await_read = async.control.channel.oneshot()
     stdout:read_start(function(err, data)
       assert(not err, err)
-      stdout_data = data
-      send_read()
+      if data then
+        stdout_data = stdout_data .. data
+      else
+        send_read()
+      end
     end)
     await_read()
   end
@@ -49,8 +58,11 @@ function M.run(command, args)
     local send_read, await_read = async.control.channel.oneshot()
     stderr:read_start(function(err, data)
       assert(not err, err)
-      stderr_data = data
-      send_read()
+      if data then
+        stderr_data = stderr_data .. data
+      else
+        send_read()
+      end
     end)
     await_read()
   end
