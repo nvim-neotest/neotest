@@ -221,7 +221,7 @@ function NeotestClient:_update_positions(path, args)
   if not adapter then
     return
   end
-  local success, err = pcall(function()
+  xpcall(function()
     if lib.files.is_dir(path) then
       -- If existing tree then we have to find the point to merge the trees and update that path rather than trying to
       -- merge an orphan. This happens when a whole new directory is found (e.g. renamed an existing one).
@@ -265,10 +265,9 @@ function NeotestClient:_update_positions(path, args)
       logger.debug("Found", positions)
       self._state:update_positions(adapter_id, positions)
     end
+  end, function(msg)
+    logger.error("Couldn't find positions in path", path, debug.traceback(msg, 2))
   end)
-  if not success then
-    logger.error("Couldn't find positions in path", path, err)
-  end
 end
 
 function NeotestClient:_parse_files(adapter_id, root, paths)
