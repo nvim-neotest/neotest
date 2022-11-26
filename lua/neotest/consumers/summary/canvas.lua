@@ -135,7 +135,7 @@ function Canvas:render_buffer(buffer)
             callback()
           end
         end,
-        desc = string.format('%s (%s)', action, bufname),
+        desc = string.format("%s (%s)", action, bufname),
       })
       if vim.tbl_contains(map_in_visual, action) then
         vim.api.nvim_buf_set_keymap(buffer, "v", key, "", {
