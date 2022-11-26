@@ -41,8 +41,9 @@ function M.run(command, args)
   await_exit()
   handle:close()
 
-  local stdout_data, stderr_data = "", ""
+  local stdout_data, stderr_data
   if args.stdout then
+    stdout_data = ""
     local send_read, await_read = async.control.channel.oneshot()
     stdout:read_start(function(err, data)
       assert(not err, err)
@@ -55,6 +56,7 @@ function M.run(command, args)
     await_read()
   end
   if args.stderr then
+    stderr_data = ""
     local send_read, await_read = async.control.channel.oneshot()
     stderr:read_start(function(err, data)
       assert(not err, err)
