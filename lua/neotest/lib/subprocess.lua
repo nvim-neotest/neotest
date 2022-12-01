@@ -109,16 +109,18 @@ function M.call(func, args)
   next_cb_id = next_cb_id + 1
   callbacks[cb_id] = send_result
   logger.debug("Waiting for result", cb_id)
-  M.notify(
+  local _, err = pcall(
+    M.request,
     "nvim_exec_lua",
     "return require('neotest.lib.subprocess')._remote_call(" .. func .. ", ...)",
     { cb_id, args or {} }
   )
+  assert(not err, ("Invalid subprocess call: %s"):format(err))
   return await_result()
 end
 
 function M._remote_call(func, cb_id, args)
-  logger.debug("Received remote call", cb_id, func)
+  logger.info("Received remote call", cb_id, func)
   async.run(function()
     xpcall(function()
       local res = func(unpack(args))
