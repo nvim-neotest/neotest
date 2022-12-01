@@ -14,7 +14,7 @@ local ProcessTracker = {}
 function ProcessTracker:new()
   local tracker = {
     _instances = {},
-    _process_semaphore = async.control.Semaphore.new(#vim.loop.cpu_info() + 4)
+    _process_semaphore = async.control.Semaphore.new(#vim.loop.cpu_info() + 4),
   }
   self.__index = self
   setmetatable(tracker, self)
