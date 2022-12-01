@@ -94,7 +94,10 @@ Please provide example test files to reproduce.
 A clear and concise description of what you expected to happen.
 
 **Logs**
-Wipe the `neotest.log` file in `stdpath("log")` or `stdpath("data")`, reproduce the issue and provide the new logs.
+1. Wipe the `neotest.log` file in `stdpath("log")` or `stdpath("data")`.
+2. Set `log_level = vim.log.levels.DEBUG` in your neotest setup config.
+3. Reproduce the issue.
+4. Provide the new logs.
 
 **Additional context**
 Add any other context about the problem here.
