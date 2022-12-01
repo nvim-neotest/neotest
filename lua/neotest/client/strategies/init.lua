@@ -14,6 +14,7 @@ local ProcessTracker = {}
 function ProcessTracker:new()
   local tracker = {
     _instances = {},
+    _process_semaphore = async.control.Semaphore.new(#vim.loop.cpu_info() + 4)
   }
   self.__index = self
   setmetatable(tracker, self)
@@ -30,6 +31,7 @@ function ProcessTracker:run(pos_id, spec, args, stream_processor)
   local strategy = self:_get_strategy(args)
   logger.info("Starting process", pos_id, "with strategy", args.strategy)
   logger.debug("Strategy spec", spec)
+  local permit = self._process_semaphore:acquire()
   local instance = strategy(spec)
   if not instance then
     lib.notify("Adapter doesn't support chosen strategy.", vim.log.levels.ERROR)
@@ -45,6 +47,7 @@ function ProcessTracker:run(pos_id, spec, args, stream_processor)
     end)
   end
   local code = instance.result()
+  permit:forget()
   logger.info("Process for position", pos_id, "exited with code", code)
   local output = instance.output()
   logger.debug("Output of process ", output)
