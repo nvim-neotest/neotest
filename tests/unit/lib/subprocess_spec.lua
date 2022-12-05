@@ -4,7 +4,7 @@ local sp = require("neotest.lib.subprocess")
 
 describe("", function()
   if not sp.enabled() then
-    sp.init()
+    sp.init("nvim.sock")
   end
 
   a.it("is enabled", function()

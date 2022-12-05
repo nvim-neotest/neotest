@@ -667,6 +667,7 @@ minidoc.generate(
     "./lua/neotest/consumers/diagnostic.lua",
     "./lua/neotest/consumers/summary/init.lua",
     "./lua/neotest/consumers/jump.lua",
+    "./lua/neotest/consumers/quickfix.lua",
     "./lua/neotest/client/init.lua",
     "./lua/neotest/lib/init.lua",
     "./lua/neotest/lib/file/init.lua",

@@ -42,6 +42,7 @@ define_highlights()
 ---@field summary neotest.Config.summary
 ---@field output neotest.Config.output
 ---@field output_panel neotest.Config.output_panel
+---@field quickfix neotest.Config.quickfix
 ---@field status neotest.Config.status
 ---@field diagnostic neotest.Config.diagnostic
 ---@field projects table<string, neotest.CoreConfig> Project specific settings, keys
@@ -105,7 +106,12 @@ define_highlights()
 
 ---@class neotest.Config.output_panel
 ---@field enabled boolean
----@field open string | fun(): integer A command or function to open a window for the output panel
+---@field open string|fun():integer A command or function to open a window for the output panel
+
+---@class neotest.Config.quickfix
+---@field enabled boolean
+---@field open boolean|function Set to true to open quickfix on startup, or a function to be
+--- called when the quickfix results are set
 
 ---@class neotest.Config.diagnostic
 ---@field enabled boolean
@@ -241,6 +247,10 @@ local default_config = {
   },
   jump = {
     enabled = true,
+  },
+  quickfix = {
+    enabled = true,
+    open = true,
   },
   projects = {},
 }
