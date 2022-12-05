@@ -19,7 +19,7 @@ local init = function(client)
 
   local chan
   ---@param results table<string, neotest.Result>
-  client.listeners.results = function(_, results, partial)
+  client.listeners.results = function(adapter_id, results, partial)
     if partial then
       return
     end
@@ -30,16 +30,23 @@ local init = function(client)
       async.api.nvim_buf_set_lines(panel.win:buffer(), 0, -1, false, {})
       async.api.nvim_buf_set_option(panel.win:buffer(), "modifiable", false)
     end
-    local files_read = {}
+    local files_to_read = {}
 
-    for _, result in pairs(results) do
-      if result.output and not files_read[result.output] then
-        files_read[result.output] = true
+    local tree = client:get_position(nil, { adapter = adapter_id })
+    for pos_id, result in pairs(results) do
+      if
+        result.output
+        and not files_to_read[result.output]
+        and tree:get_key(pos_id):data().type == "test"
+      then
+        files_to_read[result.output] = true
       end
     end
 
-    for file, _ in pairs(files_read) do
-      async.api.nvim_chan_send(chan, lib.files.read(file))
+    for file, _ in pairs(files_to_read) do
+      local output = lib.files.read(file)
+      local dos_newlines = string.find(output, "\r\n") ~= nil
+      async.api.nvim_chan_send(chan, dos_newlines and output or output:gsub("\n", "\r\n"))
     end
   end
 end
