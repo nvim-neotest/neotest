@@ -77,6 +77,7 @@ define_highlights()
 ---@field follow boolean Expand user's current file
 ---@field expand_errors boolean Expand all failed positions
 ---@field mappings neotest.Config.summary.mappings Buffer mappings for summary window
+---@field open string | fun(): integer A command or function to open a window for the summary
 
 ---@class neotest.Config.summary.mappings
 ---@field expand string|string[] Expand currently selected position
@@ -192,6 +193,7 @@ local default_config = {
     animated = true,
     follow = true,
     expand_errors = true,
+    open = "botright vsplit | vertical resize 50",
     mappings = {
       expand = { "<CR>", "<2-LeftMouse>" },
       expand_all = "e",

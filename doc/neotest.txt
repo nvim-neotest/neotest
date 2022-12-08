@@ -159,7 +159,8 @@ Default values:
         short = "O",
         stop = "u",
         target = "t"
-      }
+      },
+      open = "botright vsplit | vertical resize 50"
     }
   }
 <
@@ -240,6 +241,7 @@ Fields~
 {follow} `(boolean)` Expand user's current file
 {expand_errors} `(boolean)` Expand all failed positions
 {mappings} neotest.Config.summary.mappings Buffer mappings for summary window
+{open} `(string)` | fun(): integer A command or function to open a window for the summary
 
 Class~
 {neotest.Config.summary.mappings}
@@ -544,6 +546,12 @@ Fields~
 {extra_args} `(string[])` Extra arguments for test command
 {env} `(table<string, string>)` Extra environment variables to add to the
 environment of tests
+
+neotest.summary.marked()                              *neotest.summary.marked()*
+                           `neotest.summary.marked`()
+Return a table<adapter id, position_id[]> of all marked positions
+
+@return table
 
 neotest.summary.clear_marked()                  *neotest.summary.clear_marked()*
                      `neotest.summary.clear_marked`({args})

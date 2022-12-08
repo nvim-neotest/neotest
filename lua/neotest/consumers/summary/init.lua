@@ -4,8 +4,11 @@ local Summary = require("neotest.consumers.summary.summary")
 local config = require("neotest.config")
 
 ---@type neotest.Summary
+---@private
 local summary
+
 ---@param client neotest.Client
+---@private
 local function init(client)
   summary = Summary(client)
 

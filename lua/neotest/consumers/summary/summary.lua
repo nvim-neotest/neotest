@@ -25,7 +25,7 @@ function Summary:new(client)
     client = client,
     win = lib.persistent_window.panel({
       name = "Neotest Summary",
-      open = "botright vsplit | vertical resize 50",
+      open = config.summary.open,
       bufopts = {
         filetype = "neotest-summary",
       },
