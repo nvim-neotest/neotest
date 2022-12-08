@@ -142,6 +142,19 @@ describe("neotest client", function()
       assert.Nil(tree:get_key(dir .. "/test_file_3"))
     end)
 
+    a.it("uses project strategy", function()
+      local called = false
+      local custom_strategy = function(...)
+        called = true
+        return mock_strategy(...)
+      end
+      require("neotest").setup_project(dir, { default_strategy = custom_strategy })
+      local tree = get_pos(dir)
+      exit_test()
+      client:run_tree(tree)
+      assert.True(called)
+    end)
+
     a.it("doesn't use global adapters", function()
       require("neotest").setup_project(dir, { adapters = {} })
       local tree = get_pos(dir)

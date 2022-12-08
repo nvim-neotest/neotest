@@ -61,7 +61,8 @@ function TestRunner:run_tree(tree, args, adapter_id, adapter, on_results)
     on_results(results)
   end
 
-  args = vim.tbl_extend("keep", args or {}, { strategy = config.default_strategy })
+  local root = tree:root():data().path
+  args = vim.tbl_extend("keep", args or {}, { strategy = config.projects[root].default_strategy })
 
   self:_run_tree(tree, args, adapter_id, adapter, results_callback)
 
