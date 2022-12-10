@@ -43,6 +43,7 @@ define_highlights()
 ---@field output neotest.Config.output
 ---@field output_panel neotest.Config.output_panel
 ---@field status neotest.Config.status
+---@field diagnostic neotest.Config.diagnostic
 ---@field projects table<string, neotest.CoreConfig> Project specific settings, keys
 --- are project root directories (e.g "~/Dev/my_project")
 
@@ -108,6 +109,7 @@ define_highlights()
 
 ---@class neotest.Config.diagnostic
 ---@field enabled boolean
+---@field severity number Diagnostic severity, one of vim.diagnostic.severity
 
 ---@class neotest.Config.status
 ---@field enabled boolean
@@ -227,6 +229,7 @@ local default_config = {
   },
   diagnostic = {
     enabled = true,
+    severity = vim.diagnostic.severity.ERROR,
   },
   status = {
     enabled = true,

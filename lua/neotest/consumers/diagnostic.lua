@@ -1,3 +1,4 @@
+local config = require("neotest.config")
 local lib = require("neotest.lib")
 local logger = require("neotest.logging")
 local async = require("neotest.async")
@@ -94,6 +95,7 @@ local function init(client)
                 col = 0,
                 message = error.message,
                 source = "neotest",
+                severity = config.diagnostic.severity,
               }
             end
           end

@@ -60,7 +60,8 @@ Default values:
     consumers = {},
     default_strategy = "integrated",
     diagnostic = {
-      enabled = true
+      enabled = true,
+      severity = 1
     },
     discovery = {
       concurrent = 0,
@@ -197,6 +198,7 @@ Fields~
 {output} neotest.Config.output
 {output_panel} neotest.Config.output_panel
 {status} neotest.Config.status
+{diagnostic} neotest.Config.diagnostic
 {projects} `(table<string, neotest.CoreConfig>)` Project specific settings, keys
 are project root directories (e.g "~/Dev/my_project")
 
@@ -280,6 +282,7 @@ Class~
 {neotest.Config.diagnostic}
 Fields~
 {enabled} `(boolean)`
+{severity} `(number)` Diagnostic severity, one of vim.diagnostic.severity
 
 Class~
 {neotest.Config.status}
