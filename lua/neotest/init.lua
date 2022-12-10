@@ -25,6 +25,8 @@
 ---    require("neotest").summary.toggle()
 --- <
 ---
+
+---@class neotest
 local neotest = {}
 
 local config = require("neotest.config")

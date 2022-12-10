@@ -7,19 +7,41 @@ local NeotestRunner = require("neotest.client.runner")
 local NeotestEventProcessor = require("neotest.client.events").processor
 local NeotestProcessTracker = require("neotest.client.strategies")
 
----@class neotest.InternalClient
+local neotest = {}
+
+---@toc_entry Neotest Client
+---@text
+--- The neotest client is the core of neotest, it communicates with adapters,
+--- running tests and collecting results.
+--- Most of the client methods are async and so need to be run in an async
+--- context (i.e. `require("neotest.async").run(function() ... end))
+--- The client starts lazily, meaning that no parsing of tests will be performed
+--- until it is required. Care should be taken to not use the client methods on
+--- start because it can slow down startup.
+---@class neotest.Client
 ---@field private _started boolean
 ---@field private _state neotest.ClientState
 ---@field private _events neotest.EventProcessor
 ---@field private _adapters table<string, neotest.Adapter>
 ---@field private _adapter_group neotest.AdapterGroup
 ---@field private _runner neotest.TestRunner
-local NeotestClient = {}
+---@field listeners neotest.ConsumerListeners
+neotest.Client = {}
 
-function NeotestClient:new(adapters)
+---@class neotest.ConsumerListeners
+---@field discover_positions fun(adapter_id: string, path: string, tree: neotest.Tree)
+---@field run fun(adapter_id: string, position_ids: string[])
+---@field results fun(adapter_id: string, results: table<string, neotest.Result>, partial: boolean)
+---@field test_file_focused fun(adapter_id: string, file_path: string)>
+---@field test_focused fun(adapter_id: string, position_id: string)>
+---@field starting fun()
+---@field started fun()
+---@type neotest.Client
+
+function neotest.Client:new(adapters)
   local events = NeotestEventProcessor()
 
-  local neotest = {
+  local client = {
     _started = false,
     _adapters = {},
     _adapter_group = adapters,
@@ -27,18 +49,23 @@ function NeotestClient:new(adapters)
     listeners = events.listeners,
   }
   self.__index = self
-  setmetatable(neotest, self)
-  return neotest
+  setmetatable(client, self)
+  return client
 end
 
----Run the given tree
+---@class neotest.client.RunTreeArgs
+---@field adapter? string Adapter ID, if not given the first adapter found with chosen position is used.
+---@field strategy? string|neotest.Strategy Strategy to run commands with
+---@field extra_args? string[] Arguments supplied to the test adapter to add to the test process arguments
+---@field env? table<string, string> Environment variables for the test process
+---@field cwd? string Working directory for the test process
+---@field concurrent? false|number Override concurrency settings for running tests
+
+--- Run the given tree
 ---@async
 ---@param tree neotest.Tree
----@param args table
----@field adapter string: Adapter ID
----@field strategy string: Strategy to run commands with
----@field extra_args? string[]
-function NeotestClient:run_tree(tree, args)
+---@param args neotest.client.RunTreeArgs
+function neotest.Client:run_tree(tree, args)
   args = args or {}
   local pos_ids = {}
   for _, pos in tree:iter() do
@@ -75,15 +102,17 @@ function NeotestClient:run_tree(tree, args)
 end
 
 ---@return table[]
-function NeotestClient:running_positions()
+function neotest.Client:running_positions()
   return self._runner:running()
 end
 
+---@class neotest.client.StopArgs
+---@field adapter string Adapter ID
+
 ---@async
 ---@param position neotest.Tree
----@param args? table
----@field adapter string Adapter ID
-function NeotestClient:stop(position, args)
+---@param args? neotest.client.StopArgs
+function neotest.Client:stop(position, args)
   args = args or {}
   local adapter_id = args.adapter or self:_get_running_adapters(position:data().id)[1]
   if not adapter_id then
@@ -93,12 +122,14 @@ function NeotestClient:stop(position, args)
   self._runner:stop(position, adapter_id)
 end
 
----Attach to the given running position.
----@param position neotest.Tree
----@param args? table
+---@class neotest.client.AttachArgs
 ---@field adapter string Adapter ID
+
+--- Attach to the given running position.
 ---@async
-function NeotestClient:attach(position, args)
+---@param position neotest.Tree
+---@param args? neotest.client.AttachArgs
+function neotest.Client:attach(position, args)
   args = args or {}
   local adapter_id = args.adapter or self:_get_running_adapters(position:data().id)[1]
   if not adapter_id then
@@ -108,13 +139,15 @@ function NeotestClient:attach(position, args)
   self._runner:attach(position, adapter_id)
 end
 
+---@class neotest.client.GetNearestArgs
+---@field adapter string Adapter ID
+
 ---@async
 ---@param file_path string
 ---@param row integer Zero-indexed row
----@param args table
----@field adapter string Adapter ID
----@return neotest.Tree | nil, string | nil
-function NeotestClient:get_nearest(file_path, row, args)
+---@param args neotest.client.GetNearestArgs
+---@return neotest.Tree|nil,string|nil
+function neotest.Client:get_nearest(file_path, row, args)
   local positions, adapter_id = self:get_position(file_path, args)
   if not positions then
     return
@@ -131,10 +164,11 @@ function NeotestClient:get_nearest(file_path, row, args)
   return nearest, adapter_id
 end
 
+
 ---Get all known active adapters
 ---@async
 ---@return string[]
-function NeotestClient:get_adapters()
+function neotest.Client:get_adapters()
   self:_ensure_started()
   local active_adapters = {}
   for adapter_id, _ in pairs(self._adapters) do
@@ -147,18 +181,20 @@ function NeotestClient:get_adapters()
 end
 
 ---Ensure that the client has initialised adapters and begun parsing files
-function NeotestClient:_ensure_started()
+function neotest.Client:_ensure_started()
   if not self._started then
     self:_start()
   end
 end
 
----@async
----@param position_id string
----@param args table
+---@class neotest.client.GetPositionArgs
 ---@field adapter string Adapter ID
----@return neotest.Tree | nil, integer | nil
-function NeotestClient:get_position(position_id, args)
+
+---@async
+---@param position_id? string
+---@param args neotest.client.GetPositionArgs
+---@return neotest.Tree|nil,string|nil
+function neotest.Client:get_position(position_id, args)
   self:_ensure_started()
   args = args or {}
   if position_id and vim.endswith(position_id, lib.files.sep) then
@@ -172,15 +208,17 @@ end
 
 ---@param adapter string Adapter ID
 ---@return table<string, neotest.Result>
-function NeotestClient:get_results(adapter)
+function neotest.Client:get_results(adapter)
   return self._state:results(adapter)
 end
 
----@param position_id string
----@param args table
+---@class neotest.client.IsRunningArgs
 ---@field adapter string Adapter ID
+
+---@param position_id string
+---@param args neotest.client.IsRunningArgs
 ---@return boolean
-function NeotestClient:is_running(position_id, args)
+function neotest.Client:is_running(position_id, args)
   args = args or {}
   if args.adapter then
     return self._state:running(args.adapter)[position_id] or false
@@ -188,10 +226,10 @@ function NeotestClient:is_running(position_id, args)
   return #self:_get_running_adapters(position_id) > 0
 end
 
----@private
 ---@param position_id string
 ---@return string[]
-function NeotestClient:_get_running_adapters(position_id)
+---@private
+function neotest.Client:_get_running_adapters(position_id)
   local running_adapters = {}
   for _, adapter_id in ipairs(self:get_adapters()) do
     if self._state:running(adapter_id)[position_id] then
@@ -201,17 +239,18 @@ function NeotestClient:_get_running_adapters(position_id)
   return running_adapters
 end
 
+---@async
 ---@param file_path string
----@return string, neotest.Adapter
-function NeotestClient:get_adapter(file_path)
+---@return string,neotest.Adapter
+function neotest.Client:get_adapter(file_path)
   self:_ensure_started()
   return self:_get_adapter(file_path, nil)
 end
 
----@private
 ---@async
 ---@param path string
-function NeotestClient:_update_positions(path, args)
+---@private
+function neotest.Client:_update_positions(path, args)
   if not lib.files.exists(path) then
     return
   end
@@ -226,11 +265,9 @@ function NeotestClient:_update_positions(path, args)
       -- If existing tree then we have to find the point to merge the trees and update that path rather than trying to
       -- merge an orphan. This happens when a whole new directory is found (e.g. renamed an existing one).
       local existing_root = self:get_position(nil, { adapter = adapter_id })
-      while
-        existing_root
-        and vim.startswith(path, existing_root:data().path)
-        and not self:get_position(path, { adapter = adapter_id })
-      do
+      while existing_root
+          and vim.startswith(path, existing_root:data().path)
+          and not self:get_position(path, { adapter = adapter_id }) do
         path = lib.files.parent(path)
         if not vim.startswith(path, existing_root:data().path) then
           return
@@ -244,10 +281,10 @@ function NeotestClient:_update_positions(path, args)
         lib.files.find(path, {
           filter_dir = function(...)
             return (not adapter.filter_dir or adapter.filter_dir(...))
-              and (
+                and (
                 not config.projects[root_path].discovery.filter_dir
-                or config.projects[root_path].discovery.filter_dir(...)
-              )
+                    or config.projects[root_path].discovery.filter_dir(...)
+                )
           end,
         })
       )
@@ -270,7 +307,7 @@ function NeotestClient:_update_positions(path, args)
   end)
 end
 
-function NeotestClient:_parse_files(adapter_id, root, paths)
+function neotest.Client:_parse_files(adapter_id, root, paths)
   local function worker()
     while #paths > 0 do
       self:_update_positions(table.remove(paths), { adapter = adapter_id })
@@ -285,10 +322,10 @@ function NeotestClient:_parse_files(adapter_id, root, paths)
   async.util.join(workers)
 end
 
----@private
 ---@async
 ---@return string | nil, neotest.Adapter | nil
-function NeotestClient:_get_adapter(position_id, adapter_id)
+---@private
+function neotest.Client:_get_adapter(position_id, adapter_id)
   if adapter_id then
     return adapter_id, self._adapters[adapter_id]
   end
@@ -300,18 +337,17 @@ function NeotestClient:_get_adapter(position_id, adapter_id)
     end
 
     local root = self._state:positions(a_id)
-    if
-      (not root or vim.startswith(position_id, root:data().path))
-      and (lib.files.is_dir(position_id) or adapter.is_test_file(position_id))
+    if (not root or vim.startswith(position_id, root:data().path))
+        and (lib.files.is_dir(position_id) or adapter.is_test_file(position_id))
     then
       return a_id, adapter
     end
   end
 end
 
----@private
 ---@async
-function NeotestClient:_set_focused_file(path)
+---@private
+function neotest.Client:_set_focused_file(path)
   local adapter_id = self:get_adapter(path)
   if not adapter_id then
     return
@@ -319,9 +355,9 @@ function NeotestClient:_set_focused_file(path)
   self._state:update_focused_file(adapter_id, path)
 end
 
----@private
 ---@async
-function NeotestClient:_start(args)
+---@private
+function neotest.Client:_start(args)
   args = args or {}
   if self._started and not args.force then
     return
@@ -338,7 +374,7 @@ function NeotestClient:_start(args)
   local start = vim.loop.now()
   self._started = true
   self._events:emit("starting")
-  local augroup = async.api.nvim_create_augroup("NeotestClient", { clear = true })
+  local augroup = async.api.nvim_create_augroup("neotest.Client", { clear = true })
   local function autocmd(event, callback)
     if args.autocmds == false then
       return
@@ -438,7 +474,9 @@ function NeotestClient:_start(args)
   return run_time
 end
 
-function NeotestClient:_update_open_buf_positions(adapter_id)
+---@async
+---@private
+function neotest.Client:_update_open_buf_positions(adapter_id)
   local adapter = self._adapters[adapter_id]
   for _, bufnr in ipairs(async.api.nvim_list_bufs()) do
     local name = async.api.nvim_buf_get_name(bufnr)
@@ -449,17 +487,17 @@ function NeotestClient:_update_open_buf_positions(adapter_id)
   end
 end
 
----@private
 ---@async
-function NeotestClient:_update_adapters(dir)
+---@private
+function neotest.Client:_update_adapters(dir)
   local adapters_with_root = lib.files.is_dir(dir)
       and self._adapter_group:adapters_with_root_dir(dir)
-    or {}
+      or {}
 
   local adapters_with_bufs =
-    self._adapter_group:adapters_matching_open_bufs(lib.func_util.map(function(i, entry)
-      return i, entry.root
-    end, adapters_with_root))
+  self._adapter_group:adapters_matching_open_bufs(lib.func_util.map(function(i, entry)
+    return i, entry.root
+  end, adapters_with_root))
 
   local found = {}
   for adapter_id, _ in pairs(self._adapters) do
@@ -494,7 +532,8 @@ function NeotestClient:_update_adapters(dir)
   end
 end
 
----@return neotest.InternalClient
+---@return neotest.Client
+---@private
 return function(adapter_group)
-  return NeotestClient:new(adapter_group)
+  return neotest.Client:new(adapter_group)
 end

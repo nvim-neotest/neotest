@@ -1,11 +1,19 @@
 local Path = require("plenary.path")
 local Tree = require("neotest.types").Tree
-local M = {}
 
+local neotest = { lib = {} }
+
+---@toc_entry Library: Positions
+---@text
+--- Functions for interacting with positions and position trees
+---@class neotest.lib.positions 
+neotest.lib.positions = {}
+
+--- Get the nearest position to the given line in the provided file tree
 ---@param tree neotest.Tree
 ---@param line integer
 ---@return neotest.Tree
-M.nearest = function(tree, line)
+neotest.lib.positions.nearest = function(tree, line)
   local nearest = tree
   for _, node in tree:iter_nodes() do
     local pos = node:data()
@@ -19,13 +27,16 @@ M.nearest = function(tree, line)
   end
   return nearest
 end
+
+--- Check if a positions is contained by another. Assumes that both positions exist on the file system, meaning they are files,
+--- directories or have a range attribute specified.
 ---@param parent neotest.Position
 ---@param child neotest.Position
 ---@return boolean
-M.contains = function(parent, child)
+neotest.lib.positions.contains = function(parent, child)
   if parent.type == "dir" then
     return parent.path == child.path
-      or vim.startswith(child.path, parent.path .. require("neotest.lib.file").sep)
+        or vim.startswith(child.path, parent.path .. require("neotest.lib.file").sep)
   end
   if child.type == "dir" then
     return false
@@ -142,9 +153,12 @@ end
 
 ---@param orig neotest.Tree Directory tree
 ---@param new neotest.Tree File or directory tree
-M.merge = function(orig, new)
-  if not M.contains(orig:data(), new:data()) and not M.contains(new:data(), orig:data()) then
-    while not M.contains(orig:data(), new:data()) do
+---@private
+neotest.lib.positions.merge = function(orig, new)
+  if not neotest.lib.positions.contains(orig:data(), new:data())
+      and not neotest.lib.positions.contains(new:data(), orig:data())
+  then
+    while not neotest.lib.positions.contains(orig:data(), new:data()) do
       orig = wrap_with_parent(orig)
     end
   end
@@ -159,7 +173,7 @@ M.merge = function(orig, new)
     return orig
   end
 
-  if M.contains(new:data(), orig:data()) then
+  if neotest.lib.positions.contains(new:data(), orig:data()) then
     for _, node in orig:iter_nodes() do
       if node:data().type == "file" and new:get_key(node:data().id) then
         update_file_node(new, node)
@@ -195,7 +209,7 @@ local function build_structure(positions, namespaces, opts)
   end
   while true do
     local next_pos = positions[1]
-    if not next_pos or not M.contains(parent, next_pos) then
+    if not next_pos or not neotest.lib.positions.contains(parent, next_pos) then
       -- Don't preserve empty namespaces
       if #current_level == 1 and parent.type == "namespace" then
         return nil
@@ -213,7 +227,7 @@ local function build_structure(positions, namespaces, opts)
   end
 end
 
----@class neotest.positions.ParseOptions
+---@class neotest.lib.positions.ParseOptions
 ---@field nested_tests boolean Allow nested tests
 ---@field require_namespaces boolean Require tests to be within namespaces
 ---@field position_id fun(position: neotest.Position, parents: neotest.Position[]): string Position ID constructor
@@ -221,9 +235,9 @@ end
 --- Convert a flat list of sorted positions to a tree. Positions ID fields can be nil as they will be assigned.
 --- NOTE: This mutates the positions given by assigning the `id` field.
 ---@param positions neotest.Position[]
----@param opts neotest.positions.ParseOptions
+---@param opts neotest.lib.positions.ParseOptions
 ---@return neotest.Tree
-function M.parse_tree(positions, opts)
+function neotest.lib.positions.parse_tree(positions, opts)
   opts = vim.tbl_extend("force", {
     nested_tests = false, -- Allow nested tests
     require_namespaces = false, -- Only allow tests within namespaces
@@ -249,4 +263,4 @@ function M.parse_tree(positions, opts)
   end)
 end
 
-return M
+return neotest.lib.positions

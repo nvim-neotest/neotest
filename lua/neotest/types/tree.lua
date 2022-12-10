@@ -1,19 +1,23 @@
 local fu = require("neotest.lib.func_util")
+
+local neotest = {}
+
+--- Nested tree structure with nodes containing data and having any
+--- number of children
 ---@class neotest.Tree
 ---@field private _data any
 ---@field private _children neotest.Tree[]
 ---@field private _nodes table<string, neotest.Tree>
 ---@field private _key fun(data: any): string
 ---@field private _parent? neotest.Tree
---- Nested tree structure with nodes containing data and having any
---- number of children
-local Tree = {}
+neotest.Tree = {}
 
 ---@param data any Node data
 ---@param children neotest.Tree[] Children of this node
 ---@param key fun(data: any): string
 ---@param parent? neotest.Tree
-function Tree:new(data, children, key, parent, nodes)
+---@private
+function neotest.Tree:new(data, children, key, parent, nodes)
   local tree = {
     _nodes = nodes or {},
     _data = data,
@@ -27,21 +31,25 @@ function Tree:new(data, children, key, parent, nodes)
   return tree
 end
 
----Parses a tree in the shape of nested lists.
----The head of the list is the root of the tree, and all following elements are its children.
+--- Parses a tree in the shape of nested lists.
+--- The head of the list is the root of the tree, and all following elements are its children.
 ---@param data any[]
 ---@return neotest.Tree
-function Tree.from_list(data, key)
+function neotest.Tree.from_list(data, key)
   local nodes = {}
-  local x = Tree._from_list(data, key, nil, nodes)
+  local x = neotest.Tree._from_list(data, key, nil, nodes)
   return x
 end
 
-function Tree:__tostring()
+---@private
+function neotest.Tree:__tostring()
   return vim.inspect(self:to_list())
 end
 
-function Tree:to_list()
+--- Returns the tree as a nested list which can be parsed by the `from_list`
+--- method
+---@return any[]
+function neotest.Tree:to_list()
   if #self._children == 0 then
     return { self._data }
   end
@@ -52,20 +60,21 @@ function Tree:to_list()
   return children
 end
 
-function Tree._from_list(data, key, parent, nodes)
+---@private
+function neotest.Tree._from_list(data, key, parent, nodes)
   local node_key
   local node
   if vim.tbl_islist(data) then
     local node_data = data[1]
     node_key = key(node_data)
     local children = {}
-    node = Tree:new(node_data, children, key, parent, nodes)
+    node = neotest.Tree:new(node_data, children, key, parent, nodes)
     for i = 2, #data, 1 do
-      children[#children + 1] = Tree._from_list(data[i], key, node, nodes)
+      children[#children + 1] = neotest.Tree._from_list(data[i], key, node, nodes)
     end
   else
     node_key = key(data)
-    node = Tree:new(data, {}, key, parent, nodes)
+    node = neotest.Tree:new(data, {}, key, parent, nodes)
   end
   nodes[node_key] = node
   return node
@@ -73,7 +82,8 @@ end
 
 ---@parem key any
 ---@param tree neotest.Tree
-function Tree:add_child(key, tree)
+---@private
+function neotest.Tree:add_child(key, tree)
   local current = self:get_key(key)
   if not current then
     tree._parent = self
@@ -84,7 +94,8 @@ end
 
 ---@parem key any
 ---@param tree neotest.Tree
-function Tree:set_key(key, tree)
+---@private
+function neotest.Tree:set_key(key, tree)
   local current = self:get_key(key)
 
   if current then
@@ -112,28 +123,29 @@ end
 
 ---@param key any
 ---@return neotest.Tree | nil
-function Tree:get_key(key)
+function neotest.Tree:get_key(key)
   return self._nodes[key]
 end
 
 ---@return neotest.Position
-function Tree:data()
+function neotest.Tree:data()
   return self._data
 end
 
 ---@return neotest.Tree[]
-function Tree:children()
+function neotest.Tree:children()
   return fu.map(function(i, pos_id)
     return i, pos_id
   end, self._children)
 end
 
 ---@return neotest.Tree | nil
-function Tree:parent()
+function neotest.Tree:parent()
   return self._parent
 end
 
-function Tree:iter_parents()
+---@return fun(): neotest.Tree
+function neotest.Tree:iter_parents()
   local parent = self:parent()
   return function()
     local cur_node = parent
@@ -145,7 +157,7 @@ function Tree:iter_parents()
 end
 
 ---@return neotest.Tree
-function Tree:root()
+function neotest.Tree:root()
   local node = self
   while node:parent() do
     node = node:parent()
@@ -153,7 +165,8 @@ function Tree:root()
   return node
 end
 
-function Tree:iter_nodes()
+---@return fun(): integer, neotest.Tree
+function neotest.Tree:iter_nodes()
   local child_i = 0
   local total_i = 1
   local child_iter = nil
@@ -181,7 +194,8 @@ function Tree:iter_nodes()
   end
 end
 
-function Tree:iter()
+---@return fun(): integer, neotest.Position
+function neotest.Tree:iter()
   local node_iter = self:iter_nodes()
   return function()
     local i, node = node_iter()
@@ -193,7 +207,7 @@ function Tree:iter()
 end
 
 ---@param index integer
-function Tree:node(index)
+function neotest.Tree:node(index)
   for i, node in self:iter_nodes() do
     if i == index then
       return node
@@ -201,4 +215,4 @@ function Tree:node(index)
   end
 end
 
-return Tree
+return neotest.Tree

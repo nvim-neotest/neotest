@@ -1,16 +1,19 @@
----Accumulates provided data and stores it, while sending to consumers.
----Allows consuming all data ever pushed while subscribing at any point in time.
----@class FanoutAccum
+
+local neotest = {}
+
+--- Accumulates provided data and stores it, while sending to consumers.
+--- Allows consuming all data ever pushed while subscribing at any point in time.
+---@class neotest.FanoutAccum
 ---@field consumers fun(data: T)[]
----@field data T | nil
+---@field data? T
 ---@field accum fun(prev: T, new: any): T A function to combine previous data and new data
-local FanoutAccum = {}
+neotest.FanoutAccum = {}
 
 ---@generic T
 ---@param accum fun(prev: T, new: any): T
 ---@param init T
----@return FanoutAccum
-function FanoutAccum:new(accum, init)
+---@return neotest.FanoutAccum
+function neotest.FanoutAccum:new(accum, init)
   self.__index = self
   return setmetatable({
     data = init,
@@ -19,20 +22,23 @@ function FanoutAccum:new(accum, init)
   }, self)
 end
 
-function FanoutAccum:subscribe(cb)
+---@param cb fun(data: T)
+function neotest.FanoutAccum:subscribe(cb)
   self.consumers[#self.consumers + 1] = cb
   if self.data then
     cb(self.data)
   end
 end
 
-function FanoutAccum:push(data)
+---@param data T
+function neotest.FanoutAccum:push(data)
   self.data = self.accum(self.data, data)
   for _, cb in ipairs(self.consumers) do
     cb(data)
   end
 end
 
+---@private
 return function(accum, init)
-  return FanoutAccum:new(accum, init)
+  return neotest.FanoutAccum:new(accum, init)
 end

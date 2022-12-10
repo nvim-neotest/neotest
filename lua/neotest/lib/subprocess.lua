@@ -5,8 +5,14 @@ local child_chan, parent_chan
 local callbacks = {}
 local next_cb_id = 1
 local enabled = false
-
-local M = {}
+local neotest = { lib = {}}
+---@toc_entry Library: Subprocess
+---@text
+--- Module to interact with a child Neovim instance.
+--- This can be used for CPU intensive work like treesitter parsing.
+--- All usage should be guarded by checking that the subprocess has been started using the `enabled` function.
+---@class neotest.lib.subprocess 
+neotest.lib.subprocess = {}
 
 local function cleanup()
   if child_chan then
@@ -21,7 +27,8 @@ end
 
 ---Initialize the subprocess module.
 ---Do not call this, neotest core will initialize.
-function M.init()
+---@private
+function neotest.lib.subprocess.init()
   logger.info("Starting child process")
   local parent_address = async.fn.serverstart()
   local success
@@ -60,13 +67,15 @@ function M.init()
   end)
 end
 
-function M._set_parent_address(parent_address)
+---@private
+function neotest.lib.subprocess._set_parent_address(parent_address)
   _G._NEOTEST_IS_CHILD = true
   parent_chan = vim.fn.sockconnect("pipe", parent_address, { rpc = true })
   logger.info("Connected to parent instance")
 end
 
-function M._register_result(callback_id, res, err)
+---@private
+function neotest.lib.subprocess._register_result(callback_id, res, err)
   logger.debug("Result registed for callback", callback_id)
   local cb = callbacks[callback_id]
   callbacks[callback_id] = nil
@@ -74,7 +83,7 @@ function M._register_result(callback_id, res, err)
 end
 
 local function get_chan()
-  if M.is_child() then
+  if neotest.lib.subprocess.is_child() then
     return parent_chan
   else
     return child_chan
@@ -82,10 +91,12 @@ local function get_chan()
 end
 
 ---@async
----Wrapper around vim.fn.rpcrequest that will automatically select the channel for the child or parent process,
----depending on if the current instance is the child or parent.
----See `:help rpcrequest` for more information.
-function M.request(method, ...)
+--- Wrapper around vim.fn.rpcrequest that will automatically select the channel for the child or parent process,
+--- depending on if the current instance is the child or parent.
+--- See `:help rpcrequest` for more information.
+--- @param method string
+--- @param ... any
+function neotest.lib.subprocess.request(method, ...)
   async.fn.rpcrequest(get_chan(), method, ...)
 end
 
@@ -93,24 +104,26 @@ end
 ---Wrapper around vim.fn.rpcnotify that will automatically select the channel for the child or parent process,
 ---depending on if the current instance is the child or parent.
 ---See `:help rpcnotify` for more information.
-function M.notify(method, ...)
+--- @param method string
+--- @param ... any
+function neotest.lib.subprocess.notify(method, ...)
   async.fn.rpcnotify(get_chan(), method, ...)
 end
 
 ---@async
----Call a lua function in the other process with the given argument list, returning the result.
----The function will be called in async context.
+--- Call a lua function in the other process with the given argument list, returning the result.
+--- The function will be called in async context.
 ---@param func string A globally accessible function in the other process. e.g. `"require('neotest.lib').files.read"`
 ---@param args? any[] Arguments to pass to the function
----@return any, string?: Result or error message if call failed
-function M.call(func, args)
+---@return any,string? Result or error message if call failed
+function neotest.lib.subprocess.call(func, args)
   local send_result, await_result = async.control.channel.oneshot()
   local cb_id = next_cb_id
   next_cb_id = next_cb_id + 1
   callbacks[cb_id] = send_result
   logger.debug("Waiting for result", cb_id)
   local _, err = pcall(
-    M.request,
+    neotest.lib.subprocess.request,
     "nvim_exec_lua",
     "return require('neotest.lib.subprocess')._remote_call(" .. func .. ", ...)",
     { cb_id, args or {} }
@@ -119,12 +132,13 @@ function M.call(func, args)
   return await_result()
 end
 
-function M._remote_call(func, cb_id, args)
+---@private
+function neotest.lib.subprocess._remote_call(func, cb_id, args)
   logger.info("Received remote call", cb_id, func)
   async.run(function()
     xpcall(function()
       local res = func(unpack(args))
-      M.notify(
+      neotest.lib.subprocess.notify(
         "nvim_exec_lua",
         "return require('neotest.lib.subprocess')._register_result(...)",
         { cb_id, res }
@@ -132,7 +146,7 @@ function M._remote_call(func, cb_id, args)
     end, function(msg)
       local err = debug.traceback(msg, 2)
       logger.warn("Error in remote call", err)
-      M.notify(
+      neotest.lib.subprocess.notify(
         "nvim_exec_lua",
         "return require('neotest.lib.subprocess')._register_result(...)",
         { cb_id, nil, err }
@@ -141,12 +155,16 @@ function M._remote_call(func, cb_id, args)
   end)
 end
 
-function M.enabled()
+--- Check if the subprocess has been initialized and is working
+---@return boolean
+function neotest.lib.subprocess.enabled()
   return enabled
 end
 
-function M.is_child()
+--- Check if the current neovim instance is the child or parent process
+---@return boolean
+function neotest.lib.subprocess.is_child()
   return parent_chan ~= nil
 end
 
-return M
+return neotest.lib.subprocess

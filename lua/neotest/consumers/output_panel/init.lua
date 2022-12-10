@@ -14,6 +14,7 @@ local neotest = {}
 neotest.output_panel = {}
 
 ---@param client neotest.Client
+---@private
 local init = function(client)
   panel = OutputPanel(client)
 

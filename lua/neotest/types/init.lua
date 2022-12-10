@@ -1,12 +1,12 @@
 ---@class neotest.Position
 ---@field id string
----@field type "dir" | "file" | "namespace" | "test"
+---@field type "dir"|"file"|"namespace"|"test"
 ---@field name string
 ---@field path string
 ---@field range integer[]
 
 ---@class neotest.Result
----@field status "passed" | "failed" | "skipped"
+---@field status "passed"|"failed"|"skipped"
 ---@field output? string Path to file containing full output data
 ---@field short? string Shortened output string
 ---@field errors? neotest.Error[]
@@ -41,18 +41,6 @@
 ---@field context? table Arbitrary data to preserve state between running and result collection
 ---@field strategy? table Arguments for strategy
 ---@field stream fun(output_stream: fun(): string[]): fun(): table<string, neotest.Result>
-
----@class neotest.ConsumerListeners
----@field discover_positions fun(adapter_id: string, path: string, tree: neotest.Tree)
----@field run fun(adapter_id: string, position_ids: string[])
----@field results fun(adapter_id: string, results: table<string, neotest.Result>, partial: boolean)
----@field test_file_focused fun(adapter_id: string, file_path: string)>
----@field test_focused fun(adapter_id: string, position_id: string)>
----@field starting fun()
----@field started fun()
-
----@class neotest.Client : neotest.InternalClient
----@field listeners neotest.ConsumerListeners
 
 local M = {}
 

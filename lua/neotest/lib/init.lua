@@ -1,31 +1,38 @@
-local M = {}
+local neotest = {}
+
+---@toc_entry Library
+---@text
+--- Neotest provides several modules that can be used for common tasks.
+--- Some of the modules are quite generic while others are highly tailored to
+--- building adapters or consumers.
+---
+--- The libraries are not meant for general users but are treated as a
+--- public API and so will remain mostly stable. The libraries should only be
+--- used by accessing require("neotest.lib"). The module structure within the
+--- library is considered private and may change without notice.
+---@class neotest.lib
+neotest.lib = {}
 
 local lazy_require = require("neotest.lib.require")
 
-local xml = lazy_require("neotest.lib.xml")
-local xml_tree = lazy_require("neotest.lib.xml.tree")
+---@module 'neotest.lib.xml'
+---@nodoc
+neotest.lib.xml = lazy_require("neotest.lib.xml")
 
-M.xml = {
-  ---@param xml_data string
-  ---@return table
-  parse = function(xml_data)
-    local handler = xml_tree()
-    local parser = xml.parser(handler)
-    parser:parse(xml_data)
-    return handler.root
-  end,
-}
-
+---@nodoc
 ---@module 'neotest.lib.file'
-M.files = lazy_require("neotest.lib.file")
+neotest.lib.files = lazy_require("neotest.lib.file")
 
 ---@module 'neotest.lib.func_util'
-M.func_util = lazy_require("neotest.lib.func_util")
+---@nodoc
+neotest.lib.func_util = lazy_require("neotest.lib.func_util")
 
 ---@module 'neotest.lib.treesitter''
-M.treesitter = lazy_require("neotest.lib.treesitter")
+---@nodoc
+neotest.lib.treesitter = lazy_require("neotest.lib.treesitter")
 
-M.notify = function(msg, level, opts)
+---@nodoc
+neotest.lib.notify = function(msg, level, opts)
   vim.schedule(function()
     return vim.notify(
       msg,
@@ -39,24 +46,28 @@ M.notify = function(msg, level, opts)
 end
 
 ---@module 'neotest.lib.window''
-M.persistent_window = lazy_require("neotest.lib.window")
+---@nodoc
+neotest.lib.persistent_window = lazy_require("neotest.lib.window")
 
 ---@module 'neotest.lib.vim_test''
-M.vim_test = lazy_require("neotest.lib.vim_test")
+---@nodoc
+neotest.lib.vim_test = lazy_require("neotest.lib.vim_test")
 
 ---@module 'neotest.lib.ui''
-M.ui = lazy_require("neotest.lib.ui")
+---@nodoc
+neotest.lib.ui = lazy_require("neotest.lib.ui")
 
 ---@module 'neotest.lib.positions''
-M.positions = lazy_require("neotest.lib.positions")
+---@nodoc
+neotest.lib.positions = lazy_require("neotest.lib.positions")
 
 ---@module 'neotest.lib.process''
-M.process = lazy_require("neotest.lib.process")
+---@nodoc
+neotest.lib.process = lazy_require("neotest.lib.process")
 
----Module to interact with a child Neovim instance.
----This can be used for CPU intensive work like treesitter parsing.
----All usage should be guarded by checking that the subprocess has been started using the `enabled` function.
 ---@module 'neotest.lib.subprocess''
-M.subprocess = lazy_require("neotest.lib.subprocess")
+---@nodoc
+neotest.lib.subprocess = lazy_require("neotest.lib.subprocess")
 
-return M
+
+return neotest.lib

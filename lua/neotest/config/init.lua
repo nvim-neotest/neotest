@@ -32,7 +32,7 @@ define_highlights()
 ---@field running neotest.Config.running
 ---@field default_strategy string|function
 
----@class neotest.Config: neotest.CoreConfig
+---@class neotest.Config : neotest.CoreConfig
 ---@field log_level number Minimum log levels, one of vim.log.levels
 ---@field consumers table<string, neotest.Consumer>
 ---@field icons table Icons used throughout the UI. Defaults use VSCode's codicons

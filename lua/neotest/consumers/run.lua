@@ -37,6 +37,9 @@ function neotest.run.get_tree_from_args(args, store)
   return tree
 end
 
+---@class neotest.run.RunArgs : neotest.client.RunTreeArgs
+---@field suite boolean Run the entire suite instead of a single position
+
 --- Run the given position or the nearest position if not given.
 --- All arguments are optional
 ---
@@ -54,17 +57,8 @@ end
 --- >
 ---   lua require("neotest").run.run({vim.fn.expand("%"), strategy = "dap"})
 --- <
----@param args string|table? Position ID to run or args. If args then args[1] should
+---@param args string|neotest.run.RunArgs? Position ID to run or args. If args then args[1] should
 --- be the position ID.
----
----@field suite boolean Run the entire suite instead of a single position
----@field adapter string Adapter ID, if not given the first adapter found with
---- chosen position is used.
----@field strategy string|neotest.Strategy Strategy to run commands with
----@field extra_args string[] Extra arguments for test command
----@field env table<string, string> Extra environment variables to add to the
---- environment of tests
----@field concurrent boolean Run tests concurrently when an adapter provides multiple commands to run
 function neotest.run.run(args)
   args = args or {}
   if type(args) == "string" then

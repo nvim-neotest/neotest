@@ -6,11 +6,19 @@ local fu = require("neotest.lib.func_util")
 local types = require("neotest.types")
 local Tree = types.Tree
 
-local M = {}
+local neotest = { lib = {} }
 
+---@toc_entry Library: Files
+---@text 
+--- Helper functions for interacting with files
+---@class neotest.lib.files 
+neotest.lib.files = {}
+
+--- Read a file asynchronously
+---@async
 ---@param file_path string
 ---@return string
-function M.read(file_path)
+function neotest.lib.files.read(file_path)
   logger.debug("Reading file: " .. file_path)
   local open_err, file_fd = async.uv.fs_open(file_path, "r", 438)
   assert(not open_err, open_err)
@@ -23,7 +31,10 @@ function M.read(file_path)
   return data
 end
 
-function M.write(file_path, data)
+--- Write to a file asynchronously
+---@param file_path string
+---@param data string
+function neotest.lib.files.write(file_path, data)
   logger.debug("Writing file: " .. file_path)
   local open_err, file_fd = async.uv.fs_open(file_path, "w", 438)
   assert(not open_err, open_err)
@@ -33,15 +44,21 @@ function M.write(file_path, data)
   assert(not close_err, close_err)
 end
 
+--- Read a file asynchronously, splitting the content into lines
 ---@async
-function M.read_lines(file_path)
-  local data = M.read(file_path)
+---@param file_path string
+---@return string[]
+function neotest.lib.files.read_lines(file_path)
+  local data = neotest.lib.files.read(file_path)
   return vim.split(data, "[\r]?\n", { trimempty = true })
 end
 
+--- Splits an async iterator of strings into lines. This is useful for data coming
+--- from a process where the data can be split randomly
+---@async
 ---@param data_iterator fun(): string
 ---@return fun(): string[]
-function M.split_lines(data_iterator)
+function neotest.lib.files.split_lines(data_iterator)
   local sender, receiver = async.control.channel.mpsc()
 
   local producer = function()
@@ -73,8 +90,13 @@ function M.split_lines(data_iterator)
   return receiver.recv
 end
 
----@return fun(): string, fun()
-function M.stream(file_path)
+--- Streams data from a file, watching for new data over time
+--- Only works when data is exlusively added and not deleted from the file
+--- Useful for watching a file which is written to by another process.
+---@async
+---@param file_path string
+---@return (fun(): string, fun()) Iterator and callback to stop streaming
+function neotest.lib.files.stream(file_path)
   local sender, receiver = async.control.channel.mpsc()
   local read_semaphore = async.control.Semaphore.new(1)
 
@@ -121,14 +143,18 @@ function M.stream(file_path)
   return receiver.recv, send_exit
 end
 
+--- Stream data from a file over time, splitting the content into lines
 ---@param file_path string
----@return fun(): string[], fun()
-function M.stream_lines(file_path)
-  local stream, stop = M.stream(file_path)
-  return M.split_lines(stream), stop
+---@return (fun(): string[], fun()) Iterator and callback to stop streaming
+function neotest.lib.files.stream_lines(file_path)
+  local stream, stop = neotest.lib.files.stream(file_path)
+  return neotest.lib.files.split_lines(stream), stop
 end
 
-function M.exists(path)
+--- Check if a path exists
+---@param path string
+---@return boolean,string|nil
+function neotest.lib.files.exists(path)
   local ok, err, code = os.rename(path, path)
   if not ok then
     if code == 13 then
@@ -139,28 +165,40 @@ function M.exists(path)
   return ok, err
 end
 
-function M.is_dir(path)
+--- Check if a path is a directory
+---@param path string
+---@return boolean
+function neotest.lib.files.is_dir(path)
   if path == "/" then
     return true
   end
-  return M.exists(path .. M.sep)
+  return neotest.lib.files.exists(path .. neotest.lib.files.sep)
 end
+
+---@class neotest.lib.files.FindOptions
+---@field filter_dir fun(name: string, rel_path: string, root: string): boolean Filter directories to be searched
 
 --- Find all files under the given directory.
 --- Does not search hidden directories.
 ---@async
 ---@param root string
+---@param opts neotest.lib.files.FindOptions
 ---@return string[] @Absolute paths of all files within directories to search
-M.find = function(root, opts)
+neotest.lib.files.find = function(root, opts)
   return require("neotest.lib.file.find").find(root, opts)
 end
 
-function M.parent(path)
-  local elems = vim.split(path, M.sep, { plain = true })
-  return table.concat(elems, M.sep, 1, #elems - 1)
+--- Get the parent directory of a path
+---@param path string
+---@return string
+function neotest.lib.files.parent(path)
+  local elems = vim.split(path, neotest.lib.files.sep, { plain = true })
+  return table.concat(elems, neotest.lib.files.sep, 1, #elems - 1)
 end
 
-M.sep = (function()
+--- Path separator for the current OS
+---@type string
+neotest.lib.files.sep = (function()
   local res
   if jit then
     local os = string.lower(jit.os)
@@ -176,21 +214,31 @@ M.sep = (function()
   return res
 end)()
 
-M.path = {
-  sep = M.sep,
-  exists = M.exists,
+---@private
+neotest.lib.files.path = {
+  sep = neotest.lib.files.sep,
+  exists = neotest.lib.files.exists,
   real = function(path)
     local err, real = async.uv.fs_realpath(path)
     return real, err
   end,
 }
 
----@type fun(path: string): string
-M.detect_filetype = fu.memoize(filetype.detect)
+local memoized_detect = fu.memoize(filetype.detect)
 
+--- Detect the filetype of a file by checking the name, extensions, shebang or 
+--- modeline. This is a memoized wrapper around plenary's filetype detection.
+---@param path string
+---@return string
+function neotest.lib.files.detect_filetype(path)
+  return memoized_detect(path)
+end
+
+
+--- Parse a sorted list of file paths into a position tree
 ---@param files string[] List of files to include in directory tree, along with parents
 ---@return neotest.Tree
-function M.parse_dir_from_files(root, files)
+function neotest.lib.files.parse_dir_from_files(root, files)
   local function parse_tree(dirs)
     ---@type neotest.Position
     local parent = table.remove(dirs, 1)
@@ -198,7 +246,7 @@ function M.parse_dir_from_files(root, files)
       return nil
     end
     local function dir_contains(dir, child)
-      return vim.startswith(child.path, dir.path .. M.sep)
+      return vim.startswith(child.path, dir.path .. neotest.lib.files.sep)
     end
 
     local current_level = { parent }
@@ -215,14 +263,14 @@ function M.parse_dir_from_files(root, files)
   ---@return neotest.Position[]
   local function paths_to_positions(paths)
     local positions = {}
-    local sep = M.sep
+    local sep = neotest.lib.files.sep
     if root == "/" then
       root = ""
     end
     for _, path in ipairs(paths) do
       local abs_path
       if path.path ~= "" then
-        abs_path = root .. M.sep .. path.path
+        abs_path = root .. neotest.lib.files.sep .. path.path
       else
         abs_path = root
       end
@@ -239,7 +287,7 @@ function M.parse_dir_from_files(root, files)
   end
 
   -- TODO: Clean this up
-  local path_sep = M.sep
+  local path_sep = neotest.lib.files.sep
   local all_dir_elems = {}
   for _, file in ipairs(files) do
     local elems = vim.split(file:sub(#root + 1), path_sep, { trimempty = true })
@@ -290,14 +338,16 @@ function M.parse_dir_from_files(root, files)
   end)
 end
 
----@vararg string
+--- Create a function that will take directory and attempt to match the provided
+--- glob patterns against the contents of the directory.
+---@param ... string Patterns to match e.g "*.py"
 ---@return fun(path: string): string | nil
-function M.match_root_pattern(...)
+function neotest.lib.files.match_root_pattern(...)
   local patterns = vim.tbl_flatten({ ... })
   return function(start_path)
     local start_parents = Path:new(start_path):parents()
     local home = os.getenv("HOME")
-    local potential_roots = M.is_dir(start_path) and vim.list_extend({ start_path }, start_parents)
+    local potential_roots = neotest.lib.files.is_dir(start_path) and vim.list_extend({ start_path }, start_parents)
       or start_parents
     local valid_roots = {}
     for index, value in ipairs(potential_roots) do
@@ -309,7 +359,7 @@ function M.match_root_pattern(...)
     for _, path in ipairs(valid_roots) do
       for _, pattern in ipairs(patterns) do
         for _, p in ipairs(async.fn.glob(Path:new(path, pattern).filename, true, true)) do
-          if M.exists(p) then
+          if neotest.lib.files.exists(p) then
             return path
           end
         end
@@ -318,4 +368,4 @@ function M.match_root_pattern(...)
   end
 end
 
-return M
+return neotest.lib.files

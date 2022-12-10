@@ -16,7 +16,6 @@ function TestRunner:new(processes)
   }, self)
 end
 
----@private
 ---@async
 ---@param tree neotest.Tree
 ---@param args table

@@ -27,9 +27,11 @@ H.pattern_sets = {
   -- (see https://github.com/sumneko/lua-language-server/wiki/EmmyLua-Annotations#types-and-type)
   types = {
     'table%b<>',
-    'fun%b(): %S+', 'fun%b()',
+    'fun%b(): %S+', 'fun%b()', 'async fun%b(): %S+', 'async fun%b()',
     'nil', 'any', 'boolean', 'string', 'number', 'integer', 'function', 'table', 'thread', 'userdata', 'lightuserdata',
-    '%.%.%.'
+    '%.%.%.',
+    "%S+",
+
   },
 }
 
@@ -315,12 +317,6 @@ H.add_section_heading = function(s, heading)
   s:insert(1, ("%s~"):format(heading))
 end
 
-H.mark_optional = function(s)
-  -- Treat question mark at end of first word as "optional" indicator. See:
-  -- https://github.com/sumneko/lua-language-server/wiki/EmmyLua-Annotations#optional-params
-  s[1] = s[1]:gsub("^(%s-%S-)%?", "%1 `(optional)`", 1)
-end
-
 H.enclose_var_name = function(s)
   if #s == 0 or s.type ~= "section" then
     return
@@ -397,11 +393,28 @@ H.infer_header = function(b)
   end
 end
 
+function H.is_module(name)
+  if string.find(name, "%(") then
+    return false
+  end
+  if string.find(name, "[A-Z]") then
+    return false
+  end
+  return true
+end
+
 H.format_signature = function(line)
   -- Try capture function signature
   local name, args = line:match("(%S-)(%b())")
+
+
   -- Otherwise pick first word
   name = name or line:match("(%S+)")
+  if not args and H.is_module(name) then
+    return ""
+  end
+  local name_elems = vim.split(name, ".", { plain = true })
+  name = name_elems[#name_elems]
 
   if not name then
     return ""
@@ -589,12 +602,17 @@ H.match_first_pattern = function(text, pattern_set, init)
 end
 
 -- Utilities ------------------------------------------------------------------
-H.apply_recursively = function(f, x)
+H.apply_recursively = function(f, x, used)
+  used = used or {}
+  if used[x] then
+    return
+  end
   f(x)
+  used[x] = true
 
   if type(x) == "table" then
     for _, t in ipairs(x) do
-      H.apply_recursively(f, t)
+      H.apply_recursively(f, t, used)
     end
   end
 end
@@ -649,6 +667,17 @@ minidoc.generate(
     "./lua/neotest/consumers/diagnostic.lua",
     "./lua/neotest/consumers/summary/init.lua",
     "./lua/neotest/consumers/jump.lua",
+    "./lua/neotest/client/init.lua",
+    "./lua/neotest/lib/init.lua",
+    "./lua/neotest/lib/file/init.lua",
+    "./lua/neotest/lib/func_util/init.lua",
+    "./lua/neotest/lib/positions/init.lua",
+    "./lua/neotest/lib/treesitter/init.lua",
+    "./lua/neotest/lib/process/init.lua",
+    "./lua/neotest/lib/xml/init.lua",
+    "./lua/neotest/types/tree.lua",
+    "./lua/neotest/types/fanout_accum.lua",
+    "./lua/neotest/types/init.lua",
   },
   nil,
   {
@@ -675,7 +704,10 @@ minidoc.generate(
           if x.info.id == '@tag' then
             local text = x[1]
             local tag = string.match(text, "%*.*%*")
-            local prefix = string.sub(tag, 2, #tag - 1)
+            local prefix = (string.sub(tag, 2, #tag - 1))
+            if not H.is_module(prefix) then
+              prefix = ""
+            end
             local n_filler = math.max(78 - H.visual_text_width(prefix) - H.visual_text_width(tag), 3)
             local line = ("%s%s%s"):format(prefix, (" "):rep(n_filler), tag)
             x:remove(1)
@@ -706,6 +738,58 @@ minidoc.generate(
           )
         )
       end,
+      sections = {
+        ['@generic'] = function(s)
+          s:remove(1)
+        end,
+        ['@field'] = function(s)
+          -- H.mark_optional(s)
+          if string.find(s[1], "^private ") then
+            s:remove(1)
+            return
+          end
+          H.enclose_var_name(s)
+          H.enclose_type(s, '`%(%1%)`', s[1]:find('%s'))
+        end,
+        ['@alias'] = function(s)
+          local name = s[1]:match('%s*(%S*)')
+          local alias = s[1]:match('%s(.*)$')
+          s[1] = ("`%s` → `%s`"):format(name, alias)
+          H.add_section_heading(s, 'Alias')
+          s:insert(1, H.as_struct({ ("*%s*"):format(name) }, "section", { id = "@tag" }))
+        end,
+
+        ['@param'] = function(s)
+          H.enclose_var_name(s)
+          H.enclose_type(s, '`%(%1%)`', s[1]:find('%s'))
+        end,
+        ['@return'] = function(s)
+          H.enclose_type(s, '`%(%1%)`', 1)
+          H.add_section_heading(s, 'Return')
+        end,
+        ['@nodoc'] = function(s) s.parent:clear_lines() end,
+        ['@class'] = function(s)
+          H.enclose_var_name(s)
+          -- Add heading
+          local line = s[1]
+          s:remove(1)
+          local class_name = string.match(line, "%{(.*)%}")
+          local inherits = string.match(line, ": (.*)")
+          if inherits then
+            s:insert(1, ("Inherits: `%s`"):format(inherits))
+            s:insert(2, "")
+          end
+          s:insert(1, H.as_struct({ ("*%s*"):format(class_name) }, "section", { id = "@tag" }))
+        end,
+
+        ['@signature'] = function(s)
+          s[1] = H.format_signature(s[1])
+          if s[1] ~= "" then
+            table.insert(s, "")
+          end
+        end,
+
+      },
 
       file = function(f)
         if not f:has_lines() then
