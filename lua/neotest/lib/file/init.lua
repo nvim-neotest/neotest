@@ -9,9 +9,9 @@ local Tree = types.Tree
 local neotest = { lib = {} }
 
 ---@toc_entry Library: Files
----@text 
+---@text
 --- Helper functions for interacting with files
----@class neotest.lib.files 
+---@class neotest.lib.files
 neotest.lib.files = {}
 
 --- Read a file asynchronously
@@ -214,7 +214,7 @@ neotest.lib.files.sep = (function()
   return res
 end)()
 
----@private
+---@nodoc
 neotest.lib.files.path = {
   sep = neotest.lib.files.sep,
   exists = neotest.lib.files.exists,
@@ -226,14 +226,13 @@ neotest.lib.files.path = {
 
 local memoized_detect = fu.memoize(filetype.detect)
 
---- Detect the filetype of a file by checking the name, extensions, shebang or 
+--- Detect the filetype of a file by checking the name, extensions, shebang or
 --- modeline. This is a memoized wrapper around plenary's filetype detection.
 ---@param path string
 ---@return string
 function neotest.lib.files.detect_filetype(path)
   return memoized_detect(path)
 end
-
 
 --- Parse a sorted list of file paths into a position tree
 ---@param files string[] List of files to include in directory tree, along with parents
@@ -347,7 +346,8 @@ function neotest.lib.files.match_root_pattern(...)
   return function(start_path)
     local start_parents = Path:new(start_path):parents()
     local home = os.getenv("HOME")
-    local potential_roots = neotest.lib.files.is_dir(start_path) and vim.list_extend({ start_path }, start_parents)
+    local potential_roots = neotest.lib.files.is_dir(start_path)
+        and vim.list_extend({ start_path }, start_parents)
       or start_parents
     local valid_roots = {}
     for index, value in ipairs(potential_roots) do

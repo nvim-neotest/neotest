@@ -92,6 +92,7 @@ local neotest = {}
 ---@toc_entry Output Consumer
 ---@text
 --- A consumer that displays the output of test results.
+---@class neotest.consumers.output
 neotest.output = {}
 
 ---@private
@@ -129,11 +130,7 @@ local init = function()
   end
 end
 
---- Open the output of a test result
---- >
----   lua require("neotest").output.open({ enter = true })
---- <
----@param opts table?
+---@class neotest.consumers.output.OpenArgs
 ---@field open_win function Function that takes a table with width and height keys
 --- and opens a window for the output. If a window ID is not returned, the current
 --- window will be used
@@ -145,6 +142,12 @@ end
 --- position if not given
 ---@field adapter string Adapter ID, defaults to first found with matching position
 ---@field auto_close boolean Close output window when leaving it, or when cursor moves outside of window
+
+--- Open the output of a test result
+--- >
+---   lua require("neotest").output.open({ enter = true })
+--- <
+---@param opts? neotest.consumers.output.OpenArgs
 function neotest.output.open(opts)
   opts = opts or {}
   if win then

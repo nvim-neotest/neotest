@@ -102,7 +102,9 @@ local neotest = {}
 ---@text
 --- A consumer that displays the results of tests as signs beside their declaration.
 --- This consumer is completely passive and so has no interface.
+---@class neotest.consumers.status
 neotest.status = {}
+
 neotest.status = setmetatable(neotest.status, {
   __call = function(_, ...)
     return init(...)

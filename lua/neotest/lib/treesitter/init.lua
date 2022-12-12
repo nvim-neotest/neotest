@@ -10,7 +10,7 @@ local neotest = { lib = {} }
 ---@toc_entry Library: Treesitter
 ---@text
 --- Functions to help parse files with treesitter, optimised for test parsing.
----@class neotest.lib.treesitter 
+---@class neotest.lib.treesitter
 neotest.lib.treesitter = {}
 
 local function get_match_type(captured_nodes)
@@ -165,7 +165,7 @@ end
 --- Read a file's contents from disk and parse test positions using the given query.
 --- Executed in a subprocess to avoid blocking the editor if possible.
 --- Since functions can't be serialised for RPC the build_position and position_id options
---- can be strings that will evaluate to globally referencable functions 
+--- can be strings that will evaluate to globally referencable functions
 --- (e.g. `'require("my_adapter")._build_position'`).
 ---@async
 ---@param file_path string

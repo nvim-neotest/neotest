@@ -7,7 +7,7 @@ local neotest = { lib = {} }
 ---@text
 --- Library to parse XML strings.
 --- Originially taken from https://github.com/manoelcampos/xml2lua
----@class neotest.lib.xml 
+---@class neotest.lib.xml
 neotest.lib.xml = {}
 
 ---@param xml_data string

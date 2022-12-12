@@ -11,6 +11,7 @@ local neotest = {}
 ---@toc_entry Output Panel Consumer
 ---@text
 --- A consumer that streams all output of tests to a terminal window.
+---@class neotest.consumers.output_panel
 neotest.output_panel = {}
 
 ---@param client neotest.Client

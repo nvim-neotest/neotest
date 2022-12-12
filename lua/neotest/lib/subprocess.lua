@@ -5,13 +5,13 @@ local child_chan, parent_chan
 local callbacks = {}
 local next_cb_id = 1
 local enabled = false
-local neotest = { lib = {}}
+local neotest = { lib = {} }
 ---@toc_entry Library: Subprocess
 ---@text
 --- Module to interact with a child Neovim instance.
 --- This can be used for CPU intensive work like treesitter parsing.
 --- All usage should be guarded by checking that the subprocess has been started using the `enabled` function.
----@class neotest.lib.subprocess 
+---@class neotest.lib.subprocess
 neotest.lib.subprocess = {}
 
 local function cleanup()

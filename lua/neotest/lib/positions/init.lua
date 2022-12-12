@@ -6,7 +6,7 @@ local neotest = { lib = {} }
 ---@toc_entry Library: Positions
 ---@text
 --- Functions for interacting with positions and position trees
----@class neotest.lib.positions 
+---@class neotest.lib.positions
 neotest.lib.positions = {}
 
 --- Get the nearest position to the given line in the provided file tree
@@ -36,7 +36,7 @@ end
 neotest.lib.positions.contains = function(parent, child)
   if parent.type == "dir" then
     return parent.path == child.path
-        or vim.startswith(child.path, parent.path .. require("neotest.lib.file").sep)
+      or vim.startswith(child.path, parent.path .. require("neotest.lib.file").sep)
   end
   if child.type == "dir" then
     return false
@@ -155,8 +155,9 @@ end
 ---@param new neotest.Tree File or directory tree
 ---@private
 neotest.lib.positions.merge = function(orig, new)
-  if not neotest.lib.positions.contains(orig:data(), new:data())
-      and not neotest.lib.positions.contains(new:data(), orig:data())
+  if
+    not neotest.lib.positions.contains(orig:data(), new:data())
+    and not neotest.lib.positions.contains(new:data(), orig:data())
   then
     while not neotest.lib.positions.contains(orig:data(), new:data()) do
       orig = wrap_with_parent(orig)

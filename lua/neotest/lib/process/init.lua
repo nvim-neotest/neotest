@@ -5,7 +5,7 @@ local neotest = { lib = {} }
 ---@text
 --- Utilities to run external processes easily.
 --- More complex use cases should use the lower level jobstart or vim.loop.spawn
----@class neotest.lib.process 
+---@class neotest.lib.process
 neotest.lib.process = {}
 
 ---@class neotest.lib.process.RunArgs

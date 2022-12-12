@@ -1,4 +1,3 @@
-
 local neotest = {}
 
 --- Accumulates provided data and stores it, while sending to consumers.

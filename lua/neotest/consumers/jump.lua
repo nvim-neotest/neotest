@@ -16,6 +16,7 @@ local neotest = {}
 ---   nnoremap <silent>[n <cmd>lua require("neotest").jump.prev({ status = "failed" })<CR>
 ---   nnoremap <silent>]n <cmd>lua require("neotest").jump.next({ status = "failed" })<CR>
 --- <
+---@class neotest.consumers.jump
 neotest.jump = {}
 
 local get_nearest = function()
@@ -84,10 +85,11 @@ local jump_to_next = function(pos, predicate)
   end
 end
 
---- Jump to the position after the cursor position in the current file
----@param args table Optionals arguments
----
+---@class neotest.consumers.jump.JumpArgs
 ---@field status string Only jump to positions with given status
+
+--- Jump to the position after the cursor position in the current file
+---@param args? neotest.consumers.jump.JumpArgs
 function neotest.jump.next(args)
   args = args or {}
 
@@ -108,9 +110,7 @@ function neotest.jump.next(args)
 end
 
 ---Jump to the position after the cursor position in the current file
----@param args table Optionals arguments
----
----@field status string Only jump to positions with given status
+---@param args? neotest.consumers.jump.JumpArgs
 function neotest.jump.prev(args)
   args = args or {}
   async.run(function()

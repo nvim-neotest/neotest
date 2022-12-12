@@ -12,6 +12,7 @@ local neotest = {}
 ---@toc_entry Run Consumer
 ---@text
 --- A consumer providing a simple interface to run tests.
+---@class neotest.consumers.run
 neotest.run = {}
 
 ---@private
@@ -57,8 +58,7 @@ end
 --- >
 ---   lua require("neotest").run.run({vim.fn.expand("%"), strategy = "dap"})
 --- <
----@param args string|neotest.run.RunArgs? Position ID to run or args. If args then args[1] should
---- be the position ID.
+---@param args string|neotest.run.RunArgs? Position ID to run or args. If args then args[1] should be the position ID.
 function neotest.run.run(args)
   args = args or {}
   if type(args) == "string" then
@@ -87,15 +87,7 @@ end
 --- >
 ---   lua require("neotest").run.run_last({ strategy = "dap" })
 --- <
----@param args table Arguments to run with
----
----@field adapter string Adapter ID, if not given the same adapter as the last run
---- is used.
----@field strategy string|neotest.Strategy Strategy to run commands with
----@field extra_args string[] Extra arguments for test command
----@field env table<string, string> Extra environment variables to add to the
---- environment of tests
----@field concurrent boolean Run tests concurrently when an adapter provides multiple commands to run
+---@param args neotest.run.RunArgs? Argument overrides
 function neotest.run.run_last(args)
   args = args or {}
   if not last_run then
@@ -128,13 +120,13 @@ local function get_tree_interactive()
   return elem.position, elem.position
 end
 
+---@class neotest.run.StopArgs : neotest.client.StopArgs
+---@field interactive boolean Select a running position interactively
+
 --- Stop a running process
 ---
----@param args string|table? Position ID to stop or args. If args then args[1]
---- should be the position ID.
----@field adapter string Adapter ID, if not given the first adapter found with
---- chosen position is used.
----@field interactive boolean Select a running position interactively
+---@param args string|neotest.run.StopArgs? Position ID to stop or args. If
+--- args then args[1] should be the position ID.
 function neotest.run.stop(args)
   args = args or {}
   if type(args) == "string" then
@@ -155,14 +147,13 @@ function neotest.run.stop(args)
   end)
 end
 
+---@class neotest.run.AttachArgs : neotest.client.AttachArgs
+---@field interactive boolean Select a running position interactively
+
 --- Attach to a running process for the given position.
 ---
----@param args string|table? Position ID to attach to or args. If args then
+---@param args string|neotest.run.AttachArgs? Position ID to attach to or args. If args then
 --- args[1] should be the position ID.
----
----@field adapter string Adapter ID, if not given the first adapter found with
---- chosen position is used.
----@field interactive boolean Select a running position interactively
 function neotest.run.attach(args)
   args = args or {}
   if type(args) == "string" then
@@ -184,6 +175,7 @@ function neotest.run.attach(args)
 end
 
 --- Get the list of all known adapter IDs.
+---@return string[]
 function neotest.run.adapters()
   if not client_ready then
     return {}
@@ -191,8 +183,8 @@ function neotest.run.adapters()
   return client:get_adapters()
 end
 
---- Get last test run tree and adapter id.
----@return string | nil, table | nil Position id and last args table
+--- Get last test position ID and args
+---@return string|nil,neotest.run.RunArgs|nil Position id and last args table
 function neotest.run.get_last_run()
   if not last_run then
     return nil, nil

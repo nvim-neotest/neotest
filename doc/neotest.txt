@@ -1,6 +1,8 @@
 *neotest.txt*	A framework to interact with tests within NeoVim
 
 ==============================================================================
+neotest                                                                *neotest*
+
   Setup......................................................|neotest.setup()|
   Configuration Options.......................................|neotest.config|
   Consumers................................................|neotest.consumers|
@@ -44,9 +46,6 @@ See the table of contents for the consumers
 >
    require("neotest").summary.toggle()
 <
-
-
-neotest                                                                *neotest*
 
 
                                                                *neotest.setup()*
@@ -333,15 +332,7 @@ neotest.output                                                  *neotest.output*
 
 A consumer that displays the output of test results.
 
-                                                         *neotest.output.open()*
-`open`({opts})
-
-Open the output of a test result
->
-  lua require("neotest").output.open({ enter = true })
-<
-Parameters~
-{opts} `(table?)`
+                                             *neotest.consumers.output.OpenArgs*
 Fields~
 {open_win} `(function)` Function that takes a table with width and height keys
 and opens a window for the output. If a window ID is not returned, the current
@@ -354,6 +345,16 @@ window will be used
 position if not given
 {adapter} `(string)` Adapter ID, defaults to first found with matching position
 {auto_close} `(boolean)` Close output window when leaving it, or when cursor moves outside of window
+
+                                                         *neotest.output.open()*
+`open`({opts})
+
+Open the output of a test result
+>
+  lua require("neotest").output.open({ enter = true })
+<
+Parameters~
+{opts?} `(neotest.consumers.output.OpenArgs)`
 
 
 ==============================================================================
@@ -420,8 +421,7 @@ Debug the current file with nvim-dap
   lua require("neotest").run.run({vim.fn.expand("%"), strategy = "dap"})
 <
 Parameters~
-{args} `(string|neotest.run.RunArgs?)` Position ID to run or args. If args then args[1] should
-be the position ID.
+{args} `(string|neotest.run.RunArgs?)` Position ID to run or args. If args then args[1] should be the position ID.
 
                                                         *neotest.run.run_last()*
 `run_last`({args})
@@ -440,16 +440,13 @@ nvim-dap
   lua require("neotest").run.run_last({ strategy = "dap" })
 <
 Parameters~
-{args} `(table)` Arguments to run with
+{args} `(neotest.run.RunArgs?)` Argument overrides
+
+                                                          *neotest.run.StopArgs*
+Inherits: `neotest.client.StopArgs`
 
 Fields~
-{adapter} `(string)` Adapter ID, if not given the same adapter as the last run
-is used.
-{strategy} `(string|neotest.Strategy)` Strategy to run commands with
-{extra_args} `(string[])` Extra arguments for test command
-{env} `(table<string, string>)` Extra environment variables to add to the
-environment of tests
-{concurrent} `(boolean)` Run tests concurrently when an adapter provides multiple commands to run
+{interactive} `(boolean)` Select a running position interactively
 
                                                             *neotest.run.stop()*
 `stop`({args})
@@ -457,11 +454,13 @@ environment of tests
 Stop a running process
 
 Parameters~
-{args} `(string|table?)` Position ID to stop or args. If args then args[1]
-should be the position ID.
+{args} `(string|neotest.run.StopArgs?)` Position ID to stop or args. If
+args then args[1] should be the position ID.
+
+                                                        *neotest.run.AttachArgs*
+Inherits: `neotest.client.AttachArgs`
+
 Fields~
-{adapter} `(string)` Adapter ID, if not given the first adapter found with
-chosen position is used.
 {interactive} `(boolean)` Select a running position interactively
 
                                                           *neotest.run.attach()*
@@ -470,25 +469,22 @@ chosen position is used.
 Attach to a running process for the given position.
 
 Parameters~
-{args} `(string|table?)` Position ID to attach to or args. If args then
+{args} `(string|neotest.run.AttachArgs?)` Position ID to attach to or args. If args then
 args[1] should be the position ID.
-
-Fields~
-{adapter} `(string)` Adapter ID, if not given the first adapter found with
-chosen position is used.
-{interactive} `(boolean)` Select a running position interactively
 
                                                         *neotest.run.adapters()*
 `adapters`()
 
 Get the list of all known adapter IDs.
+Return~
+`(string[])`
 
                                                     *neotest.run.get_last_run()*
 `get_last_run`()
 
-Get last test run tree and adapter id.
+Get last test position ID and args
 Return~
-`(string)` | nil, table | nil Position id and last args table
+`(string|nil,neotest.run.RunArgs|nil)` Position id and last args table
 
 
 ==============================================================================
@@ -545,36 +541,33 @@ the summary window
  lua require("neotest").summary.toggle()
 
 
+                                                *neotest.summmary.RunMarkedArgs*
+Inherits: `neotest.run.RunArgs`
+
+
                                                   *neotest.summary.run_marked()*
 `run_marked`({args})
 
 Run all marked positions
 Parameters~
-{args} `(table)`
-
-Fields~
-{adapter} `(string)` Adapter ID, if not given all adapters are used
-{strategy} `(string|neotest.Strategy)` Strategy to run commands with
-{extra_args} `(string[])` Extra arguments for test command
-{env} `(table<string, string>)` Extra environment variables to add to the
-environment of tests
+{args?} `(neotest.summmary.RunMarkedArgs)`
 
                                                       *neotest.summary.marked()*
 `marked`()
 
 Return a table<adapter id, position_id[]> of all marked positions
+@return table<string, string[]>
 
-@return table
+                                               *neotest.summary.ClearMarkedArgs*
+Fields~
+{adapter?} `(string)` Adapter ID, if not given all adapters are cleared
 
                                                 *neotest.summary.clear_marked()*
 `clear_marked`({args})
 
 Clear all marked positions
 Parameters~
-{args} `(table)`
-
-Fields~
-{adapter} `(string)` Adapter ID, if not given all adapters are used
+{args?} `(neotest.summary.ClearMarkedArgs)`
 
                                                       *neotest.summary.target()*
 `target`({adapter_id}, {position_id})
@@ -597,25 +590,23 @@ Example mappings to jump between test failures
   nnoremap <silent>]n <cmd>lua require("neotest").jump.next({ status = "failed" })<CR>
 <
 
+                                               *neotest.consumers.jump.JumpArgs*
+Fields~
+{status} `(string)` Only jump to positions with given status
+
                                                            *neotest.jump.next()*
 `next`({args})
 
 Jump to the position after the cursor position in the current file
 Parameters~
-{args} `(table)` Optionals arguments
-
-Fields~
-{status} `(string)` Only jump to positions with given status
+{args?} `(neotest.consumers.jump.JumpArgs)`
 
                                                            *neotest.jump.prev()*
 `prev`({args})
 
 to the position after the cursor position in the current file
 Parameters~
-{args} `(table)` Optionals arguments
-
-Fields~
-{status} `(string)` Only jump to positions with given status
+{args?} `(neotest.consumers.jump.JumpArgs)`
 
 
 ==============================================================================
@@ -898,7 +889,7 @@ Type~
                                            *neotest.lib.files.detect_filetype()*
 `detect_filetype`({path})
 
-Detect the filetype of a file by checking the name, extensions, shebang or 
+Detect the filetype of a file by checking the name, extensions, shebang or
 modeline. This is a memoized wrapper around plenary's filetype detection.
 Parameters~
 {path} `(string)`
@@ -967,7 +958,7 @@ Return~
 
 Filter elements from a list
 Parameters~
-{f} `(fun(i: integer, v: V): boolean)`
+{f} `(fun(v: V): boolean)`
 {t} `(V[])`
 Return~
 `(V[])`
@@ -1157,7 +1148,7 @@ Return~
 Read a file's contents from disk and parse test positions using the given query.
 Executed in a subprocess to avoid blocking the editor if possible.
 Since functions can't be serialised for RPC the build_position and position_id options
-can be strings that will evaluate to globally referencable functions 
+can be strings that will evaluate to globally referencable functions
 (e.g. `'require("my_adapter")._build_position'`).
 
 Parameters~

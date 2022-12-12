@@ -164,7 +164,6 @@ function neotest.Client:get_nearest(file_path, row, args)
   return nearest, adapter_id
 end
 
-
 ---Get all known active adapters
 ---@async
 ---@return string[]
@@ -265,9 +264,11 @@ function neotest.Client:_update_positions(path, args)
       -- If existing tree then we have to find the point to merge the trees and update that path rather than trying to
       -- merge an orphan. This happens when a whole new directory is found (e.g. renamed an existing one).
       local existing_root = self:get_position(nil, { adapter = adapter_id })
-      while existing_root
-          and vim.startswith(path, existing_root:data().path)
-          and not self:get_position(path, { adapter = adapter_id }) do
+      while
+        existing_root
+        and vim.startswith(path, existing_root:data().path)
+        and not self:get_position(path, { adapter = adapter_id })
+      do
         path = lib.files.parent(path)
         if not vim.startswith(path, existing_root:data().path) then
           return
@@ -281,10 +282,10 @@ function neotest.Client:_update_positions(path, args)
         lib.files.find(path, {
           filter_dir = function(...)
             return (not adapter.filter_dir or adapter.filter_dir(...))
-                and (
+              and (
                 not config.projects[root_path].discovery.filter_dir
-                    or config.projects[root_path].discovery.filter_dir(...)
-                )
+                or config.projects[root_path].discovery.filter_dir(...)
+              )
           end,
         })
       )
@@ -337,8 +338,9 @@ function neotest.Client:_get_adapter(position_id, adapter_id)
     end
 
     local root = self._state:positions(a_id)
-    if (not root or vim.startswith(position_id, root:data().path))
-        and (lib.files.is_dir(position_id) or adapter.is_test_file(position_id))
+    if
+      (not root or vim.startswith(position_id, root:data().path))
+      and (lib.files.is_dir(position_id) or adapter.is_test_file(position_id))
     then
       return a_id, adapter
     end
@@ -492,12 +494,12 @@ end
 function neotest.Client:_update_adapters(dir)
   local adapters_with_root = lib.files.is_dir(dir)
       and self._adapter_group:adapters_with_root_dir(dir)
-      or {}
+    or {}
 
   local adapters_with_bufs =
-  self._adapter_group:adapters_matching_open_bufs(lib.func_util.map(function(i, entry)
-    return i, entry.root
-  end, adapters_with_root))
+    self._adapter_group:adapters_matching_open_bufs(lib.func_util.map(function(i, entry)
+      return i, entry.root
+    end, adapters_with_root))
 
   local found = {}
   for adapter_id, _ in pairs(self._adapters) do

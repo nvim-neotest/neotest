@@ -52,13 +52,13 @@ end
 
 --- Filter elements from a list
 ---@generic V
----@param f fun(i: integer, v: V): boolean
+---@param f fun(v: V): boolean
 ---@param t V[]
 ---@return V[]
 function neotest.lib.func_util.filter_list(f, t)
   local new_t = {}
-  for i, v in ipairs(t) do
-    if f(i, v) then
+  for _, v in ipairs(t) do
+    if f(v) then
       new_t[#new_t + 1] = v
     end
   end

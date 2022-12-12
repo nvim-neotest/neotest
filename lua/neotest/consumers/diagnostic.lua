@@ -230,6 +230,7 @@ local neotest = {}
 ---
 --- You can configure the diagnostic API for neotest using the "neotest" namespace
 ---@seealso |vim.diagnostic.config()|
+---@class neotest.consumers.diagnostic
 neotest.diagnostic = {}
 neotest.diagnostic = setmetatable(neotest.diagnostic, {
   __call = function(_, ...)

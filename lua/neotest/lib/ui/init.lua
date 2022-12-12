@@ -7,7 +7,7 @@ local neotest = { lib = {} }
 ---@toc_entry Library: UI
 ---@text
 --- Helper functions for UI related tasks.
----@class neotest.lib.ui 
+---@class neotest.lib.ui
 neotest.lib.ui = {}
 
 neotest.lib.ui.float = require("neotest.lib.ui.float")

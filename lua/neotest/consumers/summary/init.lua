@@ -62,8 +62,10 @@ local neotest = {}
 --- A consumer that displays the structure of the test suite, along with results and
 --- allows running tests.
 ---@seealso |neotest.Config.summary.mappings| for all mappings in the summary window
+---@class neotest.consumers.summary
 neotest.summary = {}
 
+---@private
 neotest.summary.render = function(positions)
   summary:render(positions)
 end
@@ -104,14 +106,10 @@ function neotest.summary.toggle()
   end)
 end
 
+---@class neotest.summmary.RunMarkedArgs : neotest.run.RunArgs
+
 --- Run all marked positions
----@param args table
----
----@field adapter string Adapter ID, if not given all adapters are used
----@field strategy string|neotest.Strategy Strategy to run commands with
----@field extra_args string[] Extra arguments for test command
----@field env table<string, string> Extra environment variables to add to the
---- environment of tests
+---@param args? neotest.summmary.RunMarkedArgs
 function neotest.summary.run_marked(args)
   args = args or {}
   for adapter_id, component in pairs(summary.components) do
@@ -128,8 +126,7 @@ function neotest.summary.run_marked(args)
 end
 
 --- Return a table<adapter id, position_id[]> of all marked positions
----
---- @return table
+--- @return table<string, string[]>
 function neotest.summary.marked()
   local all_marked = {}
   for adapter_id, component in pairs(summary.components) do
@@ -148,10 +145,11 @@ function neotest.summary.marked()
   return all_marked
 end
 
+---@class neotest.summary.ClearMarkedArgs
+---@field adapter? string Adapter ID, if not given all adapters are cleared
+
 --- Clear all marked positions
----@param args table
----
----@field adapter string Adapter ID, if not given all adapters are used
+---@param args? neotest.summary.ClearMarkedArgs
 function neotest.summary.clear_marked(args)
   args = args or {}
   for adapter_id, component in pairs(summary.components) do

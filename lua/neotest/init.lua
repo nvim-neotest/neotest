@@ -1,3 +1,5 @@
+---@tag neotest
+
 ---@toc
 ---@text
 ---
@@ -27,6 +29,14 @@
 ---
 
 ---@class neotest
+---@field run neotest.consumers.run
+---@field summary neotest.consumers.summary
+---@field output neotest.consumers.output
+---@field output_panel neotest.consumers.output_panel
+---@field status neotest.consumers.status
+---@field diagnostic neotest.consumers.diagnostic
+---@field jump neotest.consumers.jump
+---@nodoc
 local neotest = {}
 
 local config = require("neotest.config")
