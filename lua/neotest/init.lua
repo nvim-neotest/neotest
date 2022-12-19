@@ -23,8 +23,8 @@
 --- Each consumer can be accessed as a property of the neotest module
 --- See the table of contents for the consumers
 ---
---- >
----    require("neotest").summary.toggle()
+--- >vim
+---    lua require("neotest").summary.toggle()
 --- <
 ---
 

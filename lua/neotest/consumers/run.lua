@@ -45,17 +45,17 @@ end
 --- All arguments are optional
 ---
 --- Run the current file
---- >
+--- >vim
 ---   lua require("neotest").run.run(vim.fn.expand("%"))
 --- <
 ---
 --- Run the nearest test
---- >
+--- >vim
 ---   lua require("neotest").run.run()
 --- <
 ---
 --- Debug the current file with nvim-dap
---- >
+--- >vim
 ---   lua require("neotest").run.run({vim.fn.expand("%"), strategy = "dap"})
 --- <
 ---@param args string|neotest.run.RunArgs? Position ID to run or args. If args then args[1] should be the position ID.
@@ -78,13 +78,13 @@ end
 --- Arguments are optional
 ---
 --- Run the last position that was run with the same arguments and strategy
---- >
+--- >vim
 ---   lua require("neotest").run.run_last()
 --- <
 ---
 --- Run the last position that was run with the same arguments but debug with
 --- nvim-dap
---- >
+--- >vim
 ---   lua require("neotest").run.run_last({ strategy = "dap" })
 --- <
 ---@param args neotest.run.RunArgs? Argument overrides

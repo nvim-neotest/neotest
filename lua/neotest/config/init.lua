@@ -305,7 +305,7 @@ function NeotestConfigModule.setup_project(project_root, config)
 end
 
 function NeotestConfigModule._format_default()
-  local lines = { "Default values:", ">" }
+  local lines = { "Default values:", ">lua" }
   for line in vim.gsplit(vim.inspect(default_config), "\n", true) do
     table.insert(lines, "  " .. line)
   end

@@ -43,8 +43,8 @@ For most users, the bulk of relevant features will be in the consumers.
 Each consumer can be accessed as a property of the neotest module
 See the table of contents for the consumers
 
->
-   require("neotest").summary.toggle()
+>vim
+   lua require("neotest").summary.toggle()
 <
 
 
@@ -60,7 +60,7 @@ Parameters~
 {user_config} `(neotest.Config)`
 
 Default values:
->
+>lua
   {
     adapters = {},
     benchmark = {
@@ -313,7 +313,7 @@ consumer returns a table with `run`, `attach` and `stop` and so users can call
 The client interface provides methods for interacting with tests, fetching
 results as well as event listeners. To listen to an event, just assign the event
 listener to a function:
->
+>lua
   client.listeners.discover_positions = function (adapter_id, path, tree)
     ...
   end
@@ -350,7 +350,7 @@ position if not given
 `open`({opts})
 
 Open the output of a test result
->
+>vim
   lua require("neotest").output.open({ enter = true })
 <
 Parameters~
@@ -367,7 +367,7 @@ A consumer that streams all output of tests to a terminal window.
 `open`()
 
 Open the output panel
->
+>vim
   lua require("neotest").output_panel.open()
 <
 
@@ -375,7 +375,7 @@ Open the output panel
 `close`()
 
 Close the output panel
->
+>vim
   lua require("neotest").output_panel.close()
 <
 
@@ -383,7 +383,7 @@ Close the output panel
 `toggle`()
 
 Toggle the output panel
->
+>vim
   lua require("neotest").output_panel.toggle()
 <
 
@@ -407,17 +407,17 @@ Run the given position or the nearest position if not given.
 All arguments are optional
 
 Run the current file
->
+>vim
   lua require("neotest").run.run(vim.fn.expand("%"))
 <
 
 Run the nearest test
->
+>vim
   lua require("neotest").run.run()
 <
 
 Debug the current file with nvim-dap
->
+>vim
   lua require("neotest").run.run({vim.fn.expand("%"), strategy = "dap"})
 <
 Parameters~
@@ -430,13 +430,13 @@ Re-run the last position that was run.
 Arguments are optional
 
 Run the last position that was run with the same arguments and strategy
->
+>vim
   lua require("neotest").run.run_last()
 <
 
 Run the last position that was run with the same arguments but debug with
 nvim-dap
->
+>vim
   lua require("neotest").run.run_last({ strategy = "dap" })
 <
 Parameters~
@@ -520,7 +520,7 @@ See also~
 `open`()
 
 Open the summary window
->
+>vim
   lua require("neotest").summary.open()
 <
 
@@ -528,7 +528,7 @@ Open the summary window
 `close`()
 
 Close the summary window
->
+>vim
   lua require("neotest").summary.close()
 <
 
@@ -585,7 +585,7 @@ neotest.jump                                                      *neotest.jump*
 A consumer that allows jumping between tests
 
 Example mappings to jump between test failures
->
+>vim
   nnoremap <silent>[n <cmd>lua require("neotest").jump.prev({ status = "failed" })<CR>
   nnoremap <silent>]n <cmd>lua require("neotest").jump.next({ status = "failed" })<CR>
 <

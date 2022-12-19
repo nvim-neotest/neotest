@@ -12,7 +12,7 @@ local neotest = {}
 --- A consumer that allows jumping between tests
 ---
 --- Example mappings to jump between test failures
---- >
+--- >vim
 ---   nnoremap <silent>[n <cmd>lua require("neotest").jump.prev({ status = "failed" })<CR>
 ---   nnoremap <silent>]n <cmd>lua require("neotest").jump.next({ status = "failed" })<CR>
 --- <

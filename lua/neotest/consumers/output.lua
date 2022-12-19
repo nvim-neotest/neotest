@@ -144,7 +144,7 @@ end
 ---@field auto_close boolean Close output window when leaving it, or when cursor moves outside of window
 
 --- Open the output of a test result
---- >
+--- >vim
 ---   lua require("neotest").output.open({ enter = true })
 --- <
 ---@param opts? neotest.consumers.output.OpenArgs
