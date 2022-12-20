@@ -30,7 +30,7 @@ end
 ---@private
 function neotest.lib.subprocess.init()
   logger.info("Starting child process")
-  local parent_address = async.fn.serverstart()
+  local parent_address = async.fn.serverstart('localhost:0')
   local success
   local cmd = { vim.loop.exepath(), "--embed", "--headless" }
   logger.info("Starting child process with command: " .. table.concat(cmd, " "))
