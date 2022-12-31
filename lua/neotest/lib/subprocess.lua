@@ -28,9 +28,9 @@ end
 ---Initialize the subprocess module.
 ---Do not call this, neotest core will initialize.
 ---@private
-function neotest.lib.subprocess.init()
+function neotest.lib.subprocess.init(address)
   logger.info("Starting child process")
-  local parent_address = async.fn.serverstart('localhost:0')
+  local parent_address = async.fn.serverstart(address or "localhost:0")
   local success
   local cmd = { vim.loop.exepath(), "--embed", "--headless" }
   logger.info("Starting child process with command: " .. table.concat(cmd, " "))

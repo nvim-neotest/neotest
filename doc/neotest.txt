@@ -13,6 +13,7 @@ neotest                                                                *neotest*
   Diagnostic Consumer.....................................|neotest.diagnostic|
   Summary Consumer...........................................|neotest.summary|
   Jump Consumer.................................................|neotest.jump|
+  Quickfix Consumer.........................................|neotest.quickfix|
   Neotest Client..............................................|neotest.Client|
   Library........................................................|neotest.lib|
   Library: Files...........................................|neotest.lib.files|
@@ -129,6 +130,10 @@ Default values:
       open = "botright split | resize 15"
     },
     projects = {},
+    quickfix = {
+      enabled = true,
+      open = true
+    },
     run = {
       enabled = true
     },
@@ -207,6 +212,7 @@ Fields~
 {summary} `(neotest.Config.summary)`
 {output} `(neotest.Config.output)`
 {output_panel} `(neotest.Config.output_panel)`
+{quickfix} `(neotest.Config.quickfix)`
 {status} `(neotest.Config.status)`
 {diagnostic} `(neotest.Config.diagnostic)`
 {projects} `(table<string, neotest.CoreConfig>)` Project specific settings, keys
@@ -281,7 +287,13 @@ Fields~
                                                    *neotest.Config.output_panel*
 Fields~
 {enabled} `(boolean)`
-{open} `(string)` | fun(): integer A command or function to open a window for the output panel
+{open} `(string|fun():integer)` A command or function to open a window for the output panel
+
+                                                       *neotest.Config.quickfix*
+Fields~
+{enabled} `(boolean)`
+{open} `(boolean|function)` Set to true to open quickfix on startup, or a function to be
+called when the quickfix results are set
 
                                                      *neotest.Config.diagnostic*
 Fields~
@@ -610,6 +622,13 @@ Parameters~
 
 
 ==============================================================================
+neotest.quickfix                                              *neotest.quickfix*
+
+
+A consumer that sends results to the quickfix list.
+
+
+==============================================================================
                                                                 *neotest.Client*
 `Client`
 
@@ -626,7 +645,7 @@ start because it can slow down startup.
                                                      *neotest.ConsumerListeners*
 Fields~
 {discover_positions} `(fun(adapter_id: string, path: string, tree: neotest.Tree))`
-{run} `(fun(adapter_id: string, position_ids: string[]))`
+{run} `(fun(adapter_id: string, root_id: string, position_ids: string[]))`
 {results} `(fun(adapter_id: string, results: table<string, neotest.Result>, partial: boolean))`
 {test_file_focused} `(fun(adapter_id: string, file_path: string)>)`
 {test_focused} `(fun(adapter_id: string, position_id: string)>)`
