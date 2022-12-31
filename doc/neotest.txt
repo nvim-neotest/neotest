@@ -590,7 +590,7 @@ Example mappings to jump between test failures
   nnoremap <silent>]n <cmd>lua require("neotest").jump.next({ status = "failed" })<CR>
 <
 
-                                               *neotest.consumers.jump.JumpArgs*
+                                                         *neotest.jump.JumpArgs*
 Fields~
 {status} `(string)` Only jump to positions with given status
 
@@ -599,14 +599,14 @@ Fields~
 
 Jump to the position after the cursor position in the current file
 Parameters~
-{args?} `(neotest.consumers.jump.JumpArgs)`
+{args?} `(neotest.jump.JumpArgs)`
 
                                                            *neotest.jump.prev()*
 `prev`({args})
 
 to the position after the cursor position in the current file
 Parameters~
-{args?} `(neotest.consumers.jump.JumpArgs)`
+{args?} `(neotest.jump.JumpArgs)`
 
 
 ==============================================================================
@@ -638,7 +638,7 @@ Type~
                                                     *neotest.client.RunTreeArgs*
 Fields~
 {adapter?} `(string)` Adapter ID, if not given the first adapter found with chosen position is used.
-{strategy?} `(string|neotest.Strategy)` Strategy to run commands with
+{strategy?} `("integrated"|"dap"|string|neotest.Strategy)` Strategy to run commands with
 {extra_args?} `(string[])` Arguments supplied to the test adapter to add to the test process arguments
 {env?} `(table<string, string>)` Environment variables for the test process
 {cwd?} `(string)` Working directory for the test process
@@ -706,11 +706,6 @@ all known active adapters
 
 Return~
 `(string[])`
-
-                                              *neotest.Client:_ensure_started()*
-`Client:_ensure_started`()
-
-that the client has initialised adapters and begun parsing files
 
                                                 *neotest.client.GetPositionArgs*
 Fields~

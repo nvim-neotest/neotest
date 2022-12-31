@@ -35,10 +35,12 @@ local init = function(client)
     local files_to_read = {}
 
     local tree = client:get_position(nil, { adapter = adapter_id })
+    assert(tree, "No tree for adapter " .. adapter_id)
     for pos_id, result in pairs(results) do
       if
         result.output
         and not files_to_read[result.output]
+        and tree:get_key(pos_id)
         and tree:get_key(pos_id):data().type == "test"
       then
         files_to_read[result.output] = true

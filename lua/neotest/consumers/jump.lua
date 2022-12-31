@@ -85,11 +85,11 @@ local jump_to_next = function(pos, predicate)
   end
 end
 
----@class neotest.consumers.jump.JumpArgs
+---@class neotest.jump.JumpArgs
 ---@field status string Only jump to positions with given status
 
 --- Jump to the position after the cursor position in the current file
----@param args? neotest.consumers.jump.JumpArgs
+---@param args? neotest.jump.JumpArgs
 function neotest.jump.next(args)
   args = args or {}
 
@@ -110,7 +110,7 @@ function neotest.jump.next(args)
 end
 
 ---Jump to the position after the cursor position in the current file
----@param args? neotest.consumers.jump.JumpArgs
+---@param args? neotest.jump.JumpArgs
 function neotest.jump.prev(args)
   args = args or {}
   async.run(function()

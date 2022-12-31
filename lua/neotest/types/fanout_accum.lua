@@ -1,3 +1,4 @@
+local logger = require("neotest.logging")
 local neotest = {}
 
 --- Accumulates provided data and stores it, while sending to consumers.
@@ -25,7 +26,9 @@ end
 function neotest.FanoutAccum:subscribe(cb)
   self.consumers[#self.consumers + 1] = cb
   if self.data then
-    cb(self.data)
+    xpcall(cb, function(msg)
+      logger.error("Error in fanout accumulator callback: " .. debug.traceback(msg))
+    end, self.data)
   end
 end
 

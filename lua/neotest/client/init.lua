@@ -48,6 +48,7 @@ function neotest.Client:new(adapters)
     _events = events,
     listeners = events.listeners,
   }
+  ---@private
   self.__index = self
   setmetatable(client, self)
   return client
@@ -55,7 +56,7 @@ end
 
 ---@class neotest.client.RunTreeArgs
 ---@field adapter? string Adapter ID, if not given the first adapter found with chosen position is used.
----@field strategy? string|neotest.Strategy Strategy to run commands with
+---@field strategy? "integrated"|"dap"|string|neotest.Strategy Strategy to run commands with
 ---@field extra_args? string[] Arguments supplied to the test adapter to add to the test process arguments
 ---@field env? table<string, string> Environment variables for the test process
 ---@field cwd? string Working directory for the test process
@@ -180,6 +181,7 @@ function neotest.Client:get_adapters()
 end
 
 ---Ensure that the client has initialised adapters and begun parsing files
+---@private
 function neotest.Client:_ensure_started()
   if not self._started then
     self:_start()
@@ -308,6 +310,7 @@ function neotest.Client:_update_positions(path, args)
   end)
 end
 
+---@private
 function neotest.Client:_parse_files(adapter_id, root, paths)
   local function worker()
     while #paths > 0 do

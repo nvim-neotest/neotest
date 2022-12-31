@@ -115,22 +115,21 @@ require("neotest").setup({
 
 See `:h neotest.Config` for configuration options and `:h neotest.setup()` for the default values.
 
-The default icons use [codicons](https://github.com/microsoft/vscode-codicons)
-It's recommended to use this [fork](https://github.com/ChristianChiarulli/neovim-codicons) which fixes alignment issues
-for the terminal. If your terminal doesn't support font fallback and you need to have icons included in font you use
-you can patch it via [Font Patcher](https://github.com/ryanoasis/nerd-fonts#option-8-patch-your-own-font). 
-Simple step by step guide [here](https://github.com/mortepau/codicons.nvim#how-to-patch-fonts).
-
-
-If you are using [lua-dev.nvim](https://github.com/folke/lua-dev.nvim), you can enable type checking for neotest to get
-autocomplete for the setup table.
+It is highly recommended to use [neodev.nvim](https://github.com/folke/neodev.nvim) to enable type checking for neotest to get
+type checking, documentation and autocompletion for all API functions.
 
 ```lua
-require("lua-dev").setup({
+require("neodev").setup({
   library = { plugins = { "neotest" }, types = true },
   ...
 })
 ```
+
+The default icons use [codicons](https://github.com/microsoft/vscode-codicons).
+It's recommended to use this [fork](https://github.com/ChristianChiarulli/neovim-codicons) which fixes alignment issues
+for the terminal. If your terminal doesn't support font fallback and you need to have icons included in your font, you can patch it via [Font Patcher](https://github.com/ryanoasis/nerd-fonts#option-8-patch-your-own-font). 
+There is a simple step by step guide [here](https://github.com/mortepau/codicons.nvim#how-to-patch-fonts).
+
 
 ## Usage
 
