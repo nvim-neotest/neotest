@@ -23,7 +23,7 @@ local init = function()
     local qf_results = {}
     local buffer_cache = {}
     for pos_id, result in pairs(results) do
-      if result.status == "failed" then
+      if result.status == "failed" and tree:get_key(pos_id) then
         local pos = assert(tree:get_key(pos_id)):data()
         if pos.type == "test" then
           local bufnr = buffer_cache[pos.path]
