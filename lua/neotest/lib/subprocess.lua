@@ -32,7 +32,7 @@ function neotest.lib.subprocess.init()
   logger.info("Starting child process")
   local success, parent_address
   success, parent_address = pcall(async.fn.serverstart, "localhost:0")
-  logger.error("Parent address: " .. parent_address)
+  logger.info("Parent address: " .. parent_address)
   if not success then
     logger.error("Failed to start server: " .. parent_address)
     return
