@@ -169,10 +169,7 @@ end
 ---@param path string
 ---@return boolean
 function neotest.lib.files.is_dir(path)
-  if path == "/" then
-    return true
-  end
-  return neotest.lib.files.exists(path .. neotest.lib.files.sep)
+  return async.fn.isdirectory(path) == 1
 end
 
 ---@class neotest.lib.files.FindOptions
