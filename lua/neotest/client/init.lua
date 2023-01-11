@@ -396,7 +396,10 @@ function neotest.Client:_start(args)
       local adapter_id = self:_get_adapter(file_path)
       if not adapter_id then
         for a_id, _ in pairs(self._adapters) do
-          local root = assert(self:get_position(nil, { adapter = a_id }))
+          local root = self:get_position(nil, { adapter = a_id })
+          if not root then
+            return
+          end
           if vim.startswith(file_path, root:data().path) then
             logger.info(
               "Not updating positions for",
