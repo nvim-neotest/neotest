@@ -1278,6 +1278,26 @@ Return~
 Return~
 `(fun(): neotest.Tree)`
 
+                                              *neotest.Tree:closest_node_with()*
+`Tree:closest_node_with`({data_attr})
+
+Fetch the first node ascending the tree (including the current one) with the
+given data attribute e.g. `range`
+Parameters~
+{data_attr} `(string)`
+Return~
+`(neotest.Tree)` | nil
+
+                                              *neotest.Tree:closest_value_for()*
+`Tree:closest_value_for`({data_attr})
+
+Fetch the first non-nil value for the given data attribute ascending the
+tree (including the current node) with the given data attribute.
+Parameters~
+{data_attr} `(string)`
+Return~
+`(any)` | nil
+
                                                            *neotest.Tree:root()*
 `Tree:root`()
 

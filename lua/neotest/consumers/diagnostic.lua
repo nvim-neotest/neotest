@@ -79,7 +79,11 @@ local function init(client)
       local result = results[pos_id]
       if position.type == "test" and result and result.errors and #result.errors > 0 then
         local placed = self.tracking_marks[pos_id]
-          or self:init_mark(pos_id, result.errors, positions:get_key(pos_id):data().range[1])
+          or self:init_mark(
+            pos_id,
+            result.errors,
+            positions:get_key(pos_id):closest_value_for("range")[1]
+          )
         if placed then
           for error_i, error in pairs(result.errors or {}) do
             local mark = api.nvim_buf_get_extmark_by_id(

@@ -112,13 +112,15 @@ local init = function()
       if not positions then
         return
       end
-      for _, pos in positions:iter() do
+      for _, node in positions:iter_nodes() do
+        local pos = node:data()
+        local range = node:closest_value_for("range")
         if
           pos.type == "test"
           and results[pos.id]
           and results[pos.id].status == "failed"
-          and pos.range[1] <= line
-          and pos.range[3] >= line
+          and range[1] <= line
+          and range[3] >= line
         then
           open_output(
             results[pos.id],

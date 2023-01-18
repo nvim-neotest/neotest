@@ -156,6 +156,29 @@ function neotest.Tree:iter_parents()
   end
 end
 
+--- Fetch the first node ascending the tree (including the current one) with the
+--- given data attribute e.g. `range`
+---@param data_attr string
+---@return neotest.Tree | nil
+function neotest.Tree:closest_node_with(data_attr)
+  if self:data()[data_attr] ~= nil then
+    return self
+  end
+  for parent in self:iter_parents() do
+    if parent:data()[data_attr] ~= nil then
+      return parent
+    end
+  end
+end
+
+--- Fetch the first non-nil value for the given data attribute ascending the
+--- tree (including the current node) with the given data attribute.
+---@param data_attr string
+---@return any | nil
+function neotest.Tree:closest_value_for(data_attr)
+  return self:closest_node_with(data_attr):data()[data_attr]
+end
+
 ---@return neotest.Tree
 function neotest.Tree:root()
   local node = self

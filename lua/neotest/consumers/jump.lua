@@ -31,7 +31,7 @@ local get_nearest = function()
 end
 
 local function jump_to(node)
-  local range = node:data().range
+  local range = node:closest_value_for("range")
   async.api.nvim_win_set_cursor(0, { range[1] + 1, range[2] })
 end
 
@@ -48,7 +48,7 @@ local jump_to_prev = function(pos, predicate)
   if pos:data().type == "file" then
     return false
   end
-  if async.api.nvim_win_get_cursor(0)[1] - 1 > pos:data().range[1] then
+  if async.api.nvim_win_get_cursor(0)[1] - 1 > pos:closest_value_for("range")[1] then
     jump_to(pos)
     return true
   end

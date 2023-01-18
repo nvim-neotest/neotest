@@ -154,10 +154,11 @@ function neotest.Client:get_nearest(file_path, row, args)
     return
   end
   local nearest
-  for _, pos in positions:iter_nodes() do
-    local data = pos:data()
-    if data.range and data.range[1] <= row then
-      nearest = pos
+  for _, node in positions:iter_nodes() do
+    node = node:closest_node_with("range") or node
+    local range = node:data().range
+    if range and range[1] <= row then
+      nearest = node
     else
       return nearest, adapter_id
     end

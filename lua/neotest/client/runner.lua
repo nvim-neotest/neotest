@@ -227,10 +227,15 @@ function TestRunner:_missing_results(tree, results, partial)
   local root = tree:data()
   local missing_tests = {}
 
+  local all_position_ids = {}
+  for _, pos in tree:iter() do
+    all_position_ids[pos.id] = true
+  end
+
   local function propagate_result_upwards(node)
     for parent in node:iter_parents() do
       local parent_pos = parent:data()
-      if not lib.positions.contains(root, parent_pos) then
+      if not all_position_ids[parent_pos.id] then
         return
       end
 

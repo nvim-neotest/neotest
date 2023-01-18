@@ -15,7 +15,7 @@ local function init(client)
 
   local namespace = async.api.nvim_create_namespace(sign_group)
 
-  local function place_sign(buf, pos, adapter_id, results)
+  local function place_sign(buf, pos, range, adapter_id, results)
     local status
     if results[pos.id] then
       local result = results[pos.id]
@@ -28,12 +28,12 @@ local function init(client)
     end
     if config.status.signs then
       async.fn.sign_place(0, sign_group, "neotest_" .. status, pos.path, {
-        lnum = pos.range[1] + 1,
+        lnum = range[1] + 1,
         priority = 1000,
       })
     end
     if config.status.virtual_text then
-      async.api.nvim_buf_set_extmark(buf, namespace, pos.range[1], 0, {
+      async.api.nvim_buf_set_extmark(buf, namespace, range[1], 0, {
         virt_text = {
           { statuses[status].text .. " ", statuses[status].texthl },
         },
@@ -51,9 +51,11 @@ local function init(client)
         if not tree then
           return
         end
-        for _, pos in tree:iter() do
+        for _, node in tree:iter_nodes() do
+          local pos = node:data()
+          local range = node:closest_value_for("range")
           if pos.type ~= "file" then
-            place_sign(async.fn.bufnr(file_path), pos, adapter_id, results)
+            place_sign(async.fn.bufnr(file_path), pos, range, adapter_id, results)
           end
         end
       end
