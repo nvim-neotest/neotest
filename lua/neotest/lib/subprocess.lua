@@ -63,6 +63,9 @@ function neotest.lib.subprocess.init()
       "return require('neotest.lib').subprocess._set_parent_address(...)",
       { parent_address }
     )
+    -- Load dependencies
+    async.fn.rpcrequest(child_chan, "nvim_exec_lua", "require('nvim-treesitter')", {})
+    async.fn.rpcrequest(child_chan, "nvim_exec_lua", "require('plenary')", {})
     enabled = true
     async.api.nvim_create_autocmd("VimLeavePre", { callback = cleanup })
   end, function(msg)
