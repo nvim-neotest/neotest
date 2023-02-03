@@ -264,8 +264,11 @@ function TestRunner:_missing_results(tree, results, partial)
 
   if partial then
     for _, test_id in ipairs(missing_tests) do
-      for parent in tree:get_key(test_id):iter_parents() do
-        results_proxy[parent:data().id] = nil
+      local test = tree:get_key(test_id)
+      if test then
+        for parent in test:iter_parents() do
+          results_proxy[parent:data().id] = nil
+        end
       end
     end
   else
