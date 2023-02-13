@@ -57,8 +57,8 @@ local init = function()
       return a.filename < b.filename
     end)
 
+    async.fn.setqflist(qf_results)
     if #qf_results > 0 then
-      async.fn.setqflist(qf_results)
       if config.quickfix.open then
         if type(config.quickfix.open) == "function" then
           config.quickfix.open()
