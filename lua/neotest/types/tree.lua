@@ -176,7 +176,8 @@ end
 ---@param data_attr string
 ---@return any | nil
 function neotest.Tree:closest_value_for(data_attr)
-  return self:closest_node_with(data_attr):data()[data_attr]
+  local nearest = self:closest_node_with(data_attr)
+  return nearest and nearest:data()[data_attr]
 end
 
 ---@return neotest.Tree
