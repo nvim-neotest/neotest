@@ -27,7 +27,11 @@ local plenary_queries = [[
     ) (#match? @func_name "^it$")) @test.definition
     ]]
 
-local test_file = [[
+local simple_test_file = [[
+it("test", function()
+end)
+]]
+local complex_test_file = [[
 describe("top namespace", function()
   it("test 1", function()
   end)
@@ -42,18 +46,10 @@ it("test 3", function()
 end)
 ]]
 
-local function tree_to_list(iter)
-  local l = {}
-
-  for _, elem in iter do
-    l[#l + 1] = elem
-  end
-  return l
-end
-
 describe("treesitter parsing", function()
   a.it("finds all positions", function()
-    local tree = ts.parse_positions_from_string("test_spec.lua", test_file, plenary_queries, {})
+    local tree =
+      ts.parse_positions_from_string("test_spec.lua", complex_test_file, plenary_queries, {})
     local result = tree:to_list()
     assert.are.same({
       {
@@ -104,7 +100,7 @@ describe("treesitter parsing", function()
   a.it("finds all positions with nested tests", function()
     local tree = ts.parse_positions_from_string(
       "test_spec.lua",
-      test_file,
+      complex_test_file,
       plenary_queries,
       { nested_tests = true }
     )
@@ -119,40 +115,43 @@ describe("treesitter parsing", function()
   a.it("ignored positions without namespace when required", function()
     local tree = ts.parse_positions_from_string(
       "test_spec.lua",
-      test_file,
+      complex_test_file,
       plenary_queries,
       { require_namespaces = true }
     )
     assert.Nil(tree:get_key('test_spec.lua::"test 3"'))
   end)
   a.it("uses custom id function", function()
-    local tree = ts.parse_positions_from_string("test_spec.lua", test_file, plenary_queries, {
-      position_id = function(position)
-        return position.path .. "__" .. position.name
-      end,
-    })
+    local tree =
+      ts.parse_positions_from_string("test_spec.lua", complex_test_file, plenary_queries, {
+        position_id = function(position)
+          return position.path .. "__" .. position.name
+        end,
+      })
     assert.Not.Nil(tree:get_key('test_spec.lua__"test 3"'))
   end)
   a.it("uses custom id function as string", function()
-    local tree = ts.parse_positions_from_string("test_spec.lua", test_file, plenary_queries, {
-      position_id = [[function(position)
+    local tree =
+      ts.parse_positions_from_string("test_spec.lua", complex_test_file, plenary_queries, {
+        position_id = [[function(position)
         return position.path .. "__" .. position.name
       end]],
-    })
+      })
     assert.Not.Nil(tree:get_key('test_spec.lua__"test 3"'))
   end)
 
   a.it("uses custom build function", function()
-    local tree = ts.parse_positions_from_string("test_spec.lua", test_file, plenary_queries, {
-      build_position = function(file_path)
-        return {
-          type = "test",
-          path = file_path,
-          name = "same_name",
-          range = { 0, 0, 0, 0 },
-        }
-      end,
-    })
+    local tree =
+      ts.parse_positions_from_string("test_spec.lua", complex_test_file, plenary_queries, {
+        build_position = function(file_path)
+          return {
+            type = "test",
+            path = file_path,
+            name = "same_name",
+            range = { 0, 0, 0, 0 },
+          }
+        end,
+      })
     for _, position in tree:iter() do
       if position.type ~= "file" then
         assert.are.same("same_name", position.name)
@@ -161,8 +160,9 @@ describe("treesitter parsing", function()
   end)
 
   a.it("uses custom build function as string", function()
-    local tree = ts.parse_positions_from_string("test_spec.lua", test_file, plenary_queries, {
-      build_position = [[function(file_path)
+    local tree =
+      ts.parse_positions_from_string("test_spec.lua", complex_test_file, plenary_queries, {
+        build_position = [[function(file_path)
         return {
           type = "test",
           path = file_path,
@@ -170,7 +170,7 @@ describe("treesitter parsing", function()
           range = { 0, 0, 0, 0 },
         }
       end]],
-    })
+      })
     for _, position in tree:iter() do
       if position.type ~= "file" then
         assert.are.same("same_name", position.name)
@@ -179,22 +179,98 @@ describe("treesitter parsing", function()
   end)
 
   a.it("allows custom build function to return list", function()
-    local tree = ts.parse_positions_from_string("test_spec.lua", test_file, plenary_queries, {
-      build_position = function(file_path)
-        return {
-          {
-            type = "test",
-            path = file_path,
-            name = "same_name",
-            range = { 0, 0, 0, 0 },
-          },
-        }
-      end,
-    })
+    local tree =
+      ts.parse_positions_from_string("test_spec.lua", complex_test_file, plenary_queries, {
+        build_position = function(file_path)
+          return {
+            {
+              type = "test",
+              path = file_path,
+              name = "same_name",
+              range = { 0, 0, 0, 0 },
+            },
+          }
+        end,
+      })
     for _, position in tree:iter() do
       if position.type ~= "file" then
         assert.are.same("same_name", position.name)
       end
     end
+  end)
+
+  a.it("assigns children without ranges to previous node with range", function()
+    local tree =
+      ts.parse_positions_from_string("test_spec.lua", simple_test_file, plenary_queries, {
+        nested_tests = true,
+        build_position = function(file_path)
+          return {
+            {
+              name = "parent",
+              path = file_path,
+              range = { 0, 0, 0, 0 },
+              type = "test",
+            },
+            {
+              name = "child 1",
+              path = file_path,
+              type = "test",
+            },
+            {
+              name = "child 2",
+              path = file_path,
+              type = "test",
+            },
+            {
+              name = "child 3",
+              path = file_path,
+              type = "test",
+            },
+          }
+        end,
+      })
+    local expected = {
+      {
+        id = "test_spec.lua",
+        name = "test_spec.lua",
+        path = "test_spec.lua",
+        range = { 0, 0, 2, 0 },
+        type = "file",
+      },
+      {
+        {
+          id = "test_spec.lua::parent",
+          name = "parent",
+          path = "test_spec.lua",
+          range = { 0, 0, 0, 0 },
+          type = "test",
+        },
+        {
+          {
+            id = "test_spec.lua::parent::child 1",
+            name = "child 1",
+            path = "test_spec.lua",
+            type = "test",
+          },
+        },
+        {
+          {
+            id = "test_spec.lua::parent::child 2",
+            name = "child 2",
+            path = "test_spec.lua",
+            type = "test",
+          },
+        },
+        {
+          {
+            id = "test_spec.lua::parent::child 3",
+            name = "child 3",
+            path = "test_spec.lua",
+            type = "test",
+          },
+        },
+      },
+    }
+    assert.same(expected, tree:to_list())
   end)
 end)

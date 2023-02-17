@@ -208,9 +208,14 @@ local function build_structure(positions, namespaces, opts)
   if parent.type == "namespace" or (opts.nested_tests and parent.type == "test") then
     child_namespaces[#child_namespaces + 1] = parent
   end
+  if not parent.range then
+    return current_level
+  end
   while true do
     local next_pos = positions[1]
-    if not next_pos or not neotest.lib.positions.contains(parent, next_pos) then
+    if
+      not next_pos or (next_pos.range and not neotest.lib.positions.contains(parent, next_pos))
+    then
       -- Don't preserve empty namespaces
       if #current_level == 1 and parent.type == "namespace" then
         return nil
