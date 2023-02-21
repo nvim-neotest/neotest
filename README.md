@@ -35,6 +35,7 @@ Neotest uses the `CursorHold` event. This uses the `updatetime`
 setting which is by default very high, and lowering this can lead to excessive writes to disk.
 It's recommended to use https://github.com/antoinemadec/FixCursorHold.nvim which
 allows detaching `updatetime` from the frequency of the `CursorHold` event.
+The repo claims it is no longer needed but it is still recommended (See [this issue](https://github.com/antoinemadec/FixCursorHold.nvim/issues/13))
 
 Install with your favourite package manager alongside nvim-dap
 
