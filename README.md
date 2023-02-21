@@ -31,9 +31,6 @@ Neotest uses [plenary.nvim](https://github.com/nvim-lua/plenary.nvim/).
 
 Most adapters will also require [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter).
 
-Neotest uses the `CursorHold` event which has issues in NeoVim: [see here](https://github.com/neovim/neovim/issues/12587) \
-It's recommended to use https://github.com/antoinemadec/FixCursorHold.nvim.
-
 Install with your favourite package manager alongside nvim-dap
 
 [**dein**](https://github.com/Shougo/dein.vim):
