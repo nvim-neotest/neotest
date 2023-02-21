@@ -31,8 +31,10 @@ Neotest uses [plenary.nvim](https://github.com/nvim-lua/plenary.nvim/).
 
 Most adapters will also require [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter).
 
-Neotest uses the `CursorHold` event which has issues in NeoVim: [see here](https://github.com/neovim/neovim/issues/12587) \
-It's recommended to use https://github.com/antoinemadec/FixCursorHold.nvim.
+Neotest uses the `CursorHold` event. This uses the `updatetime`
+setting which is by default very high, and lowering this can lead to excessive writes to disk.
+It's recommended to use https://github.com/antoinemadec/FixCursorHold.nvim which
+allows detaching `updatetime` from the frequency of the `CursorHold` event.
 
 Install with your favourite package manager alongside nvim-dap
 
