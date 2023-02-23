@@ -27,7 +27,7 @@ end
 
 ---Initialize the subprocess module.
 ---Do not call this, neotest core will initialize.
----@private
+---@package
 function neotest.lib.subprocess.init()
   logger.info("Starting child process")
   local success, parent_address
