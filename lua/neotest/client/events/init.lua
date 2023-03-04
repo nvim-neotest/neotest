@@ -18,9 +18,9 @@ local NeotestEvents = {
 M.events = NeotestEvents
 
 ---@class neotest.InternalClientListeners
----@field discover_positions table<string, fun(adapter_id: integer, path: string, tree: neotest.Tree)>
+---@field discover_positions table<string, fun(adapter_id: integer, tree: neotest.Tree)>
 ---@field run table<string, fun(adapter_id: integer, root_id: string, position_ids: string[])>
----@field results table<string, fun(adapter_id: integer, results: table<string, neotest.Result>)>
+---@field results table<string, fun(adapter_id: integer, results: table<string, neotest.Result>, partial: boolean)>
 ---@field test_file_focused table<string,fun(file_path: string)>>
 ---@field test_focused table<string,fun(pos_id: string)>>
 
