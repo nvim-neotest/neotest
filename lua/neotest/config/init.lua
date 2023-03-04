@@ -44,6 +44,7 @@ define_highlights()
 ---@field output_panel neotest.Config.output_panel
 ---@field quickfix neotest.Config.quickfix
 ---@field status neotest.Config.status
+---@field state neotest.Config.state
 ---@field diagnostic neotest.Config.diagnostic
 ---@field projects table<string, neotest.CoreConfig> Project specific settings, keys
 --- are project root directories (e.g "~/Dev/my_project")
@@ -103,6 +104,9 @@ define_highlights()
 ---@class neotest.Config.output
 ---@field enabled boolean
 ---@field open_on_run string|boolean Open nearest test result after running
+
+---@class neotest.Config.state
+---@field enabled boolean
 
 ---@class neotest.Config.output_panel
 ---@field enabled boolean
@@ -251,6 +255,9 @@ local default_config = {
   quickfix = {
     enabled = true,
     open = true,
+  },
+  state = {
+    enabled = true,
   },
   projects = {},
 }

@@ -36,6 +36,7 @@
 ---@field status neotest.consumers.status
 ---@field diagnostic neotest.consumers.diagnostic
 ---@field jump neotest.consumers.jump
+---@field state neotest.consumers.state
 ---@nodoc
 local neotest = {}
 

@@ -14,6 +14,7 @@ neotest                                                                *neotest*
   Summary Consumer...........................................|neotest.summary|
   Jump Consumer.................................................|neotest.jump|
   Quickfix Consumer.........................................|neotest.quickfix|
+  State Consumer...............................................|neotest.state|
   Neotest Client..............................................|neotest.Client|
   Library........................................................|neotest.lib|
   Library: Files...........................................|neotest.lib.files|
@@ -140,6 +141,9 @@ Default values:
     running = {
       concurrent = true
     },
+    state = {
+      enabled = true
+    },
     status = {
       enabled = true,
       signs = true,
@@ -214,6 +218,7 @@ Fields~
 {output_panel} `(neotest.Config.output_panel)`
 {quickfix} `(neotest.Config.quickfix)`
 {status} `(neotest.Config.status)`
+{state} `(neotest.Config.state)`
 {diagnostic} `(neotest.Config.diagnostic)`
 {projects} `(table<string, neotest.CoreConfig>)` Project specific settings, keys
 are project root directories (e.g "~/Dev/my_project")
@@ -284,6 +289,10 @@ Fields~
 {enabled} `(boolean)`
 {open_on_run} `(string|boolean)` Open nearest test result after running
 
+                                                          *neotest.Config.state*
+Fields~
+{enabled} `(boolean)`
+
                                                    *neotest.Config.output_panel*
 Fields~
 {enabled} `(boolean)`
@@ -326,7 +335,7 @@ The client interface provides methods for interacting with tests, fetching
 results as well as event listeners. To listen to an event, just assign the event
 listener to a function:
 >lua
-  client.listeners.discover_positions = function (adapter_id, path, tree)
+  client.listeners.discover_positions = function (adapter_id, tree)
     ...
   end
 <
@@ -629,6 +638,46 @@ A consumer that sends results to the quickfix list.
 
 
 ==============================================================================
+neotest.state                                                    *neotest.state*
+
+
+A consumer that tracks various pieces of state in Neotest.
+Most of the internals of Neotest are asynchronous so this consumer allows
+tracking the state of the test suite and test results without needing to
+write asynchronous code.
+
+                                                   *neotest.state.adapter_ids()*
+`adapter_ids`()
+
+Get the list of all adapter IDs currently active
+Return~
+`(string[])`
+
+                                                 *neotest.state.status_counts()*
+`status_counts`({adapter_id}, {args})
+
+Get the counts of the various states of tests for the entire suite or for a
+buffer.
+Parameters~
+{adapter_id} `(string)`
+{args?} `(neotest.state.StatusCountsArgs)`
+Return~
+`(neotest.state.StatusCounts)` | nil
+
+                                                *neotest.state.StatusCountsArgs*
+Fields~
+{buffer?} `(integer)` Returns statuses for this buffer
+
+                                                    *neotest.state.StatusCounts*
+Fields~
+{total} `(integer)`
+{passed} `(integer)`
+{failed} `(integer)`
+{skipped} `(integer)`
+{running} `(integer)`
+
+
+==============================================================================
                                                                 *neotest.Client*
 `Client`
 
@@ -644,7 +693,7 @@ start because it can slow down startup.
 
                                                      *neotest.ConsumerListeners*
 Fields~
-{discover_positions} `(fun(adapter_id: string, path: string, tree: neotest.Tree))`
+{discover_positions} `(fun(adapter_id: string, tree: neotest.Tree))`
 {run} `(fun(adapter_id: string, root_id: string, position_ids: string[]))`
 {results} `(fun(adapter_id: string, results: table<string, neotest.Result>, partial: boolean))`
 {test_file_focused} `(fun(adapter_id: string, file_path: string)>)`

@@ -1,0 +1,115 @@
+local async = require("neotest.async")
+local logger = require("neotest.logging")
+local neotest = {}
+local StateTracker = require("neotest.consumers.state.tracker")
+
+---@type neotest.state.StateTracker
+---@nodoc
+local tracker
+
+---@param client neotest.Client
+---@nodoc
+local function init(client)
+  local updated_cond = async.control.Condvar.new()
+  local pending_update = false
+  tracker = StateTracker:new(client)
+  local function update_positions()
+    while true do
+      if not pending_update then
+        updated_cond:wait()
+      end
+      tracker:update_positions()
+      pending_update = false
+      async.util.sleep(50)
+    end
+  end
+
+  vim.api.nvim_create_autocmd("BufAdd", {
+    callback = function(args)
+      tracker:register_buffer(args.buf)
+      pending_update = true
+      updated_cond:notify_all()
+    end,
+  })
+  for _, buf in ipairs(async.api.nvim_list_bufs()) do
+    tracker:register_buffer(buf)
+  end
+  async.run(function()
+    xpcall(update_positions, function(msg)
+      logger.error("Error in state consumer", debug.traceback(msg, 2))
+    end)
+  end)
+  client.listeners.discover_positions = function(adapter_id)
+    if not tracker:adapter_state(adapter_id) then
+      tracker:register_adapter(adapter_id)
+    end
+    pending_update = true
+    updated_cond:notify_all()
+  end
+
+  client.listeners.run = function(adapter_id, _, position_ids)
+    tracker:update_running(adapter_id, position_ids)
+  end
+
+  client.listeners.results = function(adapter_id, results, partial)
+    if partial then
+      return
+    end
+    tracker:update_results(adapter_id, results)
+  end
+end
+
+---@param args? table
+---@return neotest.state.State | nil
+---@nodoc
+local function state_from_args(adapter_id, args)
+  if args and args.buffer then
+    return tracker:buffer_state(adapter_id, args.buffer)
+  end
+  return tracker:adapter_state(adapter_id)
+end
+
+---@toc_entry State Consumer
+---@text
+--- A consumer that tracks various pieces of state in Neotest.
+--- Most of the internals of Neotest are asynchronous so this consumer allows
+--- tracking the state of the test suite and test results without needing to
+--- write asynchronous code.
+---@class neotest.consumers.state
+neotest.state = {}
+
+--- Get the list of all adapter IDs currently active
+---@return string[]
+function neotest.state.adapter_ids()
+  return tracker.adapter_ids
+end
+
+--- Get the counts of the various states of tests for the entire suite or for a
+--- buffer.
+---@param adapter_id string
+---@param args? neotest.state.StatusCountsArgs
+---@return neotest.state.StatusCounts | nil
+function neotest.state.status_counts(adapter_id, args)
+  local state = state_from_args(adapter_id, args)
+
+  return state and state.status
+end
+
+---@class neotest.state.StatusCountsArgs
+---@field buffer? integer Returns statuses for this buffer
+
+---@class neotest.state.StatusCounts
+---@field total integer
+---@field passed integer
+---@field failed integer
+---@field skipped integer
+---@field running integer
+
+neotest.summary = setmetatable(neotest.state, {
+  __call = function(_, client)
+    init(client)
+    return neotest.state
+  end,
+})
+
+return neotest.state

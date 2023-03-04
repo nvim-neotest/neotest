@@ -17,7 +17,7 @@ local neotest = {}
 --- results as well as event listeners. To listen to an event, just assign the event
 --- listener to a function:
 --- >lua
----   client.listeners.discover_positions = function (adapter_id, path, tree)
+---   client.listeners.discover_positions = function (adapter_id, tree)
 ---     ...
 ---   end
 --- <
@@ -37,6 +37,7 @@ neotest.consumers = {
   jump = require("neotest.consumers.jump"),
   benchmark = require("neotest.consumers.benchmark"),
   quickfix = require("neotest.consumers.quickfix"),
+  state = require("neotest.consumers.state"),
 }
 
 return neotest.consumers
