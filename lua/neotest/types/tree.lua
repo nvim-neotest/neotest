@@ -189,7 +189,7 @@ function neotest.Tree:root()
   return node
 end
 
----@return fun(): integer, neotest.Tree
+---@return fun(): integer,neotest.Tree
 function neotest.Tree:iter_nodes()
   local child_i = 0
   local total_i = 1
@@ -218,7 +218,7 @@ function neotest.Tree:iter_nodes()
   end
 end
 
----@return fun(): integer, neotest.Position
+---@return fun(): integer,neotest.Position
 function neotest.Tree:iter()
   local node_iter = self:iter_nodes()
   return function()

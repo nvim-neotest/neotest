@@ -105,6 +105,19 @@ end
 ---@field skipped integer
 ---@field running integer
 
+--- Get the known positions for the entire suite or for a buffer.
+---@param adapter_id string
+---@param args? neotest.state.PositionsArgs
+---@return neotest.Tree | nil
+function neotest.state.positions(adapter_id, args)
+  local state = state_from_args(adapter_id, args)
+
+  return state and state.positions
+end
+
+---@class neotest.state.PositionsArgs
+---@field buffer? integer Returns positions for this buffer
+
 neotest.summary = setmetatable(neotest.state, {
   __call = function(_, client)
     init(client)
