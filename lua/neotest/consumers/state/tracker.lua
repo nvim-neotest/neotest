@@ -89,37 +89,36 @@ function StateTracker:update_counts(adapter_id)
   end
 end
 
-function StateTracker:update_positions()
-  for adapter_id, state in pairs(self.adapter_states) do
-    state.positions = assert(self.client:get_position(nil, { adapter = adapter_id }))
-    state.status.total = self:count_tests(state.positions)
-    for _, node in state.positions:iter_nodes() do
-      local pos = node:data()
-      if pos.type == "file" and self.path_buffers[pos.path] then
-        if not state.buffers[pos.path] then
-          state.buffers[pos.path] = {
-            positions = node,
-            running = {},
-            status = {
-              failed = 0,
-              passed = 0,
-              skipped = 0,
-              total = 0,
-              running = 0,
-            },
-          }
-        end
+function StateTracker:update_positions(adapter_id)
+  local state = self.adapter_states[adapter_id]
+  state.positions = assert(self.client:get_position(nil, { adapter = adapter_id }))
+  state.status.total = self:count_tests(state.positions)
+  for _, node in state.positions:iter_nodes() do
+    local pos = node:data()
+    if pos.type == "file" and self.path_buffers[pos.path] then
+      if not state.buffers[pos.path] then
+        state.buffers[pos.path] = {
+          positions = node,
+          running = {},
+          status = {
+            failed = 0,
+            passed = 0,
+            skipped = 0,
+            total = 0,
+            running = 0,
+          },
+        }
       end
     end
+  end
 
-    for path, buf_state in pairs(state.buffers) do
-      local new_tree = state.positions:get_key(path)
-      if not new_tree then
-        state.buffers[path] = nil
-      else
-        buf_state.positions = new_tree
-        buf_state.status.total = self:count_tests(new_tree)
-      end
+  for path, buf_state in pairs(state.buffers) do
+    local new_tree = state.positions:get_key(path)
+    if not new_tree then
+      state.buffers[path] = nil
+    else
+      buf_state.positions = new_tree
+      buf_state.status.total = self:count_tests(new_tree)
     end
   end
 end
@@ -165,7 +164,7 @@ function StateTracker:update_running(adapter_id, position_ids)
   self:update_counts(adapter_id)
 end
 
-function StateTracker:update_results(adapter_id, results)
+function StateTracker:decrement_running(adapter_id, results)
   local state = self:adapter_state(adapter_id)
   local running = state.running
 
@@ -185,7 +184,6 @@ function StateTracker:update_results(adapter_id, results)
       end
     end
   end
-  self:update_counts(adapter_id)
 end
 
 return StateTracker

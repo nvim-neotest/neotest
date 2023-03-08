@@ -18,7 +18,10 @@ local function init(client)
       if not pending_update then
         updated_cond:wait()
       end
-      tracker:update_positions()
+      for _, adapter_id in ipairs(tracker.adapter_ids) do
+        tracker:update_positions(adapter_id)
+        tracker:update_counts(adapter_id)
+      end
       pending_update = false
       async.util.sleep(50)
     end
@@ -51,11 +54,10 @@ local function init(client)
     tracker:update_running(adapter_id, position_ids)
   end
 
-  client.listeners.results = function(adapter_id, results, partial)
-    if partial then
-      return
-    end
-    tracker:update_results(adapter_id, results)
+  client.listeners.results = function(adapter_id, results)
+    tracker:decrement_running(adapter_id, results)
+    pending_update = true
+    updated_cond:notify_all()
   end
 end
 
