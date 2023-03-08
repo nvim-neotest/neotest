@@ -676,6 +676,20 @@ Fields~
 {skipped} `(integer)`
 {running} `(integer)`
 
+                                                     *neotest.state.positions()*
+`positions`({adapter_id}, {args})
+
+Get the known positions for the entire suite or for a buffer.
+Parameters~
+{adapter_id} `(string)`
+{args?} `(neotest.state.PositionsArgs)`
+Return~
+`(neotest.Tree)` | nil
+
+                                                   *neotest.state.PositionsArgs*
+Fields~
+{buffer?} `(integer)` Returns positions for this buffer
+
 
 ==============================================================================
                                                                 *neotest.Client*
@@ -1357,13 +1371,13 @@ Return~
 `Tree:iter_nodes`()
 
 Return~
-`(fun(): integer,)` neotest.Tree
+`(fun(): integer,neotest.Tree)`
 
                                                            *neotest.Tree:iter()*
 `Tree:iter`()
 
 Return~
-`(fun(): integer,)` neotest.Position
+`(fun(): integer,neotest.Position)`
 
                                                            *neotest.Tree:node()*
 `Tree:node`({index})
