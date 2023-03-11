@@ -24,12 +24,6 @@ source = {
   dir = 'neotest-' .. _MODREV,
 }
 
-if _MODREV == 'scm' then
-  source = {
-    url = 'git://github.com/nvim-neotest/neotest',
-  }
-end
-
 build = {
   type = 'builtin',
   copy_directories = {
