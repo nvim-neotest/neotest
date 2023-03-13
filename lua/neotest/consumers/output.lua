@@ -80,7 +80,7 @@ local function open_output(result, opts)
 
   if opts.enter then
     vim.api.nvim_set_current_win(win)
-  else
+  elseif cur_win ~= vim.api.nvim_get_current_win() then
     vim.api.nvim_set_current_win(cur_win)
   end
 
