@@ -27,6 +27,8 @@ See `:h neotest` for details on neotest is designed and how to interact with it 
 
 ## Installation
 
+[![LuaRocks](https://img.shields.io/luarocks/v/nvim-neotest/neotest?logo=lua&color=purple)](https://luarocks.org/modules/nvim-neotest/neotest)
+
 Neotest uses [plenary.nvim](https://github.com/nvim-lua/plenary.nvim/).
 
 Most adapters will also require [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter).
