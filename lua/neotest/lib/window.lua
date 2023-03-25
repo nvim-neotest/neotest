@@ -33,6 +33,13 @@ function PersistentWindow:open()
     return self._win
   end
 
+  if not self._has_opened then
+    if self._bufopts.filetype then
+      async.api.nvim_buf_set_option(self:buffer(), "filetype", self._bufopts.filetype)
+    end
+    self._has_opened = true
+  end
+
   local cur_win = async.api.nvim_get_current_win()
 
   if type(self._open) == "string" then
@@ -48,13 +55,6 @@ function PersistentWindow:open()
 
   for k, v in pairs(self._winopts) do
     async.api.nvim_win_set_option(self._win, k, v)
-  end
-
-  if not self._has_opened then
-    if self._bufopts.filetype then
-      async.api.nvim_buf_set_option(self:buffer(), "filetype", self._bufopts.filetype)
-    end
-    self._has_opened = true
   end
 
   return self._win
