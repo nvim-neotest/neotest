@@ -100,7 +100,8 @@ end
 ---@return table
 function neotest.lib.treesitter.normalise_query(lang, query)
   if type(query) == "string" then
-    query = vim.treesitter.parse_query(lang, query)
+    local parse_query = vim.treesitter.query.parse or vim.treesitter.parse_query
+    query = parse_query(lang, query)
   end
   return query
 end
