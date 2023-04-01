@@ -1,5 +1,5 @@
-local async = require("neotest.async")
-local a = async.tests
+local nio = require("nio")
+local a = nio.tests
 local lib = require("neotest.lib")
 local strategy = require("neotest.client.strategies.integrated")
 
@@ -66,8 +66,8 @@ describe("integrated strategy", function()
         width = 10,
       },
     })
-    async.util.sleep(100)
+    nio.sleep(100)
     process.attach()
-    assert.Not.equal(async.api.nvim_win_get_config(0), "")
+    assert.Not.equal(nio.api.nvim_win_get_config(0), "")
   end)
 end)

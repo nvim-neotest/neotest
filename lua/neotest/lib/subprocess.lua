@@ -1,4 +1,4 @@
-local async = require("neotest.async")
+local nio = require("nio")
 local logger = require("neotest.logging")
 
 local child_chan, parent_chan
@@ -18,7 +18,7 @@ local function cleanup()
   if child_chan then
     logger.info("Closing child channel")
     xpcall(function()
-      async.fn.chanclose(child_chan, "rpc")
+      nio.fn.chanclose(child_chan, "rpc")
     end, function(msg)
       logger.error("Failed to close child channel: " .. msg)
     end)
@@ -31,7 +31,7 @@ end
 function neotest.lib.subprocess.init()
   logger.info("Starting child process")
   local success, parent_address
-  success, parent_address = pcall(async.fn.serverstart, "localhost:0")
+  success, parent_address = pcall(nio.fn.serverstart, "localhost:0")
   logger.info("Parent address: " .. parent_address)
   if not success then
     logger.error("Failed to start server: " .. parent_address)
@@ -39,7 +39,7 @@ function neotest.lib.subprocess.init()
   end
   local cmd = { vim.loop.exepath(), "--embed", "--headless" }
   logger.info("Starting child process with command: " .. table.concat(cmd, " "))
-  success, child_chan = pcall(async.fn.jobstart, cmd, {
+  success, child_chan = pcall(nio.fn.jobstart, cmd, {
     rpc = true,
     on_exit = function()
       logger.info("Child process exited")
@@ -51,23 +51,23 @@ function neotest.lib.subprocess.init()
     return
   end
   xpcall(function()
-    local mode = async.fn.rpcrequest(child_chan, "nvim_get_mode")
+    local mode = nio.fn.rpcrequest(child_chan, "nvim_get_mode")
     if mode.blocking then
       logger.error("Child process is waiting for input at startup. Aborting.")
     end
     -- Trigger lazy loading of neotest
-    async.fn.rpcrequest(child_chan, "nvim_exec_lua", "return require('neotest') and 0", {})
-    async.fn.rpcrequest(
+    nio.fn.rpcrequest(child_chan, "nvim_exec_lua", "return require('neotest') and 0", {})
+    nio.fn.rpcrequest(
       child_chan,
       "nvim_exec_lua",
       "return require('neotest.lib').subprocess._set_parent_address(...)",
       { parent_address }
     )
     -- Load dependencies
-    async.fn.rpcrequest(child_chan, "nvim_exec_lua", "require('nvim-treesitter')", {})
-    async.fn.rpcrequest(child_chan, "nvim_exec_lua", "require('plenary')", {})
+    nio.fn.rpcrequest(child_chan, "nvim_exec_lua", "require('nvim-treesitter')", {})
+    nio.fn.rpcrequest(child_chan, "nvim_exec_lua", "require('plenary')", {})
     enabled = true
-    async.api.nvim_create_autocmd("VimLeavePre", { callback = cleanup })
+    nio.api.nvim_create_autocmd("VimLeavePre", { callback = cleanup })
   end, function(msg)
     logger.error("Failed to initialize child process", debug.traceback(msg, 2))
     cleanup()
@@ -105,7 +105,7 @@ end
 --- @param method string
 --- @param ... any
 function neotest.lib.subprocess.request(method, ...)
-  async.fn.rpcrequest(get_chan(), method, ...)
+  nio.fn.rpcrequest(get_chan(), method, ...)
 end
 
 ---@async
@@ -115,7 +115,7 @@ end
 --- @param method string
 --- @param ... any
 function neotest.lib.subprocess.notify(method, ...)
-  async.fn.rpcnotify(get_chan(), method, ...)
+  nio.fn.rpcnotify(get_chan(), method, ...)
 end
 
 ---@async
@@ -125,10 +125,10 @@ end
 ---@param args? any[] Arguments to pass to the function
 ---@return any,string? Result or error message if call failed
 function neotest.lib.subprocess.call(func, args)
-  local send_result, await_result = async.control.channel.oneshot()
+  local result_future = nio.control.future()
   local cb_id = next_cb_id
   next_cb_id = next_cb_id + 1
-  callbacks[cb_id] = send_result
+  callbacks[cb_id] = result_future.set
   logger.debug("Waiting for result", cb_id)
   local _, err = pcall(
     neotest.lib.subprocess.request,
@@ -137,13 +137,13 @@ function neotest.lib.subprocess.call(func, args)
     { cb_id, args or {} }
   )
   assert(not err, ("Invalid subprocess call: %s"):format(err))
-  return await_result()
+  return result_future.wait()
 end
 
 ---@private
 function neotest.lib.subprocess._remote_call(func, cb_id, args)
   logger.info("Received remote call", cb_id, func)
-  async.run(function()
+  nio.run(function()
     xpcall(function()
       local res = func(unpack(args))
       neotest.lib.subprocess.notify(

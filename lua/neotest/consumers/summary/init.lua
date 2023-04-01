@@ -1,5 +1,5 @@
 local lib = require("neotest.lib")
-local async = require("neotest.async")
+local nio = require("nio")
 local Summary = require("neotest.consumers.summary.summary")
 local config = require("neotest.config")
 
@@ -96,7 +96,7 @@ end
 ---  lua require("neotest").summary.toggle()
 ---<
 function neotest.summary.toggle()
-  async.run(function()
+  nio.run(function()
     if summary.win:is_open() then
       summary:close()
     else
@@ -173,7 +173,7 @@ function neotest.summary.target(adapter_id, position_id)
 end
 
 function neotest.summary:expand(pos_id, recursive)
-  async.run(function()
+  nio.run(function()
     summary:expand(pos_id, recursive)
   end)
 end

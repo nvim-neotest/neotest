@@ -1,5 +1,5 @@
-local async = require("neotest.async")
-local a = async.tests
+local nio = require("nio")
+local a = nio.tests
 local files = require("neotest.lib").files
 A = function(...)
   print(vim.inspect(...))
@@ -149,14 +149,14 @@ describe("files library", function()
       file:flush()
       local lines_iter, stop_reading = files.stream_lines(path)
       local result = {}
-      async.run(function()
+      nio.run(function()
         for lines in lines_iter do
           for _, line in ipairs(lines) do
             result[#result + 1] = line
           end
         end
       end)
-      async.util.sleep(0.1)
+      nio.sleep(0.1)
       stop_reading()
       assert.same({ "first", "second", "third" }, result)
     end)
@@ -166,20 +166,20 @@ describe("files library", function()
       file:flush()
       local lines_iter, stop_reading = files.stream_lines(path)
       local result = {}
-      async.run(function()
+      nio.run(function()
         for lines in lines_iter do
           for _, line in ipairs(lines) do
             result[#result + 1] = line
           end
         end
       end)
-      async.util.sleep(10)
+      nio.sleep(10)
       file:write("fourth")
       file:flush()
-      async.util.sleep(10)
+      nio.sleep(10)
       file:write("\nfifth\n")
       file:flush()
-      async.util.sleep(10)
+      nio.sleep(10)
       stop_reading()
       assert.same({ "first", "second", "third", "fourth", "fifth" }, result)
     end)

@@ -1,5 +1,5 @@
-local async = require("neotest.async")
-local a = async.tests
+local nio = require("nio")
+local a = nio.tests
 local lib = require("neotest.lib")
 
 describe("process lib", function()

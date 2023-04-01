@@ -1,7 +1,6 @@
-local async = require("neotest.async")
+local nio = require("nio")
 local config = require("neotest.config")
 local logger = require("neotest.logging")
-local lib = require("neotest.lib")
 
 ---@class neotest.TestRunner
 ---@field _processes neotest.ProcessTracker
@@ -92,7 +91,7 @@ function TestRunner:_run_tree(tree, args, adapter_id, adapter, results_callback)
   end
   local root = tree:root():data().path
   if args.concurrent ~= false and config.projects[root].running.concurrent then
-    async.util.join(async_runners)
+    nio.gather(async_runners)
   else
     for _, runner in ipairs(async_runners) do
       runner()
@@ -143,7 +142,7 @@ function TestRunner:_run_broken_down_tree(tree, args, adapter_id, adapter, resul
     end
     local root = tree:root():data().path
     if args.concurrent ~= false and config.projects[root].running.concurrent then
-      async.util.join(async_runners)
+      nio.gather(async_runners)
     else
       for _, runner in ipairs(async_runners) do
         runner()

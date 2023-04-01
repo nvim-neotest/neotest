@@ -1,5 +1,5 @@
 local logger = require("neotest.logging")
-local async = require("neotest.async")
+local nio = require("nio")
 local lib = require("neotest.lib")
 
 local Tree = require("neotest.types").Tree
@@ -115,7 +115,7 @@ function neotest.lib.treesitter.get_parse_root(file_path, content, opts)
   local fast = opts.fast ~= false
   local ft = lib.files.detect_filetype(file_path)
   local lang = require("nvim-treesitter.parsers").ft_to_lang(ft)
-  async.util.scheduler()
+  nio.scheduler()
   local lang_tree = vim.treesitter.get_string_parser(
     content,
     lang,
