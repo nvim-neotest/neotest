@@ -1,4 +1,4 @@
-local async = require("neotest.async")
+local nio = require("nio")
 local lib = require("neotest.lib")
 
 ---@private
@@ -28,8 +28,8 @@ function neotest.run.get_tree_from_args(args, store)
       local position_id = lib.files.path.real(args[1]) or args[1]
       return client:get_position(position_id, args)
     end
-    local file_path = async.fn.expand("%:p")
-    local row = async.fn.getpos(".")[2] - 1
+    local file_path = nio.fn.expand("%:p")
+    local row = nio.fn.getpos(".")[2] - 1
     return client:get_nearest(file_path, row, args)
   end)()
   if tree and store then
@@ -64,7 +64,7 @@ function neotest.run.run(args)
   if type(args) == "string" then
     args = { args }
   end
-  async.run(function()
+  nio.run(function()
     local tree = neotest.run.get_tree_from_args(args, true)
     if not tree then
       lib.notify("No tests found")
@@ -94,7 +94,7 @@ function neotest.run.run_last(args)
     lib.notify("No tests run yet")
     return
   end
-  async.run(function()
+  nio.run(function()
     local position_id, last_args = unpack(last_run)
     args = vim.tbl_extend("keep", args, last_args)
     local tree = client:get_position(position_id, args)
@@ -108,7 +108,7 @@ end
 
 local function get_tree_interactive()
   local running = client:running_positions()
-  local elem = async.ui.select(running, {
+  local elem = nio.ui.select(running, {
     prompt = "Select a position",
     format_item = function(elem)
       return elem.position:data().name
@@ -132,7 +132,7 @@ function neotest.run.stop(args)
   if type(args) == "string" then
     args = { args }
   end
-  async.run(function()
+  nio.run(function()
     local pos
     if args.interactive then
       pos = get_tree_interactive()
@@ -159,7 +159,7 @@ function neotest.run.attach(args)
   if type(args) == "string" then
     args = { args }
   end
-  async.run(function()
+  nio.run(function()
     local pos
     if args.interactive then
       pos = get_tree_interactive()

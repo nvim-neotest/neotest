@@ -1,4 +1,4 @@
-local async = require("neotest.async")
+local nio = require("nio")
 local FanoutAccum = require("neotest.types").FanoutAccum
 
 ---@param spec neotest.RunSpec
@@ -9,7 +9,7 @@ return function(spec)
   end
   local dap = require("dap")
 
-  local handler_id = "neotest_" .. async.fn.localtime()
+  local handler_id = "neotest_" .. nio.fn.localtime()
   local data_accum = FanoutAccum(function(prev, new)
     if not prev then
       return new
@@ -18,15 +18,15 @@ return function(spec)
   end, nil)
 
   local output_path = vim.fn.tempname()
-  local open_err, output_fd = async.uv.fs_open(output_path, "w", 438)
+  local open_err, output_fd = nio.uv.fs_open(output_path, "w", 438)
   assert(not open_err, open_err)
 
   data_accum:subscribe(function(data)
-    local write_err, _ = async.uv.fs_write(output_fd, data)
+    local write_err, _ = nio.uv.fs_write(output_fd, data)
     assert(not write_err, write_err)
   end)
 
-  local finish_cond = async.control.Condvar.new()
+  local finish_future = nio.control.future()
   local result_code
 
   local adapter_before = spec.strategy.before
@@ -34,21 +34,19 @@ return function(spec)
   spec.strategy.before = nil
   spec.strategy.after = nil
 
-  async.util.scheduler()
+  nio.scheduler()
   dap.run(vim.tbl_extend("keep", spec.strategy, { env = spec.env, cwd = spec.cwd }), {
     before = function(config)
       dap.listeners.after.event_output[handler_id] = function(_, body)
         if vim.tbl_contains({ "stdout", "stderr" }, body.category) then
-          async.run(function()
+          nio.run(function()
             data_accum:push(body.output)
           end)
         end
       end
       dap.listeners.after.event_exited[handler_id] = function(_, info)
         result_code = info.exitCode
-        async.run(function()
-          pcall(finish_cond.notify_all, finish_cond)
-        end)
+        finish_future.set()
       end
 
       return adapter_before and adapter_before() or config
@@ -65,14 +63,10 @@ return function(spec)
       return result_code ~= nil
     end,
     output_stream = function()
-      local sender, receiver = async.control.channel.mpsc()
-      data_accum:subscribe(function(d)
-        sender.send(d)
-      end)
+      local queue = nio.control.queue()
+      data_accum:subscribe(queue.put)
       return function()
-        return async.lib.first(function()
-          finish_cond:wait()
-        end, receiver.recv)
+        return nio.first({ finish_future.wait, queue.get })
       end
     end,
     output = function()
@@ -82,7 +76,7 @@ return function(spec)
       dap.repl.open()
     end,
     result = function()
-      finish_cond:wait()
+      finish_future:wait()
       return result_code
     end,
   }

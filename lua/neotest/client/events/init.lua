@@ -1,4 +1,4 @@
-local async = require("neotest.async")
+local nio = require("nio")
 local logger = require("neotest.logging")
 
 local M = {}
@@ -44,7 +44,7 @@ end
 ---@vararg any Arguments for the event
 function NeotestEventProcessor:emit(event, ...)
   local args = { ... }
-  async.run(function()
+  nio.run(function()
     logger.info("Emitting", event, "event")
     for name, listener in pairs(self.listeners[event] or {}) do
       logger.debug("Calling listener", name, "for event", event)

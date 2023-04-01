@@ -1,4 +1,4 @@
-local async = require("neotest.async")
+local nio = require("nio")
 local config = require("neotest.config")
 local icons = config.icons
 local hi = config.highlights
@@ -35,7 +35,7 @@ end
 
 local async_func = function(f)
   return function()
-    async.run(f)
+    nio.run(f)
   end
 end
 

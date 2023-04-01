@@ -1,5 +1,5 @@
 local lib = require("neotest.lib")
-local async = require("neotest.async")
+local nio = require("nio")
 local OutputPanel = require("neotest.consumers.output_panel.panel")
 
 ---@private
@@ -28,9 +28,9 @@ local init = function(client)
     if not chan then
       chan = lib.ui.open_term(panel.win:buffer())
       -- neovim sometimes adds random blank lines when creating a terminal buffer
-      async.api.nvim_buf_set_option(panel.win:buffer(), "modifiable", true)
-      async.api.nvim_buf_set_lines(panel.win:buffer(), 0, -1, false, {})
-      async.api.nvim_buf_set_option(panel.win:buffer(), "modifiable", false)
+      nio.api.nvim_buf_set_option(panel.win:buffer(), "modifiable", true)
+      nio.api.nvim_buf_set_lines(panel.win:buffer(), 0, -1, false, {})
+      nio.api.nvim_buf_set_option(panel.win:buffer(), "modifiable", false)
     end
     local files_to_read = {}
 
@@ -50,7 +50,7 @@ local init = function(client)
     for file, _ in pairs(files_to_read) do
       local output = lib.files.read(file)
       local dos_newlines = string.find(output, "\r\n") ~= nil
-      async.api.nvim_chan_send(chan, dos_newlines and output or output:gsub("\n", "\r\n"))
+      nio.api.nvim_chan_send(chan, dos_newlines and output or output:gsub("\n", "\r\n"))
     end
   end
 end
