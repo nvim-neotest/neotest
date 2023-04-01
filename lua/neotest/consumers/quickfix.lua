@@ -1,4 +1,4 @@
-local async = require("neotest.async")
+local nio = require("nio")
 local config = require("neotest.config")
 
 local neotest = {}
@@ -29,7 +29,7 @@ local init = function()
           local bufnr = buffer_cache[pos.path]
           if not bufnr then
             ---@diagnostic disable-next-line: param-type-mismatch
-            bufnr = async.fn.bufnr(pos.path)
+            bufnr = nio.fn.bufnr(pos.path)
             buffer_cache[pos.path] = bufnr
           end
 
@@ -54,16 +54,23 @@ local init = function()
         end
         return a.lnum < b.lnum
       end
+      if not a.filename then
+        return true
+      end
+      if not b.filename then
+        return false
+      end
+
       return a.filename < b.filename
     end)
 
-    async.fn.setqflist(qf_results)
+    nio.fn.setqflist(qf_results)
     if #qf_results > 0 then
       if config.quickfix.open then
         if type(config.quickfix.open) == "function" then
           config.quickfix.open()
         else
-          async.api.nvim_command("copen")
+          nio.api.nvim_command("copen")
         end
       end
     end

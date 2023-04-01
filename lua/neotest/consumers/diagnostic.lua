@@ -1,10 +1,10 @@
 local config = require("neotest.config")
 local lib = require("neotest.lib")
 local logger = require("neotest.logging")
-local async = require("neotest.async")
+local nio = require("nio")
 
 local function init(client)
-  local api = async.api
+  local api = nio.api
   local diag = vim.diagnostic
 
   local tracking_namespace = api.nvim_create_namespace("_neotest_diagnostic_tracking")
@@ -31,7 +31,7 @@ local function init(client)
     }
     self.__index = self
     setmetatable(buf_diag, self)
-    async.api.nvim_buf_attach(bufnr, false, {
+    nio.api.nvim_buf_attach(bufnr, false, {
       on_lines = function()
         buf_diag:draw_buffer()
       end,
@@ -137,8 +137,8 @@ local function init(client)
 
   local function draw_buffer(path, adapter_id)
     if not buf_diags[path] then
-      local bufnr = async.fn.bufnr(path)
-      if bufnr == -1 or async.fn.buflisted(bufnr) == 0 then
+      local bufnr = nio.fn.bufnr(path)
+      if bufnr == -1 or nio.fn.buflisted(bufnr) == 0 then
         return
       end
       if not client:get_results(adapter_id)[path] then
@@ -205,8 +205,8 @@ local function init(client)
     --- Could be thousands of file paths in the results. To avoid checking if each one is loaded which involves a
     --- vimscript call to bufnr, we create the set of buffers that are loaded and check against that.
     local valid_bufs = {}
-    for _, bufnr in ipairs(async.api.nvim_list_bufs()) do
-      local valid, name = pcall(async.api.nvim_buf_get_name, bufnr)
+    for _, bufnr in ipairs(nio.api.nvim_list_bufs()) do
+      local valid, name = pcall(nio.api.nvim_buf_get_name, bufnr)
       if valid then
         local bufpath, _ = lib.files.path.real(name)
         if bufpath then

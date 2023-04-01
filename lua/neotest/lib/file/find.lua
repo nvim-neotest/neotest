@@ -1,12 +1,8 @@
 local logger = require("neotest.logging")
-local async = require("neotest.async")
-local uv = async.uv
+local nio = require("nio")
+local uv = nio.uv
 local M = {}
 local lib = require("neotest.lib")
-
-local async_opendir = async.wrap(function(path, entries, cb)
-  return vim.loop.fs_opendir(path, cb, entries)
-end, 3)
 
 --- Find all files under the given directory.
 --- Does not search hidden directories.
@@ -22,13 +18,13 @@ function M.find(root, opts)
   local paths = {}
   local dir = ""
   local max_entries = 1000
-  local err, dir_handle = async_opendir(root, max_entries)
+  local err, dir_handle = uv.fs_opendir(root, max_entries)
   assert(not err, err)
   while dir_handle or #dirs_to_scan > 0 do
     if not dir_handle then
       dir = table.remove(dirs_to_scan, 1)
-      logger.debug("Scanning directory: " .. dir)
-      err, dir_handle = async_opendir(root .. sep .. dir, max_entries)
+      logger.debug("Scanning directory:", dir)
+      err, dir_handle = uv.fs_opendir(root .. sep .. dir, max_entries)
       assert(not err, err)
     end
 

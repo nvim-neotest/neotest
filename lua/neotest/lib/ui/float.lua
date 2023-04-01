@@ -1,5 +1,5 @@
-local async = require("neotest.async")
-local api = async.api
+local nio = require("nio")
+local api = nio.api
 local config = require("neotest.config")
 
 local M = {}
@@ -96,7 +96,7 @@ end
 --     buffer
 --     position
 function M.open(settings)
-  local position = settings.position or { line = async.fn.screenrow(), col = async.fn.screencol() }
+  local position = settings.position or { line = nio.fn.screenrow(), col = nio.fn.screencol() }
   local opts = create_opts(settings.width, settings.height, position)
   local content_buffer = settings.buffer or api.nvim_create_buf(false, true)
   local win_id = api.nvim_open_win(content_buffer, settings.enter or false, opts)

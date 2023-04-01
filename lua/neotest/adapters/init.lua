@@ -1,6 +1,6 @@
 local logger = require("neotest.logging")
 local config = require("neotest.config")
-local async = require("neotest.async")
+local nio = require("nio")
 local lib = require("neotest.lib")
 
 ---@class neotest.AdapterGroup
@@ -31,12 +31,12 @@ function AdapterGroup:adapters_matching_open_bufs(existing_roots)
   end
 
   local adapters = {}
-  local buffers = async.api.nvim_list_bufs()
+  local buffers = nio.api.nvim_list_bufs()
 
   local paths = lib.func_util.map(function(i, buf)
     local real
-    if async.api.nvim_buf_is_loaded(buf) then
-      local path = async.api.nvim_buf_get_name(buf)
+    if nio.api.nvim_buf_is_loaded(buf) then
+      local path = nio.api.nvim_buf_get_name(buf)
       real = lib.files.path.real(path)
     end
     return i, real or false

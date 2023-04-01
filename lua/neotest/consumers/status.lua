@@ -1,4 +1,4 @@
-local async = require("neotest.async")
+local nio = require("nio")
 local sign_group = "neotest-status"
 local config = require("neotest.config")
 
@@ -10,10 +10,10 @@ local function init(client)
     running = { text = config.icons.running, texthl = config.highlights.running },
   }
   for status, conf in pairs(statuses) do
-    async.fn.sign_define("neotest_" .. status, conf)
+    nio.fn.sign_define("neotest_" .. status, conf)
   end
 
-  local namespace = async.api.nvim_create_namespace(sign_group)
+  local namespace = nio.api.nvim_create_namespace(sign_group)
 
   local function place_sign(buf, pos, range, adapter_id, results)
     local status
@@ -27,13 +27,13 @@ local function init(client)
       return
     end
     if config.status.signs then
-      async.fn.sign_place(0, sign_group, "neotest_" .. status, pos.path, {
+      nio.fn.sign_place(0, sign_group, "neotest_" .. status, pos.path, {
         lnum = range[1] + 1,
         priority = 1000,
       })
     end
     if config.status.virtual_text then
-      async.api.nvim_buf_set_extmark(buf, namespace, range[1], 0, {
+      nio.api.nvim_buf_set_extmark(buf, namespace, range[1], 0, {
         virt_text = {
           { statuses[status].text .. " ", statuses[status].texthl },
         },
@@ -43,10 +43,10 @@ local function init(client)
 
   local function render_files(adapter_id, files)
     for _, file_path in pairs(files) do
-      if async.fn.buflisted(async.fn.bufnr(file_path)) ~= 0 then
+      if nio.fn.buflisted(nio.fn.bufnr(file_path)) ~= 0 then
         local results = client:get_results(adapter_id)
-        async.fn.sign_unplace(sign_group, { buffer = file_path })
-        async.api.nvim_buf_clear_namespace(async.fn.bufnr(file_path), namespace, 0, -1)
+        nio.fn.sign_unplace(sign_group, { buffer = file_path })
+        nio.api.nvim_buf_clear_namespace(nio.fn.bufnr(file_path), namespace, 0, -1)
         local tree = client:get_position(file_path, { adapter = adapter_id })
         if not tree then
           return
@@ -55,7 +55,7 @@ local function init(client)
           local pos = node:data()
           local range = node:closest_value_for("range")
           if pos.type ~= "file" then
-            place_sign(async.fn.bufnr(file_path), pos, range, adapter_id, results)
+            place_sign(nio.fn.bufnr(file_path), pos, range, adapter_id, results)
           end
         end
       end
