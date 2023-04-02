@@ -189,15 +189,24 @@ function neotest.Tree:root()
   return node
 end
 
----@return fun(): integer,neotest.Tree
-function neotest.Tree:iter_nodes()
+---@class neotest.types.tree.IterNodesArgs
+---@field continue fun(node: neotest.Tree): boolean A predicate for if the given node's children should be iterated over.  Defaults to `true`.
+
+---@param args? neotest.types.tree.IterNodesArgs
+---@return fun():integer,neotest.Tree
+function neotest.Tree:iter_nodes(args)
+  args = args or {}
   local child_i = 0
   local total_i = 1
   local child_iter = nil
+  local continue = not args.continue and true or args.continue(self)
   return function()
     if child_i == 0 then
       child_i = 1
       return 1, self
+    end
+    if not continue then
+      return nil
     end
 
     while true do
@@ -205,7 +214,7 @@ function neotest.Tree:iter_nodes()
         if #self._children < child_i then
           return nil
         end
-        child_iter = self._children[child_i]:iter_nodes()
+        child_iter = self._children[child_i]:iter_nodes(args)
       end
       local _, child_data = child_iter()
       if child_data then
@@ -218,9 +227,10 @@ function neotest.Tree:iter_nodes()
   end
 end
 
----@return fun(): integer,neotest.Position
-function neotest.Tree:iter()
-  local node_iter = self:iter_nodes()
+---@param args? neotest.types.tree.IterNodesArgs
+---@return fun():integer,neotest.Position
+function neotest.Tree:iter(args)
+  local node_iter = self:iter_nodes(args)
   return function()
     local i, node = node_iter()
     if not i then

@@ -31,4 +31,20 @@ describe("neotest tree", function()
       i = i + 1
     end
   end)
+  it("iterates with predicate", function()
+    local data = { 1, { 2, { 0 }, { 3, { 0 } } } }
+    local tree = Tree.from_list(data, function(x)
+      return x
+    end)
+    local i = 1
+    local iterator = tree:iter({
+      continue = function(x)
+        return x:data() == 1
+      end,
+    })
+    for _, elem in iterator do
+      assert.are.same(elem, i)
+      i = i + 1
+    end
+  end)
 end)

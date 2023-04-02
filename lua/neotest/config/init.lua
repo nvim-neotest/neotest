@@ -7,7 +7,7 @@ local function define_highlights()
   hi default NeotestFailed ctermfg=Red guifg=#F70067
   hi default NeotestRunning ctermfg=Yellow guifg=#FFEC63
   hi default NeotestSkipped ctermfg=Cyan guifg=#00f1f5
-  hi default link NeotestTest Normal 
+  hi default link NeotestTest Normal
   hi default NeotestNamespace ctermfg=Magenta guifg=#D484FF
   hi default NeotestFocused gui=bold,underline cterm=bold,underline
   hi default NeotestFile ctermfg=Cyan guifg=#00f1f5
@@ -18,6 +18,7 @@ local function define_highlights()
   hi default NeotestWinSelect ctermfg=Cyan guifg=#00f1f5 gui=bold
   hi default NeotestMarked ctermfg=Brown guifg=#F79000 gui=bold
   hi default NeotestTarget ctermfg=Red guifg=#F70067
+  hi default NeotestWatching ctermfg=Magenta guifg=#D484FF
   hi default link NeotestUnknown Normal
 ]])
 end
@@ -45,6 +46,7 @@ define_highlights()
 ---@field quickfix neotest.Config.quickfix
 ---@field status neotest.Config.status
 ---@field state neotest.Config.state
+---@field watch neotest.Config.watch
 ---@field diagnostic neotest.Config.diagnostic
 ---@field projects table<string, neotest.CoreConfig> Project specific settings, keys
 --- are project root directories (e.g "~/Dev/my_project")
@@ -100,6 +102,7 @@ define_highlights()
 ---@field clear_target string|string[] Clear the target position for the selected adapter
 ---@field next_failed string|string[] Jump to the next failed position
 ---@field prev_failed string|string[] Jump to the previous failed position
+---@field watch string|string[] Toggle watching for changes
 
 ---@class neotest.Config.output
 ---@field enabled boolean
@@ -125,6 +128,9 @@ define_highlights()
 ---@field enabled boolean
 ---@field virtual_text boolean Display status using virtual text
 ---@field signs boolean Display status using signs
+
+---@class neotest.Config.watch
+---@field enabled boolean
 
 ---@private
 ---@type neotest.Config
@@ -167,6 +173,7 @@ local default_config = {
     final_child_prefix = "╰",
     child_indent = "│",
     final_child_indent = " ",
+    watching = "",
   },
   highlights = {
     passed = "NeotestPassed",
@@ -186,6 +193,7 @@ local default_config = {
     marked = "NeotestMarked",
     target = "NeotestTarget",
     unknown = "NeotestUnknown",
+    watching = "NeotestWatching",
   },
   floating = {
     border = "rounded",
@@ -224,6 +232,7 @@ local default_config = {
       clear_target = "T",
       next_failed = "J",
       prev_failed = "K",
+      watch = "w",
     },
   },
   benchmark = {
@@ -257,6 +266,9 @@ local default_config = {
     open = true,
   },
   state = {
+    enabled = true,
+  },
+  watch = {
     enabled = true,
   },
   projects = {},
