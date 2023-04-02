@@ -9,6 +9,7 @@ neotest                                                                *neotest*
   Output Consumer.............................................|neotest.output|
   Output Panel Consumer.................................|neotest.output_panel|
   Run Consumer...................................................|neotest.run|
+  Watch Consumer...............................................|neotest.watch|
   Status Consumer.............................................|neotest.status|
   Diagnostic Consumer.....................................|neotest.diagnostic|
   Summary Consumer...........................................|neotest.summary|
@@ -101,7 +102,8 @@ Default values:
       skipped = "NeotestSkipped",
       target = "NeotestTarget",
       test = "NeotestTest",
-      unknown = "NeotestUnknown"
+      unknown = "NeotestUnknown",
+      watching = "NeotestWatching"
     },
     icons = {
       child_indent = "│",
@@ -116,7 +118,8 @@ Default values:
       running = "",
       running_animated = { "/", "|", "\\", "-", "/", "|", "\\", "-" },
       skipped = "",
-      unknown = ""
+      unknown = "",
+      watching = ""
     },
     jump = {
       enabled = true
@@ -177,9 +180,13 @@ Default values:
         run_marked = "R",
         short = "O",
         stop = "u",
-        target = "t"
+        target = "t",
+        watch = "w"
       },
       open = "botright vsplit | vertical resize 50"
+    },
+    watch = {
+      enabled = true
     }
   }
 <
@@ -219,6 +226,7 @@ Fields~
 {quickfix} `(neotest.Config.quickfix)`
 {status} `(neotest.Config.status)`
 {state} `(neotest.Config.state)`
+{watch} `(neotest.Config.watch)`
 {diagnostic} `(neotest.Config.diagnostic)`
 {projects} `(table<string, neotest.CoreConfig>)` Project specific settings,
 keys
@@ -293,6 +301,7 @@ for its adapter
 adapter
 {next_failed} `(string|string[])` Jump to the next failed position
 {prev_failed} `(string|string[])` Jump to the previous failed position
+{watch} `(string|string[])` Toggle watching for changes
 
                                                          *neotest.Config.output*
 Fields~
@@ -326,6 +335,10 @@ Fields~
 {enabled} `(boolean)`
 {virtual_text} `(boolean)` Display status using virtual text
 {signs} `(boolean)` Display status using signs
+
+                                                          *neotest.Config.watch*
+Fields~
+{enabled} `(boolean)`
 
 
 ==============================================================================
@@ -433,6 +446,7 @@ A consumer providing a simple interface to run tests.
 Inherits: `neotest.client.RunTreeArgs`
 
 Fields~
+{[1]} `(string?)` Position ID to run
 {suite} `(boolean)` Run the entire suite instead of a single position
 
                                                              *neotest.run.run()*
@@ -508,13 +522,6 @@ Parameters~
 args then
 args[1] should be the position ID.
 
-                                                        *neotest.run.adapters()*
-`adapters`()
-
-Get the list of all known adapter IDs.
-Return~
-`(string[])`
-
                                                     *neotest.run.get_last_run()*
 `get_last_run`()
 
@@ -523,6 +530,43 @@ Return~
 `(string|nil)` position_id
 Return~
 `(neotest.run.RunArgs|nil)` args
+
+
+==============================================================================
+neotest.watch                                                    *neotest.watch*
+
+
+Allows watching tests and re-running them whenever related files are
+changed. When watching a directory, all files are run in separate processes.
+Otherwise the tests are run in the same process (if allowed by the adapter).
+
+Related files are determined through an LSP client through a "best effort"
+which means there are cases where a file may not be determined as related
+despite it having an effect on a test.
+
+                                                         *neotest.watch.watch()*
+`watch`({args})
+
+Watch a position and run it whenever related files are changed.
+Arguments are the same as the `neotest.run.run`, which allows
+for custom runner arguments, env vars, strategy etc. If a position is
+already being watched, the existing watcher will be stopped.
+Parameters~
+{args?} `(neotest.run.RunArgs|string)`
+
+                                                          *neotest.watch.stop()*
+`stop`({pos_id})
+
+Stop watching a position. If no position is provided, all watched positions are stopped.
+
+                                                   *neotest.watch.is_watching()*
+`is_watching`({position_id})
+
+Check if a position is being watched.
+Parameters~
+{position_id} `(string)`
+Return~
+`(boolean)`
 
 
 ==============================================================================
@@ -1400,17 +1444,26 @@ Return~
 Return~
 `(neotest.Tree)`
 
-                                                     *neotest.Tree:iter_nodes()*
-`Tree:iter_nodes`()
+                                              *neotest.types.tree.IterNodesArgs*
+Fields~
+{continue} `(fun(node: neotest.Tree): boolean)` A predicate for if the given
+node's children should be iterated over.  Defaults to `true`.
 
+                                                     *neotest.Tree:iter_nodes()*
+`Tree:iter_nodes`({args})
+
+Parameters~
+{args?} `(neotest.types.tree.IterNodesArgs)`
 Return~
-`(fun(): integer,neotest.Tree)`
+`(fun():integer,neotest.Tree)`
 
                                                            *neotest.Tree:iter()*
-`Tree:iter`()
+`Tree:iter`({args})
 
+Parameters~
+{args?} `(neotest.types.tree.IterNodesArgs)`
 Return~
-`(fun(): integer,neotest.Position)`
+`(fun():integer,neotest.Position)`
 
                                                            *neotest.Tree:node()*
 `Tree:node`({index})

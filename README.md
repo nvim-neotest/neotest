@@ -178,6 +178,14 @@ For extra features neotest provides consumers which interact with the state of t
 
 Some consumers will be passive while others can be interacted with.
 
+### Watch Tests
+
+`:h neotest.watch`
+
+Watches files related to tests for changes and re-runs tests
+
+https://user-images.githubusercontent.com/24252670/229367494-6775d7f1-a8fb-461b-bbbd-d6124031293e.mp4
+
 ### Output Window
 
 `:h neotest.output`
@@ -220,6 +228,8 @@ Use vim.diagnostic to display error messages where they occur while running.
 Displays the status of a test/namespace beside the beginning of the definition.
 
 ![image](https://user-images.githubusercontent.com/24252670/166143402-b318ef91-c053-4973-b929-5ee97572f2c2.png)
+
+See the help doc for a list of all consumers and their documentation.
 
 ## Strategies
 
