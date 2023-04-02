@@ -5,7 +5,6 @@ local lib = require("neotest.lib")
 ---@type neotest.Client
 local client
 local last_run
-local client_ready = false
 
 local neotest = {}
 
@@ -15,7 +14,8 @@ local neotest = {}
 ---@class neotest.consumers.run
 neotest.run = {}
 
----@private
+---@package
+---@nodoc
 function neotest.run.get_tree_from_args(args, store)
   local tree, adapter = (function()
     if args.suite then
@@ -39,6 +39,7 @@ function neotest.run.get_tree_from_args(args, store)
 end
 
 ---@class neotest.run.RunArgs : neotest.client.RunTreeArgs
+---@field [1] string? Position ID to run
 ---@field suite boolean Run the entire suite instead of a single position
 
 --- Run the given position or the nearest position if not given.
@@ -170,11 +171,13 @@ end, 1)
 
 --- Get the list of all known adapter IDs.
 ---@return string[]
+---@nodoc
 function neotest.run.adapters()
-  if not client_ready then
-    return {}
-  end
-  return client:get_adapters()
+  lib.notify(
+    "`neotest.run.adapters` is deprecated, please use `neotest.state.adapter_ids` instead",
+    vim.log.levels.WARN
+  )
+  return require("neotest").state.adapter_ids()
 end
 
 --- Get last test position ID and args
@@ -191,9 +194,6 @@ neotest.run = setmetatable(neotest.run, {
   ---@param client_ neotest.Client
   __call = function(_, client_)
     client = client_
-    client.listeners.starting = function()
-      client_ready = true
-    end
     return neotest.run
   end,
 })
