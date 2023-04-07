@@ -186,7 +186,10 @@ Default values:
       open = "botright vsplit | vertical resize 50"
     },
     watch = {
-      enabled = true
+      enabled = true,
+      import_queries = {
+        python = "        ;query\n        (import_from_statement (_ (identifier) @symbol))\n        (import_statement (_ (identifier) @symbol))\n\n      "
+      }
     }
   }
 <
@@ -339,6 +342,8 @@ Fields~
                                                           *neotest.Config.watch*
 Fields~
 {enabled} `(boolean)`
+{import_queries} `(table<string, string>)` Queries to capture import symbols
+per language.
 
 
 ==============================================================================
