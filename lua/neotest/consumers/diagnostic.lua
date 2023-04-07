@@ -72,6 +72,18 @@ local function init(client)
   end
 
   function BufferDiagnostics:create_diagnostics(positions, results)
+    local function count_leading_spaces(str, count)
+      count = count or 0
+      local first_char = str:sub(1, 1)
+
+      if first_char == " " or first_char == "\t" then
+        local remaining_string = str:sub(2)
+        return count_leading_spaces(remaining_string, count + 1)
+      else
+        return count
+      end
+    end
+
     local bufnr = self.bufnr
     local diagnostics = {}
     for _, position in positions:iter() do
@@ -93,10 +105,11 @@ local function init(client)
               {}
             )
             local mark_code = api.nvim_buf_get_lines(bufnr, mark[1], mark[1] + 1, false)[1]
+
             if mark_code == self.error_code_lines[pos_id][error_i] then
               diagnostics[#diagnostics + 1] = {
                 lnum = mark[1],
-                col = 0,
+                col = count_leading_spaces(mark_code),
                 message = error.message,
                 source = "neotest",
                 severity = config.diagnostic.severity,
