@@ -9,6 +9,7 @@ nio.lsp = {}
 ---@class nio.lsp.Client
 ---@field request nio.lsp.RequestClient Interface to all requests that can be sent by the client
 ---@field notify nio.lsp.NotifyClient Interface to all notifications that can be sent by the client
+---@field server_capabilities nio.lsp.types.ServerCapabilities
 
 local async_request = tasks.wrap(function(client, method, params, bufnr, request_id_future, cb)
   local success, req_id = client.request(method, params, cb, bufnr)
@@ -37,6 +38,7 @@ function nio.lsp.client(client_id)
   end
 
   return {
+    server_capabilities = internal_client.server_capabilities,
     notify = setmetatable({}, {
       __index = function(_, method)
         method = convert_method(method)
