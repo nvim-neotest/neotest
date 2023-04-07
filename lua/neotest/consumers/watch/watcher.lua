@@ -1,6 +1,8 @@
 local lib = require("neotest.lib")
 local logger = require("neotest.logging")
 local nio = require("nio")
+local config = require("neotest.config")
+local f = lib.func_util
 
 local ItemKind = {
   Value = 12,
@@ -73,7 +75,8 @@ function Watcher:_item_key(item)
   )
 end
 
-function Watcher:_get_linked_files(uri, cwd_uri)
+function Watcher:_get_linked_files_by_calls(path)
+  local uri = vim.uri_from_fname(path)
   local uris = {}
 
   local symbols = self:_get_value_document_symbols(uri)
@@ -91,21 +94,69 @@ function Watcher:_get_linked_files(uri, cwd_uri)
       self.lsp_client.request.callHierarchy_outgoingCalls({ item = call_item })
 
     for _, call in ipairs(call_hierarchy or {}) do
-      if vim.startswith(call.to.uri, cwd_uri) then
-        uris[call.to.uri] = true
-      end
+      uris[call.to.uri] = true
       if call.to.uri == uri and not calls_checked[self:_item_key(call.to)] then
         call_items[#call_items + 1] = call.to
       end
     end
   end
 
-  local files = { vim.uri_to_fname(uri) }
-  for u in pairs(uris) do
-    if u ~= uri then
-      files[#files + 1] = vim.uri_to_fname(u)
+  return vim.tbl_keys(uris)
+end
+
+---@param args neotest.consumers.watch.WatchArgs
+function Watcher:_get_linked_files_by_imports(path, args)
+  local content = lib.files.read(path)
+  local root, lang = lib.treesitter.get_parse_root(path, content, {})
+  local query = args.queries[lang]
+  if not query then
+    logger.warn("No query for language: " .. lang)
+    return {}
+  end
+  local parsed_query = lib.treesitter.normalise_query(lang, query)
+  local symbols = {}
+  for id, node in parsed_query:iter_captures(root, content) do
+    if parsed_query.captures[id] == "symbol" then
+      symbols[#symbols + 1] = { node:range() }
     end
   end
+  local uri = vim.uri_from_fname(path)
+  local dependency_uris = {}
+  for _, range in ipairs(symbols) do
+    local _, defs = self.lsp_client.request.textDocument_definition({
+      position = { line = range[1], character = range[2] },
+      textDocument = { uri = uri },
+    })
+    for _, def in ipairs(defs or {}) do
+      dependency_uris[def.uri] = true
+    end
+  end
+  return vim.tbl_keys(dependency_uris)
+end
+
+---@class neotest.consumers.watch.WatchArgs
+---@field method "calls"|"imports"
+---@field limit_to_project boolean
+---@field queries table<string, string>
+
+---@param args neotest.consumers.watch.WatchArgs
+function Watcher:_get_linked_files(path, project_uri, args)
+  local uris
+  if args.method == "imports" then
+    uris = self:_get_linked_files_by_imports(path, args)
+  end
+  if uris == nil then
+    uris = self:_get_linked_files_by_calls(path)
+  end
+
+  local files = { path }
+  local path_uri = vim.uri_from_fname(path)
+  for _, uri in ipairs(uris) do
+    if uri ~= path_uri and (not args.limit_to_project or vim.startswith(uri, project_uri)) then
+      files[#files + 1] = vim.uri_to_fname(uri)
+    end
+  end
+
   return files
 end
 
@@ -129,13 +180,15 @@ function Watcher:_files_in_tree(tree)
   return paths
 end
 
+---@param root string
 ---@param paths string[]
-function Watcher:_build_dependencies(paths)
-  local cwd = vim.uri_from_fname(vim.loop.cwd())
+---@param args neotest.consumers.watch.WatchArgs
+function Watcher:_build_dependencies(root, paths, args)
+  local project_uri = vim.uri_from_fname(root)
 
-  local results = nio.gather(lib.func_util.map_list(function(_, path)
+  local results = nio.gather(f.map_list(function(_, path)
     return function()
-      return self:_get_linked_files(vim.uri_from_fname(path), cwd)
+      return self:_get_linked_files(path, project_uri, args)
     end
   end, paths))
 
@@ -161,8 +214,14 @@ end
 function Watcher:watch(tree, run_args)
   local run = require("neotest").run
   local paths = self:_files_in_tree(tree)
+  ---@type neotest.consumers.watch.WatchArgs
+  local watch_args = {
+    method = "imports",
+    queries = config.watch.import_queries,
+    limit_to_project = true,
+  }
 
-  local dependencies = self:_build_dependencies(paths)
+  local dependencies = self:_build_dependencies(tree:root():data().path, paths, watch_args)
   local dependants = self:_build_dependants(dependencies)
 
   self.autocmd_id = nio.api.nvim_create_autocmd("BufWritePost", {
@@ -212,8 +271,8 @@ local function get_valid_client_id(bufnr)
   for _, client in ipairs(sync_clients) do
     ---@type nio.lsp.types.ServerCapabilities
     local caps = client.server_capabilities
-    if caps.documentSymbolProvider and caps.callHierarchyProvider then
-      logger.debug("Found valid client", client.name, "for watch")
+    if caps.definitionProvider then
+      logger.debug("Found client", client.name, "for watch")
       return client.id
     end
   end
@@ -249,7 +308,7 @@ return function(run_args)
   local lsp_client = get_lsp_client(tree)
   if not lsp_client then
     lib.notify(
-      "No valid LSP client found. Client must support documentSymbolProvider and callHierarchyProvider"
+      "No valid LSP client found for watching. Ensure that at least one test file is open and has an LSP client attached."
     )
     return
   end
