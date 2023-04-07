@@ -131,6 +131,7 @@ define_highlights()
 
 ---@class neotest.Config.watch
 ---@field enabled boolean
+---@field import_queries table<string, string> Queries to capture import symbols per language.
 
 ---@private
 ---@type neotest.Config
@@ -270,6 +271,14 @@ local default_config = {
   },
   watch = {
     enabled = true,
+    import_queries = {
+      python = [[
+        ;query
+        (import_from_statement (_ (identifier) @symbol))
+        (import_statement (_ (identifier) @symbol))
+
+      ]],
+    },
   },
   projects = {},
 }
