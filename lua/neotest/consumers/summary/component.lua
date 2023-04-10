@@ -178,14 +178,17 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
         neotest.run.attach(position.id, { adapter = self.adapter_id })
       end)
     )
-    canvas:add_mapping("watch", function()
-      if neotest.watch.is_watching(position.id) then
-        neotest.watch.stop(position.id)
-      else
-        neotest.watch.watch({ position.id, adapter = self.adapter_id })
-      end
-      neotest.summary.render()
-    end)
+    canvas:add_mapping(
+      "watch",
+      async_func(function()
+        if neotest.watch.is_watching(position.id) then
+          neotest.watch.stop(position.id)
+        else
+          neotest.watch.watch({ position.id, adapter = self.adapter_id })
+        end
+        neotest.summary.render()
+      end)
+    )
     canvas:add_mapping(
       "output",
       async_func(function()
@@ -238,11 +241,12 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
     has_running = has_running or status == "running"
 
     local state_icon, state_icon_group = self:_state_icon(status)
-    canvas:write(" " .. state_icon .. " ", { group = state_icon_group })
 
     if neotest.watch.is_watching(position.id) then
-      canvas:write(config.icons.watching .. " ", { group = hi.watching })
+      state_icon = config.icons.watching
     end
+
+    canvas:write(" " .. state_icon .. " ", { group = state_icon_group })
 
     local name_groups = { config.highlights[position.type] }
     if focused == position.id then
