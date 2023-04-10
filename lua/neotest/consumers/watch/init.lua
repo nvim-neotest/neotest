@@ -17,6 +17,12 @@ local neotest = {}
 --- Related files are determined through an LSP client through a "best effort"
 --- which means there are cases where a file may not be determined as related
 --- despite it having an effect on a test.
+---
+--- To determine file relationships, a treesitter query is used to find symbols
+--- that are queried for using the `textDocument/definition` LSP request. The
+--- query can be configured through the watch consumer's config. Any captures
+--- named `symbol` will be used. If your language is not present in the default
+--- config, please submit a PR to add support out of the box!
 ---@class neotest.consumers.watch
 neotest.watch = {}
 
@@ -110,21 +116,22 @@ neotest.watch.watch = nio.create(function(args)
 end, 1)
 
 --- Stop watching a position. If no position is provided, all watched positions are stopped.
-function neotest.watch.stop(pos_id)
-  if not pos_id then
+---@param position_id string
+function neotest.watch.stop(position_id)
+  if not position_id then
     for watched in pairs(watchers) do
       neotest.watch.stop(watched)
     end
     return
   end
 
-  if not watchers[pos_id] then
-    lib.notify(("%s is not being watched"):format(pos_id), vim.log.levels.WARN)
+  if not watchers[position_id] then
+    lib.notify(("%s is not being watched"):format(position_id), vim.log.levels.WARN)
     return
   end
 
-  watchers[pos_id]:stop_watch()
-  watchers[pos_id] = nil
+  watchers[position_id]:stop_watch()
+  watchers[position_id] = nil
 end
 
 --- Check if a position is being watched.
