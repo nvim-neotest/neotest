@@ -18,7 +18,7 @@ local function define_highlights()
   hi default NeotestWinSelect ctermfg=Cyan guifg=#00f1f5 gui=bold
   hi default NeotestMarked ctermfg=Brown guifg=#F79000 gui=bold
   hi default NeotestTarget ctermfg=Red guifg=#F70067
-  hi default NeotestWatching ctermfg=Magenta guifg=#D484FF
+  hi default NeotestWatching ctermfg=Yellow guifg=#FFEC63
   hi default link NeotestUnknown Normal
 ]])
 end
@@ -53,11 +53,8 @@ define_highlights()
 
 ---@class neotest.Config.discovery
 ---@field enabled boolean
----@field concurrent integer Number of workers to parse files concurrently. 0
---- automatically assigns number based on CPU. Set to 1 if experiencing lag.
----@field filter_dir nil | fun(name: string, rel_path: string, root: string): boolean
---- A function to filter directories when searching for test files. Receives the name,
---- path relative to project root and project root path
+---@field concurrent integer Number of workers to parse files concurrently. 0 automatically assigns number based on CPU. Set to 1 if experiencing lag.
+---@field filter_dir nil | fun(name: string, rel_path: string, root: string): boolean A function to filter directories when searching for test files. Receives the name, path relative to project root and project root path
 
 ---@class neotest.Config.running
 ---@field concurrent boolean Run tests concurrently when an adapter provides multiple commands to run
@@ -131,7 +128,8 @@ define_highlights()
 
 ---@class neotest.Config.watch
 ---@field enabled boolean
----@field import_queries table<string, string> Queries to capture import symbols per language.
+---@field symbol_queries table<string, string> Queries to capture symbols that are used for querying the LSP server for defintions to link files.
+---@field filter_path? fun(path: string, root: string): boolean Returns whether the watcher should inspect a path for dependencies. Default ignores paths not under root or common package manager directories.
 
 ---@private
 ---@type neotest.Config
@@ -271,14 +269,20 @@ local default_config = {
   },
   watch = {
     enabled = true,
-    import_queries = {
+    symbol_queries = {
       python = [[
         ;query
         (import_from_statement (_ (identifier) @symbol))
         (import_statement (_ (identifier) @symbol))
-
+      ]],
+      lua = [[
+        ;query
+        (function_call 
+          name: ((identifier) @function (#eq? @function "require"))
+          arguments: (arguments (string) @symbol))
       ]],
     },
+    filter_path = nil,
   },
   projects = {},
 }
