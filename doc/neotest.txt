@@ -187,8 +187,9 @@ Default values:
     },
     watch = {
       enabled = true,
-      import_queries = {
-        python = "        ;query\n        (import_from_statement (_ (identifier) @symbol))\n        (import_statement (_ (identifier) @symbol))\n\n      "
+      symbol_queries = {
+        lua = '        ;query\n        ;Captures module names in require calls\n        (function_call \n          name: ((identifier) @function (#eq? @function "require"))\n          arguments: (arguments (string) @symbol))\n      ',
+        python = "        ;query\n        ;Captures imports and modules they're imported from\n        (import_from_statement (_ (identifier) @symbol))\n        (import_statement (_ (identifier) @symbol))\n      "
       }
     }
   }
@@ -241,9 +242,8 @@ Fields~
 {concurrent} `(integer)` Number of workers to parse files concurrently. 0
 automatically assigns number based on CPU. Set to 1 if experiencing lag.
 {filter_dir} `(nil)` | fun(name: string, rel_path: string, root: string):
-boolean
-A function to filter directories when searching for test files. Receives the name,
-path relative to project root and project root path
+boolean A function to filter directories when searching for test files.
+Receives the name, path relative to project root and project root path
 
                                                         *neotest.Config.running*
 Fields~
@@ -342,8 +342,11 @@ Fields~
                                                           *neotest.Config.watch*
 Fields~
 {enabled} `(boolean)`
-{import_queries} `(table<string, string>)` Queries to capture import symbols
-per language.
+{symbol_queries} `(table<string, string>)` Queries to capture symbols that are
+used for querying the LSP server for defintions to link files.
+{filter_path?} `(fun(path: string, root: string): boolean)` Returns whether
+the watcher should inspect a path for dependencies. Default ignores paths not
+under root or common package manager directories.
 
 
 ==============================================================================
@@ -549,6 +552,12 @@ Related files are determined through an LSP client through a "best effort"
 which means there are cases where a file may not be determined as related
 despite it having an effect on a test.
 
+To determine file relationships, a treesitter query is used to find symbols
+that are queried for using the `textDocument/definition` LSP request. The
+query can be configured through the watch consumer's config. Any captures
+named `symbol` will be used. If your language is not present in the default
+config, please submit a PR to add support out of the box!
+
                                                          *neotest.watch.watch()*
 `watch`({args})
 
@@ -560,9 +569,11 @@ Parameters~
 {args?} `(neotest.run.RunArgs|string)`
 
                                                           *neotest.watch.stop()*
-`stop`({pos_id})
+`stop`({position_id})
 
 Stop watching a position. If no position is provided, all watched positions are stopped.
+Parameters~
+{position_id} `(string)`
 
                                                    *neotest.watch.is_watching()*
 `is_watching`({position_id})

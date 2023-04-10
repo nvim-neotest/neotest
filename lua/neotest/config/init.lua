@@ -272,11 +272,13 @@ local default_config = {
     symbol_queries = {
       python = [[
         ;query
+        ;Captures imports and modules they're imported from
         (import_from_statement (_ (identifier) @symbol))
         (import_statement (_ (identifier) @symbol))
       ]],
       lua = [[
         ;query
+        ;Captures module names in require calls
         (function_call 
           name: ((identifier) @function (#eq? @function "require"))
           arguments: (arguments (string) @symbol))
