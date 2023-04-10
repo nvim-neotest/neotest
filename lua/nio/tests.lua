@@ -22,9 +22,9 @@ local with_timeout = function(func, timeout)
     end, 20, false)
 
     if success == nil then
-      error(string.format("Task timed out\n%s", task.trace()))
+      error(string.format("Test task timed out\n%s", task.trace()))
     elseif not success then
-      error(string.format("Task failed with message:\n%s", err))
+      error(string.format("Test task failed with message:\n%s", err))
     end
   end
 end

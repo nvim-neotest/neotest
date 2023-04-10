@@ -2,7 +2,8 @@ local nio = require("nio")
 local logger = require("neotest.logging")
 
 local child_chan, parent_chan
-local callbacks = {}
+---@type table<number, nio.control.Future>
+local futures = {}
 local next_cb_id = 1
 local enabled = false
 local neotest = { lib = {} }
@@ -85,9 +86,13 @@ end
 ---@private
 function neotest.lib.subprocess._register_result(callback_id, res, err)
   logger.debug("Result registed for callback", callback_id)
-  local cb = callbacks[callback_id]
-  callbacks[callback_id] = nil
-  cb(res, err)
+  local future = futures[callback_id]
+  futures[callback_id] = nil
+  if err then
+    future.set_error(err)
+  else
+    future.set(res)
+  end
 end
 
 local function get_chan()
@@ -123,12 +128,12 @@ end
 --- The function will be called in async context.
 ---@param func string A globally accessible function in the other process. e.g. `"require('neotest.lib').files.read"`
 ---@param args? any[] Arguments to pass to the function
----@return any,string? Result or error message if call failed
+---@return any result Value returned by remote call
 function neotest.lib.subprocess.call(func, args)
   local result_future = nio.control.future()
   local cb_id = next_cb_id
   next_cb_id = next_cb_id + 1
-  callbacks[cb_id] = result_future.set
+  futures[cb_id] = result_future
   logger.debug("Waiting for result", cb_id)
   local _, err = pcall(
     neotest.lib.subprocess.request,

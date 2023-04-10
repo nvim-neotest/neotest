@@ -56,6 +56,20 @@ function nio.wrap(func, argc)
   return tasks.wrap(func, argc)
 end
 
+--- Takes an async function and returns a function that can run in both async
+--- and non async contexts. When running in an async context, the function can
+--- return values, but when run in a non-async context, a Task object is
+--- returned and an extra callback argument can be supplied to receive the
+--- result, with the same signature as the callback for `nio.run`.
+---
+--- This is useful for APIs where users don't want to create async
+--- contexts but which are still used in async contexts internally.
+---@param func async fun(...)
+---@param argc? integer The number of arguments of func. Must be included if there are arguments.
+function nio.create(func, argc)
+  return tasks.create(func, argc)
+end
+
 --- Run a collection of async functions concurrently and return when
 --- all have finished.
 --- If any of the functions fail, all pending tasks will be cancelled and the
@@ -73,7 +87,7 @@ function nio.gather(functions)
   for i, func in ipairs(functions) do
     local task = tasks.run(func, function(success, ...)
       if not success then
-        err = { ... }
+        err = ...
         done_event.set()
       end
       results[#results + 1] = { i = i, success = success, result = ... }
@@ -88,7 +102,7 @@ function nio.gather(functions)
     for _, task in ipairs(running) do
       task.cancel()
     end
-    error(("%s\n%s"):format(unpack(err)))
+    error(err)
   end
   local sorted = {}
   for _, result in ipairs(results) do
