@@ -1,5 +1,6 @@
 local tasks = require("nio.tasks")
 local control = require("nio.control")
+local logger = require("nio.logger")
 
 local nio = {}
 
@@ -60,6 +61,7 @@ function nio.lsp.client(client_id)
           opts = opts or {}
           local err, result
 
+          local start = vim.loop.now()
           if opts.timeout then
             local req_future = control.future()
             err, result = n.first({
@@ -78,6 +80,8 @@ function nio.lsp.client(client_id)
           else
             err, result = async_request(internal_client, method, params, bufnr)
           end
+          local elapsed = vim.loop.now() - start
+          logger.trace("Request", method, "took", elapsed, "ms")
 
           return err, result
         end

@@ -190,7 +190,7 @@ function neotest.Client:_ensure_started()
 end
 
 ---@class neotest.client.GetPositionArgs
----@field adapter string Adapter ID
+---@field adapter? string Adapter ID
 
 ---@async
 ---@param position_id? string
@@ -243,7 +243,8 @@ end
 
 ---@async
 ---@param file_path string
----@return string,neotest.Adapter
+---@return string?
+---@return neotest.Adapter?
 function neotest.Client:get_adapter(file_path)
   self:_ensure_started()
   return self:_get_adapter(file_path, nil)
