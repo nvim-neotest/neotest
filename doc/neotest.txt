@@ -456,8 +456,7 @@ Debug the current file with nvim-dap
   lua require("neotest").run.run({vim.fn.expand("%"), strategy = "dap"})
 <
 Parameters~
-{args} `(string|neotest.run.RunArgs?)` Position ID to run or args. If args
-then args[1] should be the position ID.
+{args} `(string|neotest.run.RunArgs?)` Position ID to run or args.
 
                                                         *neotest.run.run_last()*
 `run_last`({args})
@@ -521,7 +520,9 @@ Return~
 
 Get last test position ID and args
 Return~
-`(string|nil,neotest.run.RunArgs|nil)` Position id and last args table
+`(string|nil)` position_id
+Return~
+`(neotest.run.RunArgs|nil)` args
 
 
 ==============================================================================
@@ -811,7 +812,7 @@ Return~
 
                                                 *neotest.client.GetPositionArgs*
 Fields~
-{adapter} `(string)` Adapter ID
+{adapter?} `(string)` Adapter ID
 
                                                  *neotest.Client:get_position()*
 `Client:get_position`({position_id}, {args})
@@ -851,7 +852,9 @@ Return~
 Parameters~
 {file_path} `(string)`
 Return~
-`(string,neotest.Adapter)`
+`(string?)`
+Return~
+`(neotest.Adapter?)`
 
 
 ==============================================================================

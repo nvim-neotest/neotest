@@ -52,6 +52,22 @@ argument must be the callback.
 Return~
 `(function)` Returns an async function
 
+                                                                  *nio.create()*
+`create`({func}, {argc})
+
+Takes an async function and returns a function that can run in both async
+and non async contexts. When running in an async context, the function can
+return values, but when run in a non-async context, a Task object is
+returned and an extra callback argument can be supplied to receive the
+result, with the same signature as the callback for `nio.run`.
+
+This is useful for APIs where users don't want to create async
+contexts but which are still used in async contexts internally.
+Parameters~
+{func} `(async fun(...))`
+{argc?} `(integer)` The number of arguments of func. Must be included if there
+are arguments.
+
                                                                   *nio.gather()*
 `gather`({functions})
 
@@ -193,6 +209,7 @@ Fields~
 by the client
 {notify} `(nio.lsp.NotifyClient)` Interface to all notifications that can be
 sent by the client
+{server_capabilities} `(nio.lsp.types.ServerCapabilities)`
 
                                                               *nio.lsp.client()*
 `client`({client_id})

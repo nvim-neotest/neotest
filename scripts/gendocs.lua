@@ -14,6 +14,7 @@ H.pattern_sets = {
     '^function%s+(%S-)(%b())',             -- Regular definition
     '^local%s+function%s+(%S-)(%b())',     -- Local definition
     '^(%S+)%s*=%s*function(%b())',         -- Regular assignment
+    '^(%S+)%s*=%s*nio.create%(function(%b())',         -- Regular assignment
     '^local%s+(%S+)%s*=%s*function(%b())', -- Local assignment
   },
   -- Determine if line is a general assignment
@@ -678,6 +679,10 @@ end
 local function create_config(module, header)
   return {
     hooks = vim.tbl_extend("force", minidoc.default_hooks, {
+      block_pre = function(b)
+        -- Infer metadata based on afterlines
+        if b:has_lines() and #b.info.afterlines > 0 then H.infer_header(b) end
+      end,
       section_post = function(section)
         for i, line in ipairs(section) do
           if type(line) == "string" then
