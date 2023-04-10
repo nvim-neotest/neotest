@@ -85,7 +85,11 @@ function neotest.lib.files.split_lines(data_iterator)
     end
   end
 
-  nio.run(producer)
+  nio.run(producer, function(success, err)
+    if not success then
+      logger.error("Error while splitting lines: " .. err)
+    end
+  end)
 
   return queue.get
 end
@@ -129,7 +133,11 @@ function neotest.lib.files.stream(file_path)
   assert(event, "Failed to create fs event")
   event:start(file_path, {}, function(err, _, _)
     assert(not err)
-    nio.run(read)
+    nio.run(read, function(success, stream_err)
+      if not success then
+        logger.error("Error while streaming file: " .. stream_err)
+      end
+    end)
   end)
 
   local function stop()
@@ -139,7 +147,11 @@ function neotest.lib.files.stream(file_path)
     assert(not close_err, close_err)
   end
 
-  nio.run(stop)
+  nio.run(stop, function(success, err)
+    if not success then
+      logger.error("Error while stopping file stream: " .. err)
+    end
+  end)
 
   return queue.get, exit_future.set
 end

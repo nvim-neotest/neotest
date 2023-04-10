@@ -20,7 +20,7 @@ describe("lsp client", function()
     local client = nio.lsp.client(1)
 
     local err, result =
-      client.request.textDocument_diagnostic(0, expected_params, { timeout = 1000 })
+      client.request.textDocument_diagnostic(expected_params, 0, { timeout = 1000 })
     assert.same(expected_result, result)
   end)
 
@@ -53,7 +53,7 @@ describe("lsp client", function()
 
     local client = nio.lsp.client(1)
 
-    local err, result = client.request.textDocument_diagnostic(0, {}, { timeout = 10 })
+    local err, result = client.request.textDocument_diagnostic({}, 0, { timeout = 10 })
     assert.same(err.message, "Request timed out")
     assert.Nil(result)
   end)
@@ -73,13 +73,14 @@ describe("lsp client", function()
 
     local client = nio.lsp.client(1)
 
-    pcall(client.request.textDocument_diagnostic, 0, {}, { timeout = 10 })
+    client.request.textDocument_diagnostic({}, 0, { timeout = 10 })
     assert.True(cancel_received)
   end)
 
   a.it("raises errors on client shutdown", function()
     vim.lsp.get_client_by_id = function(id)
       return {
+        id = id,
         request = function(method, params, callback, bufnr)
           return false
         end,
@@ -88,7 +89,8 @@ describe("lsp client", function()
 
     local client = nio.lsp.client(1)
 
-    local success, err = pcall(client.request.textDocument_diagnostic, 0, {}, { timeout = 10 })
+    local success, err = pcall(client.request.textDocument_diagnostic, {}, 0, { timeout = 10 })
+    assert.False(success)
     assert.Not.Nil(string.find(err, "Client 1 has shut down"))
   end)
 end)

@@ -1,4 +1,5 @@
 local nio = {}
+local logger = require("nio.logger")
 
 ---@class nio.tasks
 nio.tasks = {}
@@ -90,6 +91,8 @@ function nio.tasks.run(func, cb)
       future.set_error(err)
       if cb then
         cb(false, err)
+      else
+        error("Async task failed without callback: " .. err)
       end
     else
       future.set(unpack(result))
@@ -122,14 +125,13 @@ function nio.tasks.run(func, cb)
 
     local _, nargs, err_or_fn = unpack(yielded)
 
-    assert(
-      type(err_or_fn) == "function",
-      ("Async internal error: expected function, got %s\nContext: %s\n%s"):format(
+    if type(err_or_fn) ~= "function" then
+      error("Async internal error: expected function, got %s\nContext: %s\n%s"):format(
         type(err_or_fn),
         vim.inspect(yielded),
         debug.traceback(co)
       )
-    )
+    end
 
     local args = { select(4, unpack(yielded)) }
 
@@ -140,6 +142,30 @@ function nio.tasks.run(func, cb)
 
   step()
   return task
+end
+
+---@param func function
+---@param argc? number
+---@return function
+function nio.tasks.create(func, argc)
+  vim.validate({
+    func = { func, "function" },
+    argc = { argc, "number", true },
+  })
+  argc = argc or 0
+  return function(...)
+    if current_non_main_co() then
+      return func(...)
+    end
+    local args = { ... }
+    local callback
+    if #args > argc then
+      callback = table.remove(args)
+    end
+    return nio.tasks.run(function()
+      func(unpack(args))
+    end, callback)
+  end
 end
 
 ---@package

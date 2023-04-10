@@ -150,7 +150,7 @@ end
 ---   lua require("neotest").output.open({ enter = true })
 --- <
 ---@param opts? neotest.consumers.output.OpenArgs
-function neotest.output.open(opts)
+neotest.output.open = nio.create(function(opts)
   opts = opts or {}
   if win then
     if opts.short ~= short_opened then
@@ -162,36 +162,34 @@ function neotest.output.open(opts)
       opts.enter = true
     end
   end
-  nio.run(function()
-    local tree, adapter_id
-    if opts.last_run then
-      local position_id, last_args = require("neotest").run.get_last_run()
-      if position_id and last_args then
-        tree, adapter_id = client:get_position(position_id, last_args)
-      end
-      if not tree then
-        lib.notify("Last test run no longer exists")
-        return
-      end
-    elseif not opts.position_id then
-      local file_path = vim.fn.expand("%:p")
-      local row = vim.fn.getbufinfo(file_path)[1].lnum - 1
-      tree, adapter_id = client:get_nearest(file_path, row, opts)
-    else
-      tree, adapter_id = client:get_position(opts.position_id, opts)
+  local tree, adapter_id
+  if opts.last_run then
+    local position_id, last_args = require("neotest").run.get_last_run()
+    if position_id and last_args then
+      tree, adapter_id = client:get_position(position_id, last_args)
     end
     if not tree then
-      lib.notify("No tests found in file", "warn")
+      lib.notify("Last test run no longer exists")
       return
     end
-    local result = client:get_results(adapter_id)[tree:data().id]
-    if not result then
-      lib.notify("No output for " .. tree:data().name)
-      return
-    end
-    open_output(result, opts)
-  end)
-end
+  elseif not opts.position_id then
+    local file_path = vim.fn.expand("%:p")
+    local row = vim.fn.getbufinfo(file_path)[1].lnum - 1
+    tree, adapter_id = client:get_nearest(file_path, row, opts)
+  else
+    tree, adapter_id = client:get_position(opts.position_id, opts)
+  end
+  if not tree then
+    lib.notify("No tests found in file", "warn")
+    return
+  end
+  local result = client:get_results(adapter_id)[tree:data().id]
+  if not result then
+    lib.notify("No output for " .. tree:data().name)
+    return
+  end
+  open_output(result, opts)
+end, 1)
 
 neotest.output = setmetatable(neotest.output, {
   __call = function(_, client_)
