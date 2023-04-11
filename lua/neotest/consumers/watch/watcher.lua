@@ -22,13 +22,28 @@ function Watcher._parse_symbols(path, queries)
   if not query then
     error("No symbols query for language: " .. lang)
   end
+
   local parsed_query = lib.treesitter.normalise_query(lang, query)
   local symbols = {}
-  for id, node in parsed_query:iter_captures(root, content) do
-    if parsed_query.captures[id] == "symbol" then
-      symbols[#symbols + 1] = { node:range() }
+  for _, match, metadata in parsed_query:iter_matches(root, content) do
+    for id, node in pairs(match) do
+      local name = parsed_query.captures[id]
+
+      if name == "symbol" then
+        local start_row, start_col, end_row, end_col = node:range()
+        -- Some language(eg: elixir) symbols are not in the tree,
+        -- so we need to get the real symbol by the metadata,
+        -- then update symbol's range with real symbol range
+        if metadata[id] ~= nil then
+          local real_symbol_length = string.len(metadata[id]["text"])
+          start_col = end_col - real_symbol_length
+        end
+
+        symbols[#symbols + 1] = { start_row, start_col, end_row, end_col }
+      end
     end
   end
+
   return symbols
 end
 
@@ -49,6 +64,11 @@ function Watcher:_get_linked_files(path, root_path, args)
       position = { line = range[1], character = range[2] },
       textDocument = { uri = path_uri },
     })
+
+    if defs ~= nil and type(defs[1]) ~= "table" then
+      defs = { defs }
+    end
+
     for _, def in ipairs(defs or {}) do
       dependency_uris[def.uri or def.targetUri] = true
     end
@@ -139,7 +159,7 @@ function Watcher:watch(tree, args)
   local dependencies = {}
   self:_build_dependencies(tree:root():data().path, paths, args, dependencies)
   local elapsed = vim.loop.now() - start
-  logger.debug("Built dependencies in", elapsed, "ms for", tree:data().id, ":", dependencies)
+  logger.warn("Built dependencies in", elapsed, "ms for", tree:data().id, ":", dependencies)
   local dependants = self:_build_dependants(dependencies)
 
   self.autocmd_id = nio.api.nvim_create_autocmd("BufWritePost", {
