@@ -163,7 +163,7 @@ function nio.control.queue(max_size)
     if left_i == right_i then
       non_empty.clear()
     end
-    non_full.set()
+    non_full.set(1)
     return item
   end
 
