@@ -111,6 +111,7 @@ function TestRunner:_run_spec(spec, tree, args, adapter_id, adapter, results_cal
   if vim.tbl_isempty(spec.env or {}) then
     spec.env = nil
   end
+  spec.position = position
 
   local proc_key = self:_create_process_key(adapter_id, position.id)
 

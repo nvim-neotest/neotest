@@ -40,6 +40,7 @@
 ---@field cwd? string
 ---@field context? table Arbitrary data to preserve state between running and result collection
 ---@field strategy? table Arguments for strategy
+---@field position neotest.Position
 ---@field stream fun(output_stream: fun(): string[]): fun(): table<string, neotest.Result>
 
 local M = {}
