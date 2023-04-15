@@ -11,18 +11,17 @@ H.pattern_sets = {
   -- Determine if line is a function definition. Captures function name and
   -- arguments. For reference see '2.5.9 – Function Definitions' in Lua manual.
   afterline_fundef = {
-    '^function%s+(%S-)(%b())', -- Regular definition
-    '^local%s+function%s+(%S-)(%b())', -- Local definition
-    '^(%S+)%s*=%s*function(%b())', -- Regular assignment
+    '^function%s+(%S-)(%b())',             -- Regular definition
+    '^local%s+function%s+(%S-)(%b())',     -- Local definition
+    '^(%S+)%s*=%s*function(%b())',         -- Regular assignment
+    '^(%S+)%s*=%s*nio.create%(function(%b())',         -- Regular assignment
     '^local%s+(%S+)%s*=%s*function(%b())', -- Local assignment
   },
-
   -- Determine if line is a general assignment
   afterline_assign = {
-    '^(%S-)%s*=', -- General assignment
+    '^(%S-)%s*=',         -- General assignment
     '^local%s+(%S-)%s*=', -- Local assignment
   },
-
   -- Patterns to work with type descriptions
   -- (see https://github.com/sumneko/lua-language-server/wiki/EmmyLua-Annotations#types-and-type)
   types = {
@@ -109,11 +108,6 @@ H.default_input = function()
   end
 
   return vim.tbl_flatten(res)
-end
-
-H.default_output = function()
-  local cur_dir = vim.fn.fnamemodify(vim.loop.cwd(), ":t:r")
-  return ("doc/%s.txt"):format(cur_dir)
 end
 
 -- Parsing --------------------------------------------------------------------
@@ -654,36 +648,52 @@ H.message = function(msg)
   vim.cmd("echomsg " .. vim.inspect("(mini.doc) " .. msg))
 end
 
-minidoc.setup({})
-minidoc.generate(
-  {
-    "./lua/neotest/init.lua",
-    "./lua/neotest/config/init.lua",
-    "./lua/neotest/consumers/init.lua",
-    "./lua/neotest/consumers/output.lua",
-    "./lua/neotest/consumers/output_panel/init.lua",
-    "./lua/neotest/consumers/run.lua",
-    "./lua/neotest/consumers/status.lua",
-    "./lua/neotest/consumers/diagnostic.lua",
-    "./lua/neotest/consumers/summary/init.lua",
-    "./lua/neotest/consumers/jump.lua",
-    "./lua/neotest/consumers/quickfix.lua",
-    "./lua/neotest/consumers/state/init.lua",
-    "./lua/neotest/client/init.lua",
-    "./lua/neotest/lib/init.lua",
-    "./lua/neotest/lib/file/init.lua",
-    "./lua/neotest/lib/func_util/init.lua",
-    "./lua/neotest/lib/positions/init.lua",
-    "./lua/neotest/lib/treesitter/init.lua",
-    "./lua/neotest/lib/process/init.lua",
-    "./lua/neotest/lib/xml/init.lua",
-    "./lua/neotest/types/tree.lua",
-    "./lua/neotest/types/fanout_accum.lua",
-    "./lua/neotest/types/init.lua",
-  },
-  nil,
-  {
+local function wrap(str, limit, indent, indent1)
+  indent = indent or ""
+  indent1 = indent1 or indent
+  limit = limit or 79
+  local here = 1 - #indent1
+  local wrapped = indent1
+      .. str:gsub("(%s+)()(%S+)()", function(sp, st, word, fi)
+        local delta = 0
+        word:gsub("@([@%a])", function(c)
+          if c == "@" then
+            delta = delta + 1
+          elseif c == "x" then
+            delta = delta + 5
+          else
+            delta = delta + 2
+          end
+        end)
+        here = here + delta
+        if fi - here > limit then
+          here = st - #indent + delta
+          return "\n" .. indent .. word
+        end
+      end)
+
+  return vim.split(wrapped, "\n")
+end
+
+
+local function create_config(module, header)
+  return {
     hooks = vim.tbl_extend("force", minidoc.default_hooks, {
+      block_pre = function(b)
+        -- Infer metadata based on afterlines
+        if b:has_lines() and #b.info.afterlines > 0 then H.infer_header(b) end
+      end,
+      section_post = function(section)
+        for i, line in ipairs(section) do
+          if type(line) == "string" then
+            if string.find(line, "^```") then
+              string.gsub(line, "```(.*)", function(lang)
+                section[i] = lang == "" and "<" or (">%s"):format(lang)
+              end)
+            end
+          end
+        end
+      end,
       block_post = function(b)
         if not b:has_lines() then return end
 
@@ -723,8 +733,6 @@ minidoc.generate(
         -- b:insert(1, H.as_struct({ string.rep('=', 78) }, 'section'))
         b:insert(H.as_struct({ '' }, 'section'))
       end,
-
-
       doc = function(d)
         -- Render table of contents
         H.apply_recursively(function(x)
@@ -752,6 +760,11 @@ minidoc.generate(
           end
           H.enclose_var_name(s)
           H.enclose_type(s, '`%(%1%)`', s[1]:find('%s'))
+          local wrapped = wrap(s[1], 78, "")
+          s:remove(1)
+          for i, line in ipairs(wrapped) do
+            s:insert(i, line)
+          end
         end,
         ['@alias'] = function(s)
           local name = s[1]:match('%s*(%S*)')
@@ -760,10 +773,14 @@ minidoc.generate(
           H.add_section_heading(s, 'Alias')
           s:insert(1, H.as_struct({ ("*%s*"):format(name) }, "section", { id = "@tag" }))
         end,
-
         ['@param'] = function(s)
           H.enclose_var_name(s)
           H.enclose_type(s, '`%(%1%)`', s[1]:find('%s'))
+          local wrapped = wrap(s[1], 78, "")
+          s:remove(1)
+          for i, line in ipairs(wrapped) do
+            s:insert(i, line)
+          end
         end,
         ['@return'] = function(s)
           H.enclose_type(s, '`%(%1%)`', 1)
@@ -783,22 +800,19 @@ minidoc.generate(
           end
           s:insert(1, H.as_struct({ ("*%s*"):format(class_name) }, "section", { id = "@tag" }))
         end,
-
         ['@signature'] = function(s)
           s[1] = H.format_signature(s[1])
           if s[1] ~= "" then
             table.insert(s, "")
           end
         end,
-
       },
-
       file = function(f)
         if not f:has_lines() then
           return
         end
 
-        if f.info.path ~= "./lua/neotest/init.lua" then
+        if f.info.path ~= "./lua/" .. module .. "/init.lua" then
           f:insert(1, H.as_struct({ H.as_struct({ string.rep("=", 78) }, "section") }, "block"))
           f:insert(H.as_struct({ H.as_struct({ "" }, "section") }, "block"))
         else
@@ -807,7 +821,7 @@ minidoc.generate(
             H.as_struct(
               {
                 H.as_struct(
-                  { "*neotest.txt*	A framework to interact with tests within NeoVim" },
+                  { header },
                   "section"
                 ),
               },
@@ -821,4 +835,50 @@ minidoc.generate(
       end,
     }),
   }
+end
+
+minidoc.setup({})
+minidoc.generate(
+  {
+    "./lua/neotest/init.lua",
+    "./lua/neotest/config/init.lua",
+    "./lua/neotest/consumers/init.lua",
+    "./lua/neotest/consumers/output.lua",
+    "./lua/neotest/consumers/output_panel/init.lua",
+    "./lua/neotest/consumers/run.lua",
+    "./lua/neotest/consumers/status.lua",
+    "./lua/neotest/consumers/diagnostic.lua",
+    "./lua/neotest/consumers/summary/init.lua",
+    "./lua/neotest/consumers/jump.lua",
+    "./lua/neotest/consumers/quickfix.lua",
+    "./lua/neotest/consumers/state/init.lua",
+    "./lua/neotest/client/init.lua",
+    "./lua/neotest/lib/init.lua",
+    "./lua/neotest/lib/file/init.lua",
+    "./lua/neotest/lib/func_util/init.lua",
+    "./lua/neotest/lib/positions/init.lua",
+    "./lua/neotest/lib/treesitter/init.lua",
+    "./lua/neotest/lib/process/init.lua",
+    "./lua/neotest/lib/xml/init.lua",
+    "./lua/neotest/types/tree.lua",
+    "./lua/neotest/types/fanout_accum.lua",
+    "./lua/neotest/types/init.lua",
+  },
+  "doc/neotest.txt",
+  create_config("neotest", "*neotest.txt*	A framework to interact with tests within NeoVim")
+
+)
+minidoc.generate(
+  {
+    "./lua/nio/init.lua",
+    "./lua/nio/control.lua",
+    "./lua/nio/lsp.lua",
+    "./lua/nio/uv.lua",
+    "./lua/nio/ui.lua",
+    "./lua/nio/tests.lua",
+
+  },
+  "doc/nio.txt",
+  create_config("nio", "*nvim-nio.txt*	A library for asynchronous IO in Neovim")
+
 )

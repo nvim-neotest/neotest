@@ -1,5 +1,5 @@
 local lib = require("neotest.lib")
-local async = require("neotest.async")
+local nio = require("nio")
 local logger = require("neotest.logging")
 
 ---@return neotest.Strategy
@@ -9,12 +9,13 @@ end
 
 ---@class neotest.ProcessTracker
 ---@field _instances table<integer, neotest.Process>
+---@field _process_semaphore nio.control.Semaphore
 local ProcessTracker = {}
 
 function ProcessTracker:new()
   local tracker = {
     _instances = {},
-    _process_semaphore = async.control.Semaphore.new(#vim.loop.cpu_info() + 4),
+    _process_semaphore = nio.control.semaphore(#vim.loop.cpu_info() + 4),
   }
   self.__index = self
   setmetatable(tracker, self)
@@ -31,23 +32,24 @@ function ProcessTracker:run(pos_id, spec, args, stream_processor)
   local strategy = self:_get_strategy(args)
   logger.info("Starting process", pos_id, "with strategy", args.strategy)
   logger.debug("Strategy spec", spec)
-  local permit = self._process_semaphore:acquire()
-  local instance = strategy(spec)
-  if not instance then
-    lib.notify("Adapter doesn't support chosen strategy.", vim.log.levels.ERROR)
-    local output_path = async.fn.tempname()
-    assert(io.open(output_path, "w")):close()
-    return { code = 1, output = output_path }
-  end
-  self._instances[pos_id] = instance
-  if stream_processor then
-    local iterator = lib.files.split_lines(instance.output_stream())
-    async.run(function()
-      stream_processor(iterator)
-    end)
-  end
-  local code = instance.result()
-  permit:forget()
+  local instance, code
+  self._process_semaphore.with(function()
+    instance = strategy(spec)
+    if not instance then
+      lib.notify("Adapter doesn't support chosen strategy.", vim.log.levels.ERROR)
+      local output_path = nio.fn.tempname()
+      assert(io.open(output_path, "w")):close()
+      return { code = 1, output = output_path }
+    end
+    self._instances[pos_id] = instance
+    if stream_processor then
+      local iterator = lib.files.split_lines(instance.output_stream())
+      nio.run(function()
+        stream_processor(iterator)
+      end)
+    end
+    code = instance.result()
+  end)
   logger.info("Process for position", pos_id, "exited with code", code)
   local output = instance.output()
   logger.debug("Output of process ", output)

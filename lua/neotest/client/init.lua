@@ -1,4 +1,4 @@
-local async = require("neotest.async")
+local nio = require("nio")
 local config = require("neotest.config")
 local logger = require("neotest.logging")
 local lib = require("neotest.lib")
@@ -14,7 +14,7 @@ local neotest = {}
 --- The neotest client is the core of neotest, it communicates with adapters,
 --- running tests and collecting results.
 --- Most of the client methods are async and so need to be run in an async
---- context (i.e. `require("neotest.async").run(function() ... end))
+--- context (i.e. `require("nio").run(function() ... end))
 --- The client starts lazily, meaning that no parsing of tests will be performed
 --- until it is required. Care should be taken to not use the client methods on
 --- start because it can slow down startup.
@@ -190,7 +190,7 @@ function neotest.Client:_ensure_started()
 end
 
 ---@class neotest.client.GetPositionArgs
----@field adapter string Adapter ID
+---@field adapter? string Adapter ID
 
 ---@async
 ---@param position_id? string
@@ -243,7 +243,8 @@ end
 
 ---@async
 ---@param file_path string
----@return string,neotest.Adapter
+---@return string?
+---@return neotest.Adapter?
 function neotest.Client:get_adapter(file_path)
   self:_ensure_started()
   return self:_get_adapter(file_path, nil)
@@ -324,7 +325,7 @@ function neotest.Client:_parse_files(adapter_id, root, paths)
     table.insert(workers, worker)
   end
   logger.info("Discovering files with", #workers, "workers")
-  async.util.join(workers)
+  nio.gather(workers)
 end
 
 ---@async
@@ -380,12 +381,12 @@ function neotest.Client:_start(args)
   local start = vim.loop.now()
   self._started = true
   self._events:emit("starting")
-  local augroup = async.api.nvim_create_augroup("neotest.Client", { clear = true })
+  local augroup = nio.api.nvim_create_augroup("neotest.Client", { clear = true })
   local function autocmd(event, callback)
     if args.autocmds == false then
       return
     end
-    async.api.nvim_create_autocmd(event, {
+    nio.api.nvim_create_autocmd(event, {
       callback = callback,
       group = augroup,
     })
@@ -393,7 +394,7 @@ function neotest.Client:_start(args)
 
   autocmd({ "BufAdd", "BufWritePost" }, function()
     local file_path = vim.fn.expand("<afile>:p")
-    async.run(function()
+    nio.run(function()
       local adapter_id = self:_get_adapter(file_path)
       if not adapter_id then
         for a_id, _ in pairs(self._adapters) do
@@ -437,14 +438,14 @@ function neotest.Client:_start(args)
 
   autocmd("DirChanged", function()
     local dir = vim.loop.cwd()
-    async.run(function()
+    nio.run(function()
       self:_update_adapters(dir)
     end)
   end)
 
   autocmd({ "BufAdd", "BufDelete" }, function()
     local updated_dir = vim.fn.expand("<afile>:p:h")
-    async.run(function()
+    nio.run(function()
       local adapter_id = self:_get_adapter(updated_dir, nil)
       if not adapter_id then
         return
@@ -458,14 +459,14 @@ function neotest.Client:_start(args)
 
   autocmd("BufEnter", function()
     local path = vim.fn.expand("<afile>:p")
-    async.run(function()
+    nio.run(function()
       self:_set_focused_file(path)
     end)
   end)
 
   autocmd({ "CursorHold", "BufEnter" }, function()
     local path, line = vim.fn.expand("<afile>:p"), vim.fn.line(".")
-    async.run(function()
+    nio.run(function()
       local pos, pos_adapter_id = self:get_nearest(path, line - 1)
       if not pos then
         return
@@ -478,7 +479,7 @@ function neotest.Client:_start(args)
 
   local run_time = (vim.loop.now() - start) / 1000
   logger.info("Initialisation finished in", run_time, "seconds")
-  self:_set_focused_file(async.fn.expand("%:p"))
+  self:_set_focused_file(nio.fn.expand("%:p"))
   self._events:emit("started")
   return run_time
 end
@@ -487,8 +488,8 @@ end
 ---@private
 function neotest.Client:_update_open_buf_positions(adapter_id)
   local adapter = self._adapters[adapter_id]
-  for _, bufnr in ipairs(async.api.nvim_list_bufs()) do
-    local name = async.api.nvim_buf_get_name(bufnr)
+  for _, bufnr in ipairs(nio.api.nvim_list_bufs()) do
+    local name = nio.api.nvim_buf_get_name(bufnr)
     local file_path = lib.files.path.real(name) or name
     if adapter.is_test_file(file_path) then
       self:_update_positions(file_path, { adapter = adapter_id })

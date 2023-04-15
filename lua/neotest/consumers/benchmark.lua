@@ -1,4 +1,4 @@
-local async = require("neotest.async")
+local nio = require("nio")
 local lib = require("neotest.lib")
 local profile_available, profile = pcall(require, "plenary.profile")
 
@@ -25,7 +25,7 @@ function neotest.benchmark.start(args)
   local svg_path = args.svg_path or "profile.svg"
   local count = args.num_runs or 10
 
-  async.run(function()
+  nio.run(function()
     local total_time = 0
     profile.start(log_path, { flame = true })
     for _ = 1, count, 1 do
@@ -40,9 +40,9 @@ function neotest.benchmark.start(args)
     io.stdout:write(("Average time: %s\n"):format(total_time / count))
     io.stdout:write(("Wrote log to '%s'\n"):format(log_path))
     local flamegraph_exec
-    if async.fn.executable("inferno-flamegraph") == 1 then
+    if nio.fn.executable("inferno-flamegraph") == 1 then
       flamegraph_exec = "inferno-flamegraph"
-    elseif async.fn.executable("flamegraph") == 1 then
+    elseif nio.fn.executable("flamegraph") == 1 then
       flamegraph_exec = "flamegraph"
     end
     if flamegraph_exec then
@@ -52,7 +52,7 @@ function neotest.benchmark.start(args)
     else
       io.stdout:write("Unable to find flamegraph executable\n")
     end
-    async.util.scheduler()
+    nio.scheduler()
     vim.cmd("quit")
   end)
 end

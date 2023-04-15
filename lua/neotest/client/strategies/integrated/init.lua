@@ -1,4 +1,4 @@
-local async = require("neotest.async")
+local nio = require("nio")
 local lib = require("neotest.lib")
 local FanoutAccum = require("neotest.types").FanoutAccum
 
@@ -12,7 +12,7 @@ local FanoutAccum = require("neotest.types").FanoutAccum
 return function(spec)
   local env, cwd = spec.env, spec.cwd
 
-  local finish_cond = async.control.Condvar.new()
+  local finish_future = nio.control.future()
   local result_code = nil
   local command = spec.command
   local data_accum = FanoutAccum(function(prev, new)
@@ -23,36 +23,36 @@ return function(spec)
   end, nil)
 
   local attach_win, attach_buf, attach_chan
-  local output_path = async.fn.tempname()
-  local open_err, output_fd = async.uv.fs_open(output_path, "w", 438)
+  local output_path = nio.fn.tempname()
+  local open_err, output_fd = nio.uv.fs_open(output_path, "w", 438)
   assert(not open_err, open_err)
 
   data_accum:subscribe(function(data)
-    local write_err, _ = async.uv.fs_write(output_fd, data)
+    local write_err, _ = nio.uv.fs_write(output_fd, data)
     assert(not write_err, write_err)
   end)
 
-  local success, job = pcall(async.fn.jobstart, command, {
+  local success, job = pcall(nio.fn.jobstart, command, {
     cwd = cwd,
     env = env,
     pty = true,
     height = spec.strategy.height,
     width = spec.strategy.width,
     on_stdout = function(_, data)
-      async.run(function()
+      nio.run(function()
         data_accum:push(table.concat(data, "\n"))
       end)
     end,
     on_exit = function(_, code)
       result_code = code
-      finish_cond:notify_all()
+      finish_future.set()
     end,
   })
   if not success then
-    local write_err, _ = async.uv.fs_write(output_fd, job)
+    local write_err, _ = nio.uv.fs_write(output_fd, job)
     assert(not write_err, write_err)
     result_code = 1
-    finish_cond:notify_all()
+    finish_future.set()
   end
   return {
     is_complete = function()
@@ -62,29 +62,27 @@ return function(spec)
       return output_path
     end,
     stop = function()
-      async.fn.jobstop(job)
+      nio.fn.jobstop(job)
     end,
     output_stream = function()
-      local sender, receiver = async.control.channel.mpsc()
+      local queue = nio.control.queue()
       data_accum:subscribe(function(d)
-        sender.send(d)
+        queue.put(d)
       end)
       return function()
-        return async.lib.first(function()
-          finish_cond:wait()
-        end, receiver.recv)
+        return nio.first({ finish_future.wait, queue.get })
       end
     end,
     attach = function()
       if not attach_buf then
-        attach_buf = async.api.nvim_create_buf(false, true)
+        attach_buf = nio.api.nvim_create_buf(false, true)
         attach_chan = lib.ui.open_term(attach_buf, {
           on_input = function(_, _, _, data)
-            pcall(async.api.nvim_chan_send, job, data)
+            pcall(nio.api.nvim_chan_send, job, data)
           end,
         })
         data_accum:subscribe(function(data)
-          async.api.nvim_chan_send(attach_chan, data)
+          nio.api.nvim_chan_send(attach_chan, data)
         end)
       end
       attach_win = lib.ui.float.open({
@@ -97,11 +95,11 @@ return function(spec)
     end,
     result = function()
       if result_code == nil then
-        finish_cond:wait()
+        finish_future:wait()
       end
-      local close_err = async.uv.fs_close(output_fd)
+      local close_err = nio.uv.fs_close(output_fd)
       assert(not close_err, close_err)
-      pcall(async.fn.chanclose, job)
+      pcall(nio.fn.chanclose, job)
       if attach_win then
         attach_win:listen("close", function()
           pcall(vim.api.nvim_buf_delete, attach_buf, { force = true })

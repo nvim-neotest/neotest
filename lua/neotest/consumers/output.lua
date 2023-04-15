@@ -1,4 +1,4 @@
-local async = require("neotest.async")
+local nio = require("nio")
 local lib = require("neotest.lib")
 local config = require("neotest.config")
 
@@ -12,22 +12,22 @@ local function open_output(result, opts)
     end
     return
   end
-  local buf = async.api.nvim_create_buf(false, true)
+  local buf = nio.api.nvim_create_buf(false, true)
 
   local chan = lib.ui.open_term(buf)
 
   short_opened = opts.short
   -- See https://github.com/neovim/neovim/issues/14557
   local dos_newlines = string.find(output, "\r\n") ~= nil
-  async.api.nvim_chan_send(chan, dos_newlines and output or output:gsub("\n", "\r\n"))
+  nio.api.nvim_chan_send(chan, dos_newlines and output or output:gsub("\n", "\r\n"))
 
   -- TODO: For some reason, NeoVim fills the buffer with empty lines
   vim.api.nvim_buf_set_option(buf, "modifiable", true)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, {})
   vim.api.nvim_buf_set_option(buf, "modifiable", false)
 
-  async.util.sleep(10) -- Wait for chan to send
-  async.api.nvim_create_autocmd("TermEnter", {
+  nio.sleep(10) -- Wait for chan to send
+  nio.api.nvim_create_autocmd("TermEnter", {
     buffer = buf,
     callback = function()
       vim.api.nvim_feedkeys(
@@ -38,7 +38,7 @@ local function open_output(result, opts)
     end,
   })
 
-  local lines = async.api.nvim_buf_get_lines(buf, 0, -1, false)
+  local lines = nio.api.nvim_buf_get_lines(buf, 0, -1, false)
   local width, height = 80, #lines
   for i, line in ipairs(lines) do
     if i > 500 then
@@ -105,7 +105,7 @@ local init = function()
       if win then
         return
       end
-      local cur_pos = async.fn.getpos(".")
+      local cur_pos = nio.fn.getpos(".")
       local line = cur_pos[2] - 1
       local buf_path = vim.fn.expand("%:p")
       local positions = client:get_position(buf_path)
@@ -150,7 +150,7 @@ end
 ---   lua require("neotest").output.open({ enter = true })
 --- <
 ---@param opts? neotest.consumers.output.OpenArgs
-function neotest.output.open(opts)
+neotest.output.open = nio.create(function(opts)
   opts = opts or {}
   if win then
     if opts.short ~= short_opened then
@@ -162,36 +162,34 @@ function neotest.output.open(opts)
       opts.enter = true
     end
   end
-  async.run(function()
-    local tree, adapter_id
-    if opts.last_run then
-      local position_id, last_args = require("neotest").run.get_last_run()
-      if position_id and last_args then
-        tree, adapter_id = client:get_position(position_id, last_args)
-      end
-      if not tree then
-        lib.notify("Last test run no longer exists")
-        return
-      end
-    elseif not opts.position_id then
-      local file_path = vim.fn.expand("%:p")
-      local row = vim.fn.getbufinfo(file_path)[1].lnum - 1
-      tree, adapter_id = client:get_nearest(file_path, row, opts)
-    else
-      tree, adapter_id = client:get_position(opts.position_id, opts)
+  local tree, adapter_id
+  if opts.last_run then
+    local position_id, last_args = require("neotest").run.get_last_run()
+    if position_id and last_args then
+      tree, adapter_id = client:get_position(position_id, last_args)
     end
     if not tree then
-      lib.notify("No tests found in file", "warn")
+      lib.notify("Last test run no longer exists")
       return
     end
-    local result = client:get_results(adapter_id)[tree:data().id]
-    if not result then
-      lib.notify("No output for " .. tree:data().name)
-      return
-    end
-    open_output(result, opts)
-  end)
-end
+  elseif not opts.position_id then
+    local file_path = vim.fn.expand("%:p")
+    local row = vim.fn.getbufinfo(file_path)[1].lnum - 1
+    tree, adapter_id = client:get_nearest(file_path, row, opts)
+  else
+    tree, adapter_id = client:get_position(opts.position_id, opts)
+  end
+  if not tree then
+    lib.notify("No tests found in file", "warn")
+    return
+  end
+  local result = client:get_results(adapter_id)[tree:data().id]
+  if not result then
+    lib.notify("No output for " .. tree:data().name)
+    return
+  end
+  open_output(result, opts)
+end, 1)
 
 neotest.output = setmetatable(neotest.output, {
   __call = function(_, client_)

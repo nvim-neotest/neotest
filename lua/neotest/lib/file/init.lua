@@ -1,6 +1,6 @@
 local logger = require("neotest.logging")
 local Path = require("plenary.path")
-local async = require("neotest.async")
+local nio = require("nio")
 local filetype = require("plenary.filetype")
 local fu = require("neotest.lib.func_util")
 local types = require("neotest.types")
@@ -20,13 +20,13 @@ neotest.lib.files = {}
 ---@return string
 function neotest.lib.files.read(file_path)
   logger.debug("Reading file: " .. file_path)
-  local open_err, file_fd = async.uv.fs_open(file_path, "r", 438)
+  local open_err, file_fd = nio.uv.fs_open(file_path, "r", 438)
   assert(not open_err, open_err)
-  local stat_err, stat = async.uv.fs_fstat(file_fd)
+  local stat_err, stat = nio.uv.fs_fstat(file_fd)
   assert(not stat_err, stat_err)
-  local read_err, data = async.uv.fs_read(file_fd, stat.size, 0)
+  local read_err, data = nio.uv.fs_read(file_fd, stat.size, 0)
   assert(not read_err, read_err)
-  local close_err = async.uv.fs_close(file_fd)
+  local close_err = nio.uv.fs_close(file_fd)
   assert(not close_err, close_err)
   return data
 end
@@ -36,11 +36,11 @@ end
 ---@param data string
 function neotest.lib.files.write(file_path, data)
   logger.debug("Writing file: " .. file_path)
-  local open_err, file_fd = async.uv.fs_open(file_path, "w", 438)
+  local open_err, file_fd = nio.uv.fs_open(file_path, "w", 438)
   assert(not open_err, open_err)
-  local write_err = async.uv.fs_write(file_fd, data, 0)
+  local write_err = nio.uv.fs_write(file_fd, data, 0)
   assert(not write_err, write_err)
-  local close_err = async.uv.fs_close(file_fd)
+  local close_err = nio.uv.fs_close(file_fd)
   assert(not close_err, close_err)
 end
 
@@ -59,7 +59,7 @@ end
 ---@param data_iterator fun(): string
 ---@return fun(): string[]
 function neotest.lib.files.split_lines(data_iterator)
-  local sender, receiver = async.control.channel.mpsc()
+  local queue = nio.control.queue()
 
   local producer = function()
     local orig = ""
@@ -80,14 +80,18 @@ function neotest.lib.files.split_lines(data_iterator)
         if not ends_with_newline then
           pending_data = table.remove(next_lines, #next_lines)
         end
-        sender.send(next_lines)
+        queue.put(next_lines)
       end
     end
   end
 
-  async.run(producer)
+  nio.run(producer, function(success, err)
+    if not success then
+      logger.error("Error while splitting lines: " .. err)
+    end
+  end)
 
-  return receiver.recv
+  return queue.get
 end
 
 --- Streams data from a file, watching for new data over time
@@ -95,57 +99,67 @@ end
 --- Useful for watching a file which is written to by another process.
 ---@async
 ---@param file_path string
----@return (fun(): string, fun()) Iterator and callback to stop streaming
+---@return fun(): string Iterator
+---@return function Callback to stop streaming
 function neotest.lib.files.stream(file_path)
-  local sender, receiver = async.control.channel.mpsc()
-  local read_semaphore = async.control.Semaphore.new(1)
+  local queue = nio.control.queue()
+  local read_semaphore = nio.control.semaphore(1)
 
-  local open_err, file_fd = async.uv.fs_open(file_path, "r", 438)
-  assert(not open_err, open_err)
+  local open_err, file_fd = nio.uv.fs_open(file_path, "r", 438)
+  assert(not open_err and file_fd, open_err)
   local data_read = 0
 
-  local send_exit, await_exit = async.control.channel.oneshot()
+  local exit_future = nio.control.future()
   local read = function()
-    local permit = read_semaphore:acquire()
-    local stat_err, stat = async.uv.fs_fstat(file_fd)
-    assert(not stat_err, stat_err)
-    if data_read == stat.size then
-      permit:forget()
-      return
-    end
-    if data_read > stat.size then
-      send_exit()
-      error("Data deleted from file while streaming")
-    end
-    local read_err, data = async.uv.fs_read(file_fd, stat.size - data_read, data_read)
-    assert(not read_err, read_err)
-    data_read = #data + data_read
-    permit:forget()
-    sender.send(data)
+    read_semaphore.with(function()
+      local stat_err, stat = nio.uv.fs_fstat(file_fd)
+      assert(not stat_err and stat, stat_err)
+      if data_read == stat.size then
+        return
+      end
+      if data_read > stat.size then
+        exit_future.set_error("Data deleted from file while streaming")
+        error("Data deleted from file while streaming")
+      end
+      local read_err, data = nio.uv.fs_read(file_fd, stat.size - data_read, data_read)
+      assert(not read_err, read_err)
+      data_read = #data + data_read
+      queue.put(data)
+    end)
   end
 
   read()
   local event = vim.loop.new_fs_event()
+  assert(event, "Failed to create fs event")
   event:start(file_path, {}, function(err, _, _)
     assert(not err)
-    async.run(read)
+    nio.run(read, function(success, stream_err)
+      if not success then
+        logger.error("Error while streaming file: " .. stream_err)
+      end
+    end)
   end)
 
   local function stop()
-    await_exit()
+    exit_future.wait()
     event:stop()
-    local close_err = async.uv.fs_close(file_fd)
+    local close_err = nio.uv.fs_close(file_fd)
     assert(not close_err, close_err)
   end
 
-  async.run(stop)
+  nio.run(stop, function(success, err)
+    if not success then
+      logger.error("Error while stopping file stream: " .. err)
+    end
+  end)
 
-  return receiver.recv, send_exit
+  return queue.get, exit_future.set
 end
 
 --- Stream data from a file over time, splitting the content into lines
 ---@param file_path string
----@return (fun(): string[], fun()) Iterator and callback to stop streaming
+---@return fun(): string[] Iterator
+---@return fun() Callback to stop streaming
 function neotest.lib.files.stream_lines(file_path)
   local stream, stop = neotest.lib.files.stream(file_path)
   return neotest.lib.files.split_lines(stream), stop
@@ -169,7 +183,7 @@ end
 ---@param path string
 ---@return boolean
 function neotest.lib.files.is_dir(path)
-  return async.fn.isdirectory(path) == 1
+  return nio.fn.isdirectory(path) == 1
 end
 
 ---@class neotest.lib.files.FindOptions
@@ -216,7 +230,7 @@ neotest.lib.files.path = {
   sep = neotest.lib.files.sep,
   exists = neotest.lib.files.exists,
   real = function(path)
-    local err, real = async.uv.fs_realpath(path)
+    local err, real = nio.uv.fs_realpath(path)
     return real, err
   end,
 }
@@ -355,7 +369,7 @@ function neotest.lib.files.match_root_pattern(...)
     end
     for _, path in ipairs(valid_roots) do
       for _, pattern in ipairs(patterns) do
-        for _, p in ipairs(async.fn.glob(Path:new(path, pattern).filename, true, true)) do
+        for _, p in ipairs(nio.fn.glob(Path:new(path, pattern).filename, true, true)) do
           if neotest.lib.files.exists(p) then
             return path
           end

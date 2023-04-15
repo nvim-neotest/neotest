@@ -1,4 +1,4 @@
-local async = require("neotest.async")
+local nio = require("nio")
 
 local neotest = { lib = {} }
 ---@toc_entry Library: Processes
@@ -29,51 +29,47 @@ function neotest.lib.process.run(command, args)
   local stdin = vim.loop.new_pipe()
   local stdout = vim.loop.new_pipe()
   local stderr = vim.loop.new_pipe()
-  local result_code
-  local send_exit, await_exit = async.control.channel.oneshot()
+  local exit_future = nio.control.future()
 
   local handle, pid = vim.loop.spawn(command[1], {
     stdio = { stdin, stdout, stderr },
     detached = false,
     args = #command > 1 and vim.list_slice(command, 2, #command) or nil,
-  }, function(code)
-    result_code = code
-    send_exit()
-  end)
+  }, exit_future.set)
 
   if not handle then
     error(pid)
   end
 
-  await_exit()
+  local result_code = exit_future.wait()
   handle:close()
 
   local stdout_data, stderr_data
   if args.stdout then
     stdout_data = ""
-    local send_read, await_read = async.control.channel.oneshot()
+    local read_future = nio.control.future()
     stdout:read_start(function(err, data)
       assert(not err, err)
       if data then
         stdout_data = stdout_data .. data
       else
-        send_read()
+        read_future.set()
       end
     end)
-    await_read()
+    read_future.wait()
   end
   if args.stderr then
     stderr_data = ""
-    local send_read, await_read = async.control.channel.oneshot()
+    local read_future = nio.control.future()
     stderr:read_start(function(err, data)
       assert(not err, err)
       if data then
         stderr_data = stderr_data .. data
       else
-        send_read()
+        read_future.set()
       end
     end)
-    await_read()
+    read_future.wait()
   end
 
   stdin:close()

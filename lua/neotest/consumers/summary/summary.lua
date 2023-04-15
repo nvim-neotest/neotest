@@ -3,7 +3,7 @@ local logger = require("neotest.logging")
 local config = require("neotest.config")
 local Canvas = require("neotest.consumers.summary.canvas")
 local SummaryComponent = require("neotest.consumers.summary.component")
-local async = require("neotest.async")
+local nio = require("nio")
 
 local events = {
   open = "NeotestSummaryOpen",
@@ -14,7 +14,7 @@ local events = {
 ---@field client neotest.Client
 ---@field win neotest.PersistentWindow
 ---@field components table<string, SummaryComponent>
----@field render_cond table
+---@field render_ready nio.control.Event
 ---@field focused? string
 ---@field running boolean
 local Summary = {}
@@ -31,7 +31,7 @@ function Summary:new(client)
       },
     }),
     components = {},
-    render_cond = async.control.Condvar.new(),
+    render_ready = nio.control.event(),
     focused = nil,
     running = false,
   }, self)
@@ -50,7 +50,6 @@ function Summary:close()
   vim.api.nvim_exec_autocmds("User", { pattern = events.close })
 end
 
-local pending_render = false
 local all_expanded = {}
 
 function Summary:render(expanded)
@@ -58,15 +57,14 @@ function Summary:render(expanded)
     return
   end
   if not self.running then
-    async.run(function()
+    nio.run(function()
       self:run()
     end)
   end
   for pos_id, _ in pairs(expanded or {}) do
     all_expanded[pos_id] = true
   end
-  pending_render = true
-  self.render_cond:notify_all()
+  self.render_ready.set()
 end
 
 function Summary:set_starting()
@@ -84,10 +82,8 @@ function Summary:run()
   self.running = true
   xpcall(function()
     while true do
-      if not pending_render then
-        self.render_cond:wait()
-      end
-      pending_render = false
+      self.render_ready.wait()
+      self.render_ready.clear()
       local canvas = Canvas.new(config.summary)
       local cwd = vim.loop.cwd()
       if self._starting then
@@ -98,18 +94,15 @@ function Summary:run()
             { group = config.highlights.adapter_name }
           )
           if tree:data().path ~= cwd then
-            local root_dir = async.fn.fnamemodify(tree:data().path, ":.")
+            local root_dir = nio.fn.fnamemodify(tree:data().path, ":.")
             canvas:write(root_dir .. "\n", { group = config.highlights.dir })
           end
           self.components[adapter_id] = self.components[adapter_id]
             or SummaryComponent(self.client, adapter_id)
           if config.summary.animated then
-            pending_render = self.components[adapter_id]:render(
-              canvas,
-              tree,
-              all_expanded,
-              self.focused
-            ) or pending_render
+            if self.components[adapter_id]:render(canvas, tree, all_expanded, self.focused) then
+              self.render_ready.set()
+            end
           else
             self.components[adapter_id]:render(canvas, tree, all_expanded, self.focused)
           end
@@ -117,7 +110,7 @@ function Summary:run()
           canvas:write("\n")
         end
       else
-        async.run(function()
+        nio.run(function()
           self.client:get_adapters()
         end)
       end
@@ -133,8 +126,8 @@ function Summary:run()
       if not rendered then
         logger.error("Couldn't render buffer", err)
       end
-      async.api.nvim_exec("redraw", false)
-      async.util.sleep(100)
+      nio.api.nvim_exec("redraw", false)
+      nio.sleep(100)
     end
   end, function(msg)
     logger.error("Error in summary consumer", debug.traceback(msg, 2))

@@ -1,4 +1,4 @@
-local async = require("neotest.async")
+local nio = require("nio")
 local lib = require("neotest.lib")
 
 ---@private
@@ -28,8 +28,8 @@ function neotest.run.get_tree_from_args(args, store)
       local position_id = lib.files.path.real(args[1]) or args[1]
       return client:get_position(position_id, args)
     end
-    local file_path = async.fn.expand("%:p")
-    local row = async.fn.getpos(".")[2] - 1
+    local file_path = nio.fn.expand("%:p")
+    local row = nio.fn.getpos(".")[2] - 1
     return client:get_nearest(file_path, row, args)
   end)()
   if tree and store then
@@ -58,21 +58,19 @@ end
 --- >vim
 ---   lua require("neotest").run.run({vim.fn.expand("%"), strategy = "dap"})
 --- <
----@param args string|neotest.run.RunArgs? Position ID to run or args. If args then args[1] should be the position ID.
-function neotest.run.run(args)
+---@param args string|neotest.run.RunArgs? Position ID to run or args.
+neotest.run.run = nio.create(function(args)
   args = args or {}
   if type(args) == "string" then
     args = { args }
   end
-  async.run(function()
-    local tree = neotest.run.get_tree_from_args(args, true)
-    if not tree then
-      lib.notify("No tests found")
-      return
-    end
-    client:run_tree(tree, args)
-  end)
-end
+  local tree = neotest.run.get_tree_from_args(args, true)
+  if not tree then
+    lib.notify("No tests found")
+    return
+  end
+  client:run_tree(tree, args)
+end, 1)
 
 --- Re-run the last position that was run.
 --- Arguments are optional
@@ -88,13 +86,13 @@ end
 ---   lua require("neotest").run.run_last({ strategy = "dap" })
 --- <
 ---@param args neotest.run.RunArgs? Argument overrides
-function neotest.run.run_last(args)
+neotest.run.run_last = nio.create(function(args)
   args = args or {}
   if not last_run then
     lib.notify("No tests run yet")
     return
   end
-  async.run(function()
+  nio.run(function()
     local position_id, last_args = unpack(last_run)
     args = vim.tbl_extend("keep", args, last_args)
     local tree = client:get_position(position_id, args)
@@ -104,11 +102,11 @@ function neotest.run.run_last(args)
     end
     client:run_tree(tree, args)
   end)
-end
+end, 1)
 
 local function get_tree_interactive()
   local running = client:running_positions()
-  local elem = async.ui.select(running, {
+  local elem = nio.ui.select(running, {
     prompt = "Select a position",
     format_item = function(elem)
       return elem.position:data().name
@@ -127,25 +125,23 @@ end
 ---
 ---@param args string|neotest.run.StopArgs? Position ID to stop or args. If
 --- args then args[1] should be the position ID.
-function neotest.run.stop(args)
+neotest.run.stop = nio.create(function(args)
   args = args or {}
   if type(args) == "string" then
     args = { args }
   end
-  async.run(function()
-    local pos
-    if args.interactive then
-      pos = get_tree_interactive()
-    else
-      pos = neotest.run.get_tree_from_args(args)
-    end
-    if not pos then
-      lib.notify(args.interactive and "No test selected" or "No tests found", "warn")
-      return
-    end
-    client:stop(pos, args)
-  end)
-end
+  local pos
+  if args.interactive then
+    pos = get_tree_interactive()
+  else
+    pos = neotest.run.get_tree_from_args(args)
+  end
+  if not pos then
+    lib.notify(args.interactive and "No test selected" or "No tests found", "warn")
+    return
+  end
+  client:stop(pos, args)
+end, 1)
 
 ---@class neotest.run.AttachArgs : neotest.client.AttachArgs
 ---@field interactive boolean Select a running position interactively
@@ -154,25 +150,23 @@ end
 ---
 ---@param args string|neotest.run.AttachArgs? Position ID to attach to or args. If args then
 --- args[1] should be the position ID.
-function neotest.run.attach(args)
+neotest.run.attach = nio.create(function(args)
   args = args or {}
   if type(args) == "string" then
     args = { args }
   end
-  async.run(function()
-    local pos
-    if args.interactive then
-      pos = get_tree_interactive()
-    else
-      pos = neotest.run.get_tree_from_args(args)
-    end
-    if not pos then
-      lib.notify(args.interactive and "No test selected" or "No tests found", "warn")
-      return
-    end
-    client:attach(pos, args)
-  end)
-end
+  local pos
+  if args.interactive then
+    pos = get_tree_interactive()
+  else
+    pos = neotest.run.get_tree_from_args(args)
+  end
+  if not pos then
+    lib.notify(args.interactive and "No test selected" or "No tests found", "warn")
+    return
+  end
+  client:attach(pos, args)
+end, 1)
 
 --- Get the list of all known adapter IDs.
 ---@return string[]
@@ -184,7 +178,8 @@ function neotest.run.adapters()
 end
 
 --- Get last test position ID and args
----@return string|nil,neotest.run.RunArgs|nil Position id and last args table
+---@return string|nil position_id
+---@return neotest.run.RunArgs|nil args
 function neotest.run.get_last_run()
   if not last_run then
     return nil, nil

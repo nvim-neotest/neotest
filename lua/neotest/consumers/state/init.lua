@@ -1,4 +1,4 @@
-local async = require("neotest.async")
+local nio = require("nio")
 local logger = require("neotest.logging")
 local neotest = {}
 local StateTracker = require("neotest.consumers.state.tracker")
@@ -10,34 +10,30 @@ local tracker
 ---@param client neotest.Client
 ---@nodoc
 local function init(client)
-  local updated_cond = async.control.Condvar.new()
-  local pending_update = false
+  local updated_event = nio.control.event()
   tracker = StateTracker:new(client)
   local function update_positions()
     while true do
-      if not pending_update then
-        updated_cond:wait()
-      end
+      updated_event.wait()
+      updated_event.clear()
       for _, adapter_id in ipairs(tracker.adapter_ids) do
         tracker:update_positions(adapter_id)
         tracker:update_counts(adapter_id)
       end
-      pending_update = false
-      async.util.sleep(50)
+      nio.sleep(50)
     end
   end
 
   vim.api.nvim_create_autocmd("BufAdd", {
     callback = function(args)
       tracker:register_buffer(args.buf)
-      pending_update = true
-      updated_cond:notify_all()
+      updated_event.set()
     end,
   })
-  for _, buf in ipairs(async.api.nvim_list_bufs()) do
+  for _, buf in ipairs(nio.api.nvim_list_bufs()) do
     tracker:register_buffer(buf)
   end
-  async.run(function()
+  nio.run(function()
     xpcall(update_positions, function(msg)
       logger.error("Error in state consumer", debug.traceback(msg, 2))
     end)
@@ -46,8 +42,7 @@ local function init(client)
     if not tracker:adapter_state(adapter_id) then
       tracker:register_adapter(adapter_id)
     end
-    pending_update = true
-    updated_cond:notify_all()
+    updated_event.set()
   end
 
   client.listeners.run = function(adapter_id, _, position_ids)
@@ -56,8 +51,7 @@ local function init(client)
 
   client.listeners.results = function(adapter_id, results)
     tracker:decrement_running(adapter_id, results)
-    pending_update = true
-    updated_cond:notify_all()
+    updated_event.set()
   end
 end
 

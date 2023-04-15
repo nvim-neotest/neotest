@@ -1,5 +1,5 @@
-local async = require("neotest.async")
-local a = async.tests
+local nio = require("nio")
+local a = nio.tests
 local stub = require("luassert.stub")
 local Tree = require("neotest.types").Tree
 local lib = require("neotest.lib")
@@ -7,11 +7,11 @@ local NeotestClient = require("neotest.client")
 local AdapterGroup = require("neotest.adapters")
 
 describe("neotest client", function()
-  ---@type neotest.InternalClient
+  ---@type neotest.Client
   local client
   ---@type neotest.Adapter
   local mock_adapter
-  local mock_strategy, attached, stopped, exit_test, provided_spec
+  local mock_strategy, attached, stopped, exit_future, provided_spec
   local dir = vim.loop.cwd()
   local files
   local dirs = { dir }
@@ -30,8 +30,7 @@ describe("neotest client", function()
       return path ~= ""
     end)
 
-    local send_exit, await_exit = async.control.channel.oneshot()
-    exit_test = send_exit
+    exit_future = nio.control.future()
     mock_adapter = {
       name = "adapter",
       is_test_file = function(file_path)
@@ -97,7 +96,7 @@ describe("neotest client", function()
           return spec.strategy.output
         end,
         stop = function()
-          send_exit()
+          exit_future.set()
         end,
         output_stream = function()
           local data = { "1\n", "2\n3", "\n4\n", "5\n" }
@@ -111,13 +110,13 @@ describe("neotest client", function()
           attached = true
         end,
         result = function()
-          await_exit()
+          exit_future.wait()
           return spec.strategy.exit_code
         end,
       }
     end
-    client = NeotestClient(AdapterGroup({}))
-    require("neotest").setup({ adapters = { mock_adapter } })
+    client = NeotestClient(AdapterGroup())
+    require("neotest").setup({ log_level = vim.log.levels.TRACE, adapters = { mock_adapter } })
   end)
   after_each(function()
     lib.files.find:revert()
@@ -150,7 +149,7 @@ describe("neotest client", function()
       end
       require("neotest").setup_project(dir, { default_strategy = custom_strategy })
       local tree = get_pos(dir)
-      exit_test()
+      exit_future.set()
       client:run_tree(tree)
       assert.True(called)
     end)
@@ -253,7 +252,7 @@ describe("neotest client", function()
         tree = get_pos(dir .. "/test_file_2")
         assert.Nil(tree)
         vim.cmd("edit " .. dir .. "/test_file_2")
-        async.util.sleep(10)
+        nio.sleep(10)
         tree = get_pos(dir .. "/test_file_2")
         assert.Not.Nil(tree)
       end)
@@ -264,14 +263,14 @@ describe("neotest client", function()
     describe("using args", function()
       a.it("provides env", function()
         local tree = get_pos(dir)
-        exit_test()
+        exit_future.set()
         client:run_tree(tree, { strategy = mock_strategy, env = { TEST = "test" } })
         assert.equal(provided_spec.env.TEST, "test")
       end)
 
       a.it("provides cwd", function()
         local tree = get_pos(dir)
-        exit_test()
+        exit_future.set()
         client:run_tree(tree, { strategy = mock_strategy, cwd = "new_cwd" })
         assert.equal(provided_spec.cwd, "new_cwd")
       end)
@@ -279,11 +278,11 @@ describe("neotest client", function()
 
     a.it("reports running positions", function()
       local tree = get_pos(dir)
-      async.run(function()
+      nio.run(function()
         client:run_tree(tree, { strategy = mock_strategy })
       end)
       local running = client:running_positions()
-      exit_test()
+      exit_future.set()
       local adapter_id = client:get_adapters()[1]
       assert.same(running, { { adapter = adapter_id, position = tree } })
     end)
@@ -293,7 +292,7 @@ describe("neotest client", function()
         return { { strategy = { output = "not_a_file" } } }
       end
       local tree = get_pos(dir)
-      exit_test()
+      exit_future.set()
       client:run_tree(tree, { strategy = mock_strategy })
       local adapter_id = client:get_adapters()[1]
       local results = client:get_results(adapter_id)
@@ -319,7 +318,7 @@ describe("neotest client", function()
           end
 
           local tree = get_pos(dir)
-          exit_test()
+          exit_future.set()
           client:run_tree(tree)
 
           assert.same({
@@ -364,10 +363,10 @@ describe("neotest client", function()
 
           local tree = get_pos(dir)
 
-          async.run(function()
+          nio.run(function()
             client:run_tree(tree, { strategy = mock_strategy })
           end)
-          async.util.sleep(10)
+          nio.sleep(10)
 
           local adapter_id = client:get_adapters()[1]
           local results = client:get_results(adapter_id)
@@ -390,7 +389,7 @@ describe("neotest client", function()
             },
           }, results)
 
-          exit_test()
+          exit_future.set()
         end)
       end)
 
@@ -407,7 +406,7 @@ describe("neotest client", function()
         end
 
         local tree = get_pos(dir)
-        exit_test()
+        exit_future.set()
         client:run_tree(tree)
 
         assert.same({
@@ -431,7 +430,7 @@ describe("neotest client", function()
         end
 
         local tree = get_pos(dir .. "/test_file_1::namespace")
-        exit_test()
+        exit_future.set()
         client:run_tree(tree)
 
         assert.same({
@@ -444,21 +443,21 @@ describe("neotest client", function()
     describe("attaching", function()
       a.it("with position", function()
         local tree = get_pos(dir)
-        async.run(function()
+        nio.run(function()
           client:run_tree(tree, { strategy = mock_strategy })
         end)
         client:attach(tree)
-        exit_test()
+        exit_future.set()
         assert.True(attached)
       end)
 
       a.it("with child", function()
         local tree = get_pos(dir)
-        async.run(function()
+        nio.run(function()
           client:run_tree(tree, { strategy = mock_strategy })
         end)
         client:attach(tree:children()[1])
-        exit_test()
+        exit_future.set()
         assert.True(attached)
       end)
     end)
@@ -467,7 +466,7 @@ describe("neotest client", function()
       a.it("with position", function()
         local tree = get_pos(dir)
         local stopped
-        async.run(function()
+        nio.run(function()
           client:run_tree(tree, { strategy = mock_strategy })
           stopped = true
         end)
@@ -477,7 +476,7 @@ describe("neotest client", function()
 
       a.it("with child", function()
         local tree = get_pos(dir)
-        async.run(function()
+        nio.run(function()
           client:run_tree(tree, { strategy = mock_strategy })
           stopped = true
         end)
@@ -499,13 +498,13 @@ describe("neotest client", function()
           }
         end
         local tree = get_pos(dir)
-        async.run(function()
+        nio.run(function()
           client:run_tree(tree, { strategy = mock_strategy })
         end)
-        async.util.sleep(10)
+        nio.sleep(10)
 
         assert.same({ "1", "2", "3", "4", "5" }, streamed_data)
-        exit_test()
+        exit_future.set()
       end)
 
       a.it("emits streamed results", function()
@@ -529,10 +528,10 @@ describe("neotest client", function()
             end,
           }
         end
-        async.run(function()
+        nio.run(function()
           client:run_tree(tree, { strategy = mock_strategy })
         end)
-        async.util.sleep(10)
+        nio.sleep(10)
 
         local adapter_id = client:get_adapters()[1]
         local results = client:get_results(adapter_id)
@@ -544,7 +543,7 @@ describe("neotest client", function()
           end
         end
 
-        exit_test()
+        exit_future.set()
       end)
 
       a.it("attaches position", function()
@@ -568,10 +567,10 @@ describe("neotest client", function()
             end,
           }
         end
-        async.run(function()
+        nio.run(function()
           client:run_tree(tree, { strategy = mock_strategy })
         end)
-        async.util.sleep(10)
+        nio.sleep(10)
 
         for i, pos in tree:iter_nodes() do
           if i % 2 == 0 and pos:data().type == "test" then
@@ -581,14 +580,14 @@ describe("neotest client", function()
         end
         assert.True(attached)
 
-        exit_test()
+        exit_future.set()
       end)
     end)
 
     describe("filling results", function()
       a.it("fills results for dir from child files", function()
         local tree = get_pos(dir)
-        exit_test()
+        exit_future.set()
         client:run_tree(tree, { strategy = mock_strategy })
         local adapter_id = client:get_adapters()[1]
         local results = client:get_results(adapter_id)
@@ -601,7 +600,7 @@ describe("neotest client", function()
 
       a.it("fills results for files from child files", function()
         local tree = get_pos(dir)
-        exit_test()
+        exit_future.set()
         client:run_tree(tree, { strategy = mock_strategy })
         local adapter_id = client:get_adapters()[1]
         local results = client:get_results(adapter_id)
@@ -632,7 +631,7 @@ describe("neotest client", function()
         local adapter_id = client:get_adapters()[1]
         client:_update_positions(dir .. "/dummy_file", { adapter = adapter_id })
         local tree = get_pos(dir .. "/dummy_file")
-        exit_test()
+        exit_future.set()
         client:run_tree(tree, { strategy = mock_strategy })
         local results = client:get_results(adapter_id)
         assert.equal(results[dir .. "/dummy_file"].status, "skipped")
@@ -640,7 +639,7 @@ describe("neotest client", function()
 
       a.it("fills results for namespaces from child tests", function()
         local tree = get_pos(dir .. "/test_file_1")
-        exit_test()
+        exit_future.set()
         client:run_tree(tree, { strategy = mock_strategy })
         local adapter_id = client:get_adapters()[1]
         local results = client:get_results(adapter_id)
@@ -665,7 +664,7 @@ describe("neotest client", function()
         end
 
         local tree = get_pos(dir)
-        exit_test()
+        exit_future.set()
         client:run_tree(tree, { strategy = mock_strategy })
         local adapter_id = client:get_adapters()[1]
         local results = client:get_results(adapter_id)

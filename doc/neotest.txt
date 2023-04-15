@@ -220,7 +220,8 @@ Fields~
 {status} `(neotest.Config.status)`
 {state} `(neotest.Config.state)`
 {diagnostic} `(neotest.Config.diagnostic)`
-{projects} `(table<string, neotest.CoreConfig>)` Project specific settings, keys
+{projects} `(table<string, neotest.CoreConfig>)` Project specific settings,
+keys
 are project root directories (e.g "~/Dev/my_project")
 
                                                       *neotest.Config.discovery*
@@ -228,13 +229,15 @@ Fields~
 {enabled} `(boolean)`
 {concurrent} `(integer)` Number of workers to parse files concurrently. 0
 automatically assigns number based on CPU. Set to 1 if experiencing lag.
-{filter_dir} `(nil)` | fun(name: string, rel_path: string, root: string): boolean
+{filter_dir} `(nil)` | fun(name: string, rel_path: string, root: string):
+boolean
 A function to filter directories when searching for test files. Receives the name,
 path relative to project root and project root path
 
                                                         *neotest.Config.running*
 Fields~
-{concurrent} `(boolean)` Run tests concurrently when an adapter provides multiple commands to run
+{concurrent} `(boolean)` Run tests concurrently when an adapter provides
+multiple commands to run
 
                                                               *neotest.Consumer*
 Alias~
@@ -245,7 +248,8 @@ Fields~
 {border} `(string)` Border style
 {max_height} `(number)` Max height of window as proportion of NeoVim window
 {max_width} `(number)` Max width of window as proportion of NeoVim window
-{options} `(table)` Window local options to set on floating windows (e.g. winblend)
+{options} `(table)` Window local options to set on floating windows (e.g.
+winblend)
 
                                           *neotest.Config.strategies.integrated*
 Fields~
@@ -261,8 +265,10 @@ Fields~
 {animated} `(boolean)` Enable/disable animation of icons
 {follow} `(boolean)` Expand user's current file
 {expand_errors} `(boolean)` Expand all failed positions
-{mappings} `(neotest.Config.summary.mappings)` Buffer mappings for summary window
-{open} `(string)` | fun(): integer A command or function to open a window for the summary
+{mappings} `(neotest.Config.summary.mappings)` Buffer mappings for summary
+window
+{open} `(string)` | fun(): integer A command or function to open a window for
+the summary
 
                                                *neotest.Config.summary.mappings*
 Fields~
@@ -277,10 +283,14 @@ Fields~
 {debug} `(string|string[])` Debug selected position
 {mark} `(string|string[])` Mark the selected position
 {run_marked} `(string|string[])` Run the marked positions for selected suite.
-{debug_marked} `(string|string[])` Debug the marked positions for selected suite.
-{clear_marked} `(string|string[])` Clear the marked positions for selected suite.
-{target} `(string|string[])` Target a position to be the only shown position for its adapter
-{clear_target} `(string|string[])` Clear the target position for the selected adapter
+{debug_marked} `(string|string[])` Debug the marked positions for selected
+suite.
+{clear_marked} `(string|string[])` Clear the marked positions for selected
+suite.
+{target} `(string|string[])` Target a position to be the only shown position
+for its adapter
+{clear_target} `(string|string[])` Clear the target position for the selected
+adapter
 {next_failed} `(string|string[])` Jump to the next failed position
 {prev_failed} `(string|string[])` Jump to the previous failed position
 
@@ -296,12 +306,14 @@ Fields~
                                                    *neotest.Config.output_panel*
 Fields~
 {enabled} `(boolean)`
-{open} `(string|fun():integer)` A command or function to open a window for the output panel
+{open} `(string|fun():integer)` A command or function to open a window for the
+output panel
 
                                                        *neotest.Config.quickfix*
 Fields~
 {enabled} `(boolean)`
-{open} `(boolean|function)` Set to true to open quickfix on startup, or a function to be
+{open} `(boolean|function)` Set to true to open quickfix on startup, or a
+function to be
 called when the quickfix results are set
 
                                                      *neotest.Config.diagnostic*
@@ -364,8 +376,10 @@ window will be used
 {last_run} `(boolean)` Open output for last test run
 {position_id} `(string)` Open output for position with this ID, opens nearest
 position if not given
-{adapter} `(string)` Adapter ID, defaults to first found with matching position
-{auto_close} `(boolean)` Close output window when leaving it, or when cursor moves outside of window
+{adapter} `(string)` Adapter ID, defaults to first found with matching
+position
+{auto_close} `(boolean)` Close output window when leaving it, or when cursor
+moves outside of window
 
                                                          *neotest.output.open()*
 `open`({opts})
@@ -442,7 +456,7 @@ Debug the current file with nvim-dap
   lua require("neotest").run.run({vim.fn.expand("%"), strategy = "dap"})
 <
 Parameters~
-{args} `(string|neotest.run.RunArgs?)` Position ID to run or args. If args then args[1] should be the position ID.
+{args} `(string|neotest.run.RunArgs?)` Position ID to run or args.
 
                                                         *neotest.run.run_last()*
 `run_last`({args})
@@ -490,7 +504,8 @@ Fields~
 Attach to a running process for the given position.
 
 Parameters~
-{args} `(string|neotest.run.AttachArgs?)` Position ID to attach to or args. If args then
+{args} `(string|neotest.run.AttachArgs?)` Position ID to attach to or args. If
+args then
 args[1] should be the position ID.
 
                                                         *neotest.run.adapters()*
@@ -505,7 +520,9 @@ Return~
 
 Get last test position ID and args
 Return~
-`(string|nil,neotest.run.RunArgs|nil)` Position id and last args table
+`(string|nil)` position_id
+Return~
+`(neotest.run.RunArgs|nil)` args
 
 
 ==============================================================================
@@ -699,7 +716,7 @@ Fields~
 The neotest client is the core of neotest, it communicates with adapters,
 running tests and collecting results.
 Most of the client methods are async and so need to be run in an async
-context (i.e. `require("neotest.async").run(function() ... end))
+context (i.e. `require("nio").run(function() ... end))
 The client starts lazily, meaning that no parsing of tests will be performed
 until it is required. Care should be taken to not use the client methods on
 start because it can slow down startup.
@@ -709,19 +726,23 @@ start because it can slow down startup.
 Fields~
 {discover_positions} `(fun(adapter_id: string, tree: neotest.Tree))`
 {run} `(fun(adapter_id: string, root_id: string, position_ids: string[]))`
-{results} `(fun(adapter_id: string, results: table<string, neotest.Result>, partial: boolean))`
+{results} `(fun(adapter_id: string, results: table<string, neotest.Result>,
+partial: boolean))`
 {test_file_focused} `(fun(adapter_id: string, file_path: string)>)`
 {test_focused} `(fun(adapter_id: string, position_id: string)>)`
 {starting} `(fun())`
 {started} `(fun())`
 Type~
-`(neotest.Client)`
+neotest.Client
 
                                                     *neotest.client.RunTreeArgs*
 Fields~
-{adapter?} `(string)` Adapter ID, if not given the first adapter found with chosen position is used.
-{strategy?} `("integrated"|"dap"|string|neotest.Strategy)` Strategy to run commands with
-{extra_args?} `(string[])` Arguments supplied to the test adapter to add to the test process arguments
+{adapter?} `(string)` Adapter ID, if not given the first adapter found with
+chosen position is used.
+{strategy?} `("integrated"|"dap"|string|neotest.Strategy)` Strategy to run
+commands with
+{extra_args?} `(string[])` Arguments supplied to the test adapter to add to
+the test process arguments
 {env?} `(table<string, string>)` Environment variables for the test process
 {cwd?} `(string)` Working directory for the test process
 {concurrent?} `(false|number)` Override concurrency settings for running tests
@@ -791,7 +812,7 @@ Return~
 
                                                 *neotest.client.GetPositionArgs*
 Fields~
-{adapter} `(string)` Adapter ID
+{adapter?} `(string)` Adapter ID
 
                                                  *neotest.Client:get_position()*
 `Client:get_position`({position_id}, {args})
@@ -831,7 +852,9 @@ Return~
 Parameters~
 {file_path} `(string)`
 Return~
-`(string,neotest.Adapter)`
+`(string?)`
+Return~
+`(neotest.Adapter?)`
 
 
 ==============================================================================
@@ -903,7 +926,9 @@ Useful for watching a file which is written to by another process.
 Parameters~
 {file_path} `(string)`
 Return~
-`((fun():)` string, fun()) Iterator and callback to stop streaming
+`(fun(): string)` Iterator
+Return~
+`(function)` Callback to stop streaming
 
                                               *neotest.lib.files.stream_lines()*
 `stream_lines`({file_path})
@@ -912,7 +937,9 @@ Stream data from a file over time, splitting the content into lines
 Parameters~
 {file_path} `(string)`
 Return~
-`((fun():)` string[], fun()) Iterator and callback to stop streaming
+`(fun(): string[])` Iterator
+Return~
+`(fun())` Callback to stop streaming
 
                                                     *neotest.lib.files.exists()*
 `exists`({path})
@@ -934,7 +961,8 @@ Return~
 
                                                  *neotest.lib.files.FindOptions*
 Fields~
-{filter_dir} `(fun(name: string, rel_path: string, root: string): boolean)` Filter directories to be searched
+{filter_dir} `(fun(name: string, rel_path: string, root: string): boolean)`
+Filter directories to be searched
 
                                                       *neotest.lib.files.find()*
 `find`({root}, {opts})
@@ -978,7 +1006,8 @@ Return~
 
 Parse a sorted list of file paths into a position tree
 Parameters~
-{files} `(string[])` List of files to include in directory tree, along with parents
+{files} `(string[])` List of files to include in directory tree, along with
+parents
 Return~
 `(neotest.Tree)`
 
@@ -1149,7 +1178,8 @@ Parameters~
 Fields~
 {nested_tests} `(boolean)` Allow nested tests
 {require_namespaces} `(boolean)` Require tests to be within namespaces
-{position_id} `(fun(position: neotest.Position, parents: neotest.Position[]): string)` Position ID constructor
+{position_id} `(fun(position: neotest.Position, parents: neotest.Position[]):
+string)` Position ID constructor
 
                                             *neotest.lib.positions.parse_tree()*
 `parse_tree`({positions}, {opts})
@@ -1181,8 +1211,11 @@ https://github.com/neovim/neovim/blob/master/runtime/lua/vim/treesitter/language
 Inherits: `neotest.lib.positions.ParseOptions`
 
 Fields~
-{fast} `(boolean)` Use faster parsing (Should be unchanged unless injections are needed)
-{build_position} `(fun(file_path: string, source: string, captured_nodes: table<string, userdata>): neotest.Position|neotest.Position[]|nil)` Builds one or more positions from the captured nodes from a query match.
+{fast} `(boolean)` Use faster parsing (Should be unchanged unless injections
+are needed)
+{build_position} `(fun(file_path: string, source: string, captured_nodes:
+table<string, userdata>): neotest.Position|neotest.Position[]|nil)` Builds one
+or more positions from the captured nodes from a query match.
 
                                       *neotest.lib.treesitter.normalise_query()*
 `normalise_query`({lang}, {query})
@@ -1395,7 +1428,8 @@ Allows consuming all data ever pushed while subscribing at any point in time.
 Fields~
 {consumers} `(fun(data: T)[])`
 {data?} `(T)`
-{accum} `(fun(prev: T, new: any): T)` A function to combine previous data and new data
+{accum} `(fun(prev: T, new: any): T)` A function to combine previous data and
+new data
 
                                                      *neotest.FanoutAccum:new()*
 `FanoutAccum:new`({accum}, {init})
@@ -1447,7 +1481,8 @@ Fields~
 {result} `(async fun())` integer Get result code of process (async)
 {attach} `(async fun())` Attach to the running process for user input
 {stop} `(async fun())` Stop the running process
-{output_stream} `(async fun(): async)` fun(): string Async iterator of process output
+{output_stream} `(async fun(): async)` fun(): string Async iterator of process
+output
 
                                                               *neotest.Strategy*
 Alias~
@@ -1469,9 +1504,11 @@ Fields~
 {command} `(string[])`
 {env?} `(table<string, string>)`
 {cwd?} `(string)`
-{context?} `(table)` Arbitrary data to preserve state between running and result collection
+{context?} `(table)` Arbitrary data to preserve state between running and
+result collection
 {strategy?} `(table)` Arguments for strategy
-{stream} `(fun(output_stream: fun(): string[]): fun():)` table<string, neotest.Result>
+{stream} `(fun(output_stream: fun(): string[]): fun():)` table<string,
+neotest.Result>
 
 
  vim:tw=78:ts=8:noet:ft=help:norl:

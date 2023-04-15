@@ -1,0 +1,408 @@
+*nvim-nio.txt*	A library for asynchronous IO in Neovim
+
+==============================================================================
+nio                                                                        *nio*
+
+Neovim Asynchrnous IO Library
+
+A library for asynchronous IO in Neovim. It is inspired by the asyncio
+library in Python. The library focuses on providing both common asynchronous
+primitives and asynchronous APIs for Neovim's core.
+
+                                                                     *nio.run()*
+`run`({func}, {cb})
+
+Run a function in an async context. This is the entrypoint to all async
+functionality.
+>lua
+  local nio = require("nio")
+  nio.run(function()
+    nio.sleep(10)
+    print("Hello world")
+  end)
+<
+Parameters~
+{func} `(function)`
+{cb?} `(fun(success: boolean,...))` Callback to invoke when the task is
+complete. If success is false then the parameters will be an error message and
+a traceback of the error, otherwise it will be the result of the async
+function.
+Return~
+`(nio.tasks.Task)`
+
+                                                                    *nio.wrap()*
+`wrap`({func}, {argc})
+
+Creates an async function with a callback style function.
+>lua
+  local nio = require("nio")
+  local sleep = nio.wrap(function(ms, cb)
+    vim.defer_fn(cb, ms)
+  end, 2)
+
+  nio.run(function()
+    sleep(10)
+    print("Slept for 10ms")
+  end)
+<
+Parameters~
+{func} `(function)` A callback style function to be converted. The last
+argument must be the callback.
+{argc} `(integer)` The number of arguments of func. Must be included.
+Return~
+`(function)` Returns an async function
+
+                                                                  *nio.create()*
+`create`({func}, {argc})
+
+Takes an async function and returns a function that can run in both async
+and non async contexts. When running in an async context, the function can
+return values, but when run in a non-async context, a Task object is
+returned and an extra callback argument can be supplied to receive the
+result, with the same signature as the callback for `nio.run`.
+
+This is useful for APIs where users don't want to create async
+contexts but which are still used in async contexts internally.
+Parameters~
+{func} `(async fun(...))`
+{argc?} `(integer)` The number of arguments of func. Must be included if there
+are arguments.
+
+                                                                  *nio.gather()*
+`gather`({functions})
+
+Run a collection of async functions concurrently and return when
+all have finished.
+If any of the functions fail, all pending tasks will be cancelled and the
+error will be re-raised
+
+Parameters~
+{functions} `(function[])`
+Return~
+`(any[])` Results of all functions
+
+                                                                   *nio.first()*
+`first`({functions})
+
+Run a collection of async functions concurrently and return the result of
+the first to finish.
+
+Parameters~
+{functions} `(function[])`
+Return~
+`(any)`
+
+                                                                   *nio.sleep()*
+`sleep`({ms})
+
+Suspend the current task for given time.
+Parameters~
+{ms} `(number)` Time in milliseconds
+
+                                                               *nio.scheduler()*
+`scheduler`()
+
+Yields to the Neovim scheduler to be able to call the API.
+
+
+nio.api                                                                *nio.api*
+
+Safely proxies calls to the vim.api module while in an async context.
+
+nio.fn                                                                  *nio.fn*
+
+Safely proxies calls to the vim.fn module while in an async context.
+
+
+==============================================================================
+nio.control                                                        *nio.control*
+
+
+Provides primitives for flow control in async functions
+
+
+An event can signal to multiple listeners to resume execution
+The event can be set from a non-async context.
+                                                             *nio.control.Event*
+Fields~
+{set} `(fun(max_woken?: integer): nil)` Set the event and signal to all (or
+limited number of) listeners that the event has occurred. If max_woken is
+provided and there are more listeners then the event is cleared immediately
+{wait} `(async fun(): nil)` Wait for the event to occur, returning immediately
+if
+already set
+{clear} `(fun(): nil)` Clear the event
+{is_set} `(fun(): boolean)` Returns true if the event is set
+
+                                                           *nio.control.event()*
+`event`()
+
+Create a new event
+Return~
+`(nio.control.Event)`
+
+
+An future represents a value that will be available at some point and can be awaited upon.
+The future result can be set from a non-async context.
+                                                            *nio.control.Future*
+Fields~
+{set} `(fun(value): nil)` Set the future value and wake all waiters.
+{set_error} `(fun(message): nil)` Set the error for this future to raise to
+waiters
+{wait} `(async fun(): any)` Wait for the value to be set, returning
+immediately if already set
+
+                                                          *nio.control.future()*
+`future`()
+
+Create a new future
+Return~
+`(nio.control.Future)`
+
+
+A FIFO queue with async support.
+                                                             *nio.control.Queue*
+Fields~
+{size} `(fun(): number)` Returns the number of items in the queue
+{max_size} `(fun(): number|nil)` Returns the maximum number of items in the
+queue
+{get} `(async fun(): any)` Get a value from the queue, blocking if the queue
+is empty
+{get_nowait} `(fun(): any)` Get a value from the queue, erroring if queue is
+empty.
+{put} `(async fun(value: any): nil)` Put a value into the queue
+{put_nowait} `(fun(value: any): nil)` Put a value into the queue, erroring if
+queue is full.
+
+                                                           *nio.control.queue()*
+`queue`({max_size})
+
+Create a new queue
+Parameters~
+{max_size?} `(integer)` The maximum number of items in the queue, defaults to
+no limit
+Return~
+`(nio.control.Queue)`
+
+
+An async semaphore that allows up to a given number of acquisitions.
+                                                         *nio.control.Semaphore*
+Fields~
+{with} `(async fun(callback: fun(): nil): nil)` Run the callback with the
+semaphore acquired
+
+                                                       *nio.control.semaphore()*
+`semaphore`({value})
+
+Create a new semaphore
+Parameters~
+{value} `(integer)` The number of allowed concurrent acquisitions
+
+
+==============================================================================
+nio.lsp                                                                *nio.lsp*
+
+
+                                                                *nio.lsp.Client*
+Fields~
+{request} `(nio.lsp.RequestClient)` Interface to all requests that can be sent
+by the client
+{notify} `(nio.lsp.NotifyClient)` Interface to all notifications that can be
+sent by the client
+{server_capabilities} `(nio.lsp.types.ServerCapabilities)`
+
+                                                              *nio.lsp.client()*
+`client`({client_id})
+
+an async client for the given client id
+Parameters~
+{client_id} `(integer)`
+Return~
+`(nio.lsp.Client)`
+
+
+==============================================================================
+nio.uv                                                                  *nio.uv*
+
+
+Provides asynchronous versions of vim.loop functions.
+See corresponding function documentation for parameter and return
+information.
+
+Fields~
+{close} `(async fun(handle: nio.uv.Handle))`
+{fs_open} `(async fun(path: any, flags: any, mode: any):
+(string|nil,integer|nil))`
+{fs_read} `(async fun(fd: integer, size: integer, offset?: integer):
+(string|nil,string|nil))`
+{fs_close} `(async fun(fd: integer): (string|nil,boolean|nil))`
+{fs_unlink} `(async fun(path: string): (string|nil,boolean|nil))`
+{fs_write} `(async fun(fd: any, data: any, offset?: any):
+(string|nil,integer|nil))`
+{fs_mkdir} `(async fun(path: string, mode: integer):
+(string|nil,boolean|nil))`
+{fs_mkdtemp} `(async fun(template: string): (string|nil,string|nil))`
+{fs_rmdir} `(async fun(path: string): (string|nil,boolean|nil))`
+{fs_stat} `(async fun(path: string): (string|nil,nio.uv.Stat|nil))`
+{fs_fstat} `(async fun(fd: integer): (string|nil,nio.uv.Stat|nil))`
+{fs_lstat} `(async fun(path: string): (string|nil,nio.uv.Stat|nil))`
+{fs_statfs} `(async fun(path: string): (string|nil,nio.uv.StatFs|nil))`
+{fs_rename} `(async fun(old_path: string, new_path: string):
+(string|nil,boolean|nil))`
+{fs_fsync} `(async fun(fd: integer): (string|nil,boolean|nil))`
+{fs_fdatasync} `(async fun(fd: integer): (string|nil,boolean|nil))`
+{fs_ftruncate} `(async fun(fd: integer, offset: integer):
+(string|nil,boolean|nil))`
+{fs_sendfile} `(async fun(out_fd: integer, in_fd: integer, in_offset: integer,
+length: integer): (string|nil,integer|nil))`
+{fs_access} `(async fun(path: string, mode: integer):
+(string|nil,boolean|nil))`
+{fs_chmod} `(async fun(path: string, mode: integer):
+(string|nil,boolean|nil))`
+{fs_fchmod} `(async fun(fd: integer, mode: integer):
+(string|nil,boolean|nil))`
+{fs_utime} `(async fun(path: string, atime: number, mtime: number):
+(string|nil,boolean|nil))`
+{fs_futime} `(async fun(fd: integer, atime: number, mtime: number):
+(string|nil,boolean|nil))`
+{fs_link} `(async fun(path: string, new_path: string):
+(string|nil,boolean|nil))`
+{fs_symlink} `(async fun(path: string, new_path: string, flags?: integer):
+(string|nil,boolean|nil))`
+{fs_readlink} `(async fun(path: string): (string|nil,string|nil))`
+{fs_realpath} `(async fun(path: string): (string|nil,string|nil))`
+{fs_chown} `(async fun(path: string, uid: integer, gid: integer):
+(string|nil,boolean|nil))`
+{fs_fchown} `(async fun(fd: integer, uid: integer, gid: integer):
+(string|nil,boolean|nil))`
+{fs_lchown} `(async fun(path: string, uid: integer, gid: integer):
+(string|nil,boolean|nil))`
+{fs_copyfile} `(async fun(path: any, new_path: any, flags?: any):
+(string|nil,boolean|nil))`
+{fs_opendir} `(async fun(path: string, entries?: integer):
+(string|nil,nio.uv.Dir|nil))`
+{fs_readdir} `(async fun(dir: nio.uv.Dir):
+(string|nil,nio.uv.DirEntry[]|nil))`
+{fs_closedir} `(async fun(dir: nio.uv.Dir): (string|nil,boolean|nil))`
+{fs_scandir} `(async fun(path: string): (string|nil,nio.uv.DirEntry[]|nil))`
+{shutdown} `(async fun(stream: nio.uv.Stream): string|nil)`
+{listen} `(async fun(stream: nio.uv.Stream, backlog: integer): string|nil)`
+{write} `(async fun(stream: nio.uv.Stream, data: string|string[]):
+string|nil)`
+{write2} `(async fun(stream: nio.uv.Stream, data: string|string[],
+send_handle: nio.uv.Stream): string|nil)`
+
+                                                                 *nio.uv.Handle*
+
+                                                                 *nio.uv.Stream*
+Inherits: `nio.uv.Handle`
+
+
+                                                                   *nio.uv.Stat*
+Fields~
+{dev} `(integer)`
+{mode} `(integer)`
+{nlink} `(integer)`
+{uid} `(integer)`
+{gid} `(integer)`
+{rdev} `(integer)`
+{ino} `(integer)`
+{size} `(integer)`
+{blksize} `(integer)`
+{blocks} `(integer)`
+{flags} `(integer)`
+{gen} `(integer)`
+{atime} `(nio.uv.StatTime)`
+{mtime} `(nio.uv.StatTime)`
+{ctime} `(nio.uv.StatTime)`
+{birthtime} `(nio.uv.StatTime)`
+{type} `(string)`
+
+                                                               *nio.uv.StatTime*
+Fields~
+{sec} `(integer)`
+{nsec} `(integer)`
+
+                                                                 *nio.uv.StatFs*
+Fields~
+{type} `(integer)`
+{bsize} `(integer)`
+{blocks} `(integer)`
+{bfree} `(integer)`
+{bavail} `(integer)`
+{files} `(integer)`
+{ffree} `(integer)`
+
+                                                                    *nio.uv.Dir*
+
+                                                               *nio.uv.DirEntry*
+
+
+==============================================================================
+nio.ui                                                                  *nio.ui*
+
+
+Async versions of vim.ui functions.
+
+                                                                *nio.ui.input()*
+`input`({args})
+
+
+Parameters~
+{args} `(nio.ui.InputArgs)`
+
+                                                              *nio.ui.InputArgs*
+Fields~
+{prompt} `(string|nil)` Text of the prompt
+{default} `(string|nil)` Default reply to the input
+{completion} `(string|nil)` Specifies type of completion supported for input.
+Supported types are the same that can be supplied to a user-defined command
+using the "-complete=" argument. See |:command-completion|
+{highlight} `(function)` Function that will be used for highlighting user
+inputs.
+
+                                                               *nio.ui.select()*
+`select`({items}, {args})
+
+
+Parameters~
+{items} `(any[])`
+{args} `(nio.ui.SelectArgs)`
+
+                                                             *nio.ui.SelectArgs*
+Fields~
+{prompt} `(string|nil)` Text of the prompt. Defaults to `Select one of:`
+{format_item} `(function|nil)` Function to format an individual item from
+`items`. Defaults to `tostring`.
+{kind} `(string|nil)` Arbitrary hint string indicating the item shape. Plugins
+reimplementing `vim.ui.select` may wish to use this to infer the structure or
+semantics of `items`, or the context in which select() was called.
+
+
+==============================================================================
+nio.tests                                                            *nio.tests*
+
+
+Async versions of plenary's test functions.
+
+                                                                *nio.tests.it()*
+`it`({name}, {async_func})
+
+Parameters~
+{name} `(string)`
+{async_func} `(function)`
+
+                                                       *nio.tests.before_each()*
+`before_each`({async_func})
+
+Parameters~
+{async_func} `(function)`
+
+                                                        *nio.tests.after_each()*
+`after_each`({async_func})
+
+Parameters~
+{async_func} `(function)`
+
+
+ vim:tw=78:ts=8:noet:ft=help:norl:

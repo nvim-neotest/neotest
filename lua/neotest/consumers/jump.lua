@@ -1,4 +1,4 @@
-local async = require("neotest.async")
+local nio = require("nio")
 local lib = require("neotest.lib")
 
 ---@private
@@ -20,8 +20,8 @@ local neotest = {}
 neotest.jump = {}
 
 local get_nearest = function()
-  local path = async.fn.expand("%:p")
-  local cur_pos = async.api.nvim_win_get_cursor(0)
+  local path = nio.fn.expand("%:p")
+  local cur_pos = nio.api.nvim_win_get_cursor(0)
   local pos, adapter_id = client:get_nearest(path, cur_pos[1] - 1)
   if not pos then
     lib.notify("Couldn't find any tests in file", vim.log.levels.WARN)
@@ -32,7 +32,7 @@ end
 
 local function jump_to(node)
   local range = node:closest_value_for("range")
-  async.api.nvim_win_set_cursor(0, { range[1] + 1, range[2] })
+  nio.api.nvim_win_set_cursor(0, { range[1] + 1, range[2] })
 end
 
 local function match_status(status, adapter_id)
@@ -48,7 +48,7 @@ local jump_to_prev = function(pos, predicate)
   if pos:data().type == "file" then
     return false
   end
-  if async.api.nvim_win_get_cursor(0)[1] - 1 > pos:closest_value_for("range")[1] then
+  if nio.api.nvim_win_get_cursor(0)[1] - 1 > pos:closest_value_for("range")[1] then
     jump_to(pos)
     return true
   end
@@ -93,7 +93,7 @@ end
 function neotest.jump.next(args)
   args = args or {}
 
-  async.run(function()
+  nio.run(function()
     local pos, adapter_id = get_nearest()
     if not pos then
       return
@@ -113,7 +113,7 @@ end
 ---@param args? neotest.jump.JumpArgs
 function neotest.jump.prev(args)
   args = args or {}
-  async.run(function()
+  nio.run(function()
     local pos, adapter_id = get_nearest()
     if not pos then
       return
