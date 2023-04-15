@@ -27,14 +27,15 @@ end
 ---@param spec neotest.RunSpec
 ---@param args table
 ---@param stream_processor async fun(data_iter: async fun(): string)
+---@param context neotest.StrategyContext
 ---@return neotest.StrategyResult
-function ProcessTracker:run(pos_id, spec, args, stream_processor)
+function ProcessTracker:run(pos_id, spec, args, stream_processor, context)
   local strategy = self:_get_strategy(args)
   logger.info("Starting process", pos_id, "with strategy", args.strategy)
   logger.debug("Strategy spec", spec)
   local instance, code
   self._process_semaphore.with(function()
-    instance = strategy(spec)
+    instance = strategy(spec, context)
     if not instance then
       lib.notify("Adapter doesn't support chosen strategy.", vim.log.levels.ERROR)
       local output_path = nio.fn.tempname()

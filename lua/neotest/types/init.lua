@@ -23,7 +23,10 @@
 ---@field stop async fun() Stop the running process
 ---@field output_stream async fun(): async fun(): string Async iterator of process output
 
----@alias neotest.Strategy async fun(spec: neotest.RunSpec): neotest.Process
+---@class neotest.StrategyContext
+---@field position neotest.Position
+
+---@alias neotest.Strategy async fun(spec: neotest.RunSpec, context: neotest.StrategyContext): neotest.Process
 
 ---@class neotest.StrategyResult
 ---@field code integer
@@ -40,7 +43,6 @@
 ---@field cwd? string
 ---@field context? table Arbitrary data to preserve state between running and result collection
 ---@field strategy? table Arguments for strategy
----@field position neotest.Position
 ---@field stream fun(output_stream: fun(): string[]): fun(): table<string, neotest.Result>
 
 local M = {}
