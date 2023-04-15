@@ -188,7 +188,8 @@ Default values:
     watch = {
       enabled = true,
       symbol_queries = {
-        lua = '        ;query\n        ;Captures module names in require calls\n        (function_call \n          name: ((identifier) @function (#eq? @function "require"))\n          arguments: (arguments (string) @symbol))\n      ',
+        elixir = <function 1>,
+        lua = '        ;query\n        ;Captures module names in require calls\n        (function_call\n          name: ((identifier) @function (#eq? @function "require"))\n          arguments: (arguments (string) @symbol))\n      ',
         python = "        ;query\n        ;Captures imports and modules they're imported from\n        (import_from_statement (_ (identifier) @symbol))\n        (import_statement (_ (identifier) @symbol))\n      "
       }
     }
@@ -342,8 +343,10 @@ Fields~
                                                           *neotest.Config.watch*
 Fields~
 {enabled} `(boolean)`
-{symbol_queries} `(table<string, string>)` Queries to capture symbols that are
-used for querying the LSP server for defintions to link files.
+{symbol_queries} `(table<string, string|fun(root, content: string, path:
+string):integer[][]>)` Treesitter queries or functions to capture symbols that
+are used for querying the LSP server for defintions to link files. If it is a
+function then the return value should be a list of node ranges.
 {filter_path?} `(fun(path: string, root: string): boolean)` Returns whether
 the watcher should inspect a path for dependencies. Default ignores paths not
 under root or common package manager directories.
