@@ -1,6 +1,7 @@
 local lib = require("neotest.lib")
 local logger = require("neotest.logging")
 local nio = require("nio")
+local config = require("neotest.config")
 
 ---@class neotest.consumers.watch.Watcher
 ---@field lsp_client nio.lsp.Client
@@ -14,11 +15,11 @@ function Watcher:new(lsp_client)
 end
 
 ---@return integer[][]
-function Watcher._parse_symbols(path, queries)
+function Watcher._parse_symbols(path)
   logger.debug("Parsing symbols for", path)
   local content = lib.files.read(path)
   local root, lang = lib.treesitter.get_parse_root(path, content, {})
-  local query = queries[lang]
+  local query = config.watch.symbol_queries[lang]
   if not query then
     error("No symbols query for language: " .. lang)
   end
@@ -41,9 +42,9 @@ function Watcher:_get_linked_files(path, root_path, args)
   local symbols = lib.subprocess.enabled()
       and lib.subprocess.call(
         [[require("neotest.consumers.watch.watcher")._parse_symbols]],
-        { path, args.symbol_queries }
+        { path }
       )
-    or self._parse_symbols(path, args.symbol_queries)
+    or self._parse_symbols(path)
   local path_uri = vim.uri_from_fname(path)
   local dependency_uris = {}
   logger.debug("Getting symbol definitions for", path)
@@ -74,7 +75,6 @@ end
 
 ---@class neotest.consumers.watch.watcher.WatchArgs
 ---@field filter_path fun(root: string, path: string): boolean
----@field symbol_queries table<string, string>
 
 ---@paam tree neotest.Tree
 function Watcher:_files_in_tree(tree)
