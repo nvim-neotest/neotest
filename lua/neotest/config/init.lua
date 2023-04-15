@@ -1,3 +1,4 @@
+local lib = require("neotest.lib")
 ---@tag neotest.config
 ---@toc_entry Configuration Options
 
@@ -128,7 +129,7 @@ define_highlights()
 
 ---@class neotest.Config.watch
 ---@field enabled boolean
----@field symbol_queries table<string, string> Queries to capture symbols that are used for querying the LSP server for defintions to link files.
+---@field symbol_queries table<string, string|fun(root, content: string, path: string):integer[][]> Treesitter queries or functions to capture symbols that are used for querying the LSP server for defintions to link files. If it is a function then the return value should be a list of node ranges.
 ---@field filter_path? fun(path: string, root: string): boolean Returns whether the watcher should inspect a path for dependencies. Default ignores paths not under root or common package manager directories.
 
 ---@private
@@ -279,10 +280,39 @@ local default_config = {
       lua = [[
         ;query
         ;Captures module names in require calls
-        (function_call 
+        (function_call
           name: ((identifier) @function (#eq? @function "require"))
           arguments: (arguments (string) @symbol))
       ]],
+      elixir = function(root, content)
+        local query = lib.treesitter.normalise_query(
+          "elixir",
+          [[;; query
+            (call (identifier) @_func_name
+              (arguments (alias) @symbol)
+              (#match? @_func_name "^(alias|require|import|use)")
+              (#gsub! @symbol ".*%.(.*)" "%1")
+            )
+          ]]
+        )
+        local symbols = {}
+        for _, match, metadata in query:iter_matches(root, content) do
+          for id, node in pairs(match) do
+            local name = query.captures[id]
+
+            if name == "symbol" then
+              local start_row, start_col, end_row, end_col = node:range()
+              if metadata[id] ~= nil then
+                local real_symbol_length = string.len(metadata[id]["text"])
+                start_col = end_col - real_symbol_length
+              end
+
+              symbols[#symbols + 1] = { start_row, start_col, end_row, end_col }
+            end
+          end
+        end
+        return symbols
+      end,
     },
     filter_path = nil,
   },

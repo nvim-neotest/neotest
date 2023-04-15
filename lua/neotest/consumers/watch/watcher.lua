@@ -22,6 +22,9 @@ function Watcher._parse_symbols(path, queries)
   if not query then
     error("No symbols query for language: " .. lang)
   end
+  if type(query) == "function" then
+    return query(root, content, path)
+  end
   local parsed_query = lib.treesitter.normalise_query(lang, query)
   local symbols = {}
   for id, node in parsed_query:iter_captures(root, content) do
@@ -49,6 +52,11 @@ function Watcher:_get_linked_files(path, root_path, args)
       position = { line = range[1], character = range[2] },
       textDocument = { uri = path_uri },
     })
+
+    if defs ~= nil and type(defs[1]) ~= "table" then
+      defs = { defs }
+    end
+
     for _, def in ipairs(defs or {}) do
       dependency_uris[def.uri or def.targetUri] = true
     end
@@ -180,6 +188,10 @@ function Watcher:watch(tree, args)
 end
 
 function Watcher:stop_watch()
+  if not self.autocmd_id then
+    logger.warn("Watcher never started, can't stop it")
+    return
+  end
   logger.info("Stopping watch")
   nio.api.nvim_del_autocmd(self.autocmd_id)
 end
