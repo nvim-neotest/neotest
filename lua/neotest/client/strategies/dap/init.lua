@@ -53,6 +53,7 @@ return function(spec)
     end,
     after = function()
       dap.listeners.after.event_output[handler_id] = nil
+      dap.listeners.after.event_exited[handler_id] = nil
       if adapter_after then
         adapter_after()
       end
