@@ -110,6 +110,9 @@ function TestRunner:_run_spec(spec, tree, args, adapter_id, adapter, results_cal
   if vim.tbl_isempty(spec.env or {}) then
     spec.env = nil
   end
+  local context = {
+    position = position,
+  }
 
   local proc_key = self:_create_process_key(adapter_id, position.id)
 
@@ -119,7 +122,7 @@ function TestRunner:_run_spec(spec, tree, args, adapter_id, adapter, results_cal
         results_callback(tree, stream_results)
       end
     end
-  local process_result = self._processes:run(proc_key, spec, args, stream_processor)
+  local process_result = self._processes:run(proc_key, spec, args, stream_processor, context)
 
   local results = adapter.results(spec, process_result, tree)
 
