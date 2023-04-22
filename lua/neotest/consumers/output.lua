@@ -51,7 +51,6 @@ local function open_output(result, opts)
   end
 
   local on_close = function()
-    pcall(vim.api.nvim_buf_delete, buf, { force = true })
     pcall(vim.fn.chanclose, chan)
     win = nil
   end

@@ -91,6 +91,7 @@ return function(spec)
         buffer = attach_buf,
       })
       vim.api.nvim_buf_set_option(attach_buf, "filetype", "neotest-attach")
+      vim.api.nvim_buf_set_option(attach_buf, "bufhidden", "wipe")
       attach_win:jump_to()
     end,
     result = function()
