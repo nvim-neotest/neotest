@@ -86,6 +86,7 @@ To get started you will also need to install an adapter for your test runner.
 | vitest          |     [neotest-vitest](https://github.com/marilari88/neotest-vitest)   |
 | playwright      |  [neotest-playwright](https://github.com/thenbe/neotest-playwright)  |
 | rspec           |     [neotest-rspec](https://github.com/olimorris/neotest-rspec)      |
+| minitest        |   [neotest-minitest](https://github.com/zidhuss/neotest-minitest)    |
 | dart, flutter   |       [neotest-dart](https://github.com/sidlatau/neotest-dart)       |
 | testthat        | [neotest-testthat](https://github.com/shunsambongi/neotest-testthat) |
 | phpunit         |   [neotest-phpunit](https://github.com/olimorris/neotest-phpunit)    |
