@@ -93,7 +93,7 @@ describe("neotest client", function()
           return true
         end,
         output = function()
-          return spec.strategy.output
+          return type(spec.strategy) == "table" and spec.strategy.output or "not_a_file"
         end,
         stop = function()
           exit_future.set()
@@ -111,7 +111,7 @@ describe("neotest client", function()
         end,
         result = function()
           exit_future.wait()
-          return spec.strategy.exit_code
+          return type(spec.strategy) == "table" and spec.strategy.exit_code or 0
         end,
       }
     end
@@ -294,6 +294,31 @@ describe("neotest client", function()
       local tree = get_pos(dir)
       exit_future.set()
       client:run_tree(tree, { strategy = mock_strategy })
+      local adapter_id = client:get_adapters()[1]
+      local results = client:get_results(adapter_id)
+      for _, pos in tree:iter() do
+        if pos.type == "dir" then
+          assert.equal(results[pos.id].status, "failed")
+        end
+      end
+    end)
+
+    a.it("uses spec strategy override", function()
+      local called = nio.control.future()
+      mock_adapter.build_spec = function()
+        return {
+          strategy = function(...)
+            called.set()
+            return mock_strategy(...)
+          end,
+        }
+      end
+      local tree = get_pos(dir)
+      exit_future.set()
+      nio.run(function()
+        client:run_tree(tree, { strategy = mock_strategy })
+      end)
+      called.wait()
       local adapter_id = client:get_adapters()[1]
       local results = client:get_results(adapter_id)
       for _, pos in tree:iter() do

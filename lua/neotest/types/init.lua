@@ -42,7 +42,7 @@
 ---@field env? table<string, string>
 ---@field cwd? string
 ---@field context? table Arbitrary data to preserve state between running and result collection
----@field strategy? table Arguments for strategy
+---@field strategy? table|neotest.Strategy Arguments for strategy or override for chosen strategy
 ---@field stream fun(output_stream: fun(): string[]): fun(): table<string, neotest.Result>
 
 local M = {}

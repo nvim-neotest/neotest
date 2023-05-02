@@ -102,14 +102,18 @@ end
 ---@param spec neotest.RunSpec
 ---@param adapter neotest.Adapter
 function TestRunner:_run_spec(spec, tree, args, adapter_id, adapter, results_callback)
-  local position = tree:data()
-  spec.strategy =
-    vim.tbl_extend("force", spec.strategy or {}, config.strategies[args.strategy] or {})
+  if type(spec.strategy) == "function" then
+    args = vim.tbl_extend("keep", { strategy = spec.strategy }, args)
+  else
+    spec.strategy =
+      vim.tbl_extend("force", spec.strategy or {}, config.strategies[args.strategy] or {})
+  end
   spec.env = vim.tbl_extend("force", spec.env or {}, args.env or {})
   spec.cwd = args.cwd or spec.cwd
   if vim.tbl_isempty(spec.env or {}) then
     spec.env = nil
   end
+  local position = tree:data()
   local context = {
     position = position,
   }

@@ -1484,9 +1484,13 @@ Fields~
 {output_stream} `(async fun(): async)` fun(): string Async iterator of process
 output
 
+                                                       *neotest.StrategyContext*
+Fields~
+{position} `(neotest.Position)`
+
                                                               *neotest.Strategy*
 Alias~
-`neotest.Strategy` → `async fun(spec: neotest.RunSpec): neotest.Process`
+`neotest.Strategy` → `async fun(spec: neotest.RunSpec, context: neotest.StrategyContext): neotest.Process`
 
                                                         *neotest.StrategyResult*
 Fields~
@@ -1506,7 +1510,8 @@ Fields~
 {cwd?} `(string)`
 {context?} `(table)` Arbitrary data to preserve state between running and
 result collection
-{strategy?} `(table)` Arguments for strategy
+{strategy?} `(table|neotest.Strategy)` Arguments for strategy or override for
+chosen strategy
 {stream} `(fun(output_stream: fun(): string[]): fun():)` table<string,
 neotest.Result>
 
