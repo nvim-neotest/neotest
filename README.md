@@ -76,9 +76,9 @@ To get started you will also need to install an adapter for your test runner.
 
 ### Supported Runners
 
-| Test Runner     |                               Adapter                                | Notes                                                      |
-| :-------------- | :------------------------------------------------------------------: | :---------------------------------------------------------:|
-| pytest          |   [neotest-python](https://github.com/nvim-neotest/neotest-python)   | Requred install treesitter python parser :TSInstall python |
+| Test Runner     |                               Adapter                                | Notes                                                       |
+| :-------------- | :------------------------------------------------------------------: | :----------------------------------------------------------:|
+| pytest          |   [neotest-python](https://github.com/nvim-neotest/neotest-python)   | Required install treesitter python parser :TSInstall python |
 | python-unittest |   [neotest-python](https://github.com/nvim-neotest/neotest-python)   |
 | plenary         |  [neotest-plenary](https://github.com/nvim-neotest/neotest-plenary)  |
 | go              |         [neotest-go](https://github.com/akinsho/neotest-go)          |
