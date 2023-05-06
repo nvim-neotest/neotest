@@ -74,7 +74,11 @@ return function(spec)
       end
     end,
     attach = function()
-      if not attach_buf then
+      -- nvim_create_buf returns 0 on error, but bufexists(0) tests for
+      -- existance of an alternate file name, so coerce 0 to nil
+      if attach_buf == 0 then attach_buf = nil end
+
+      if vim.fn.bufexists(attach_buf) == 0 then
         attach_buf = nio.api.nvim_create_buf(false, true)
         attach_chan = lib.ui.open_term(attach_buf, {
           on_input = function(_, _, _, data)
