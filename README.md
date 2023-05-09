@@ -74,6 +74,10 @@ use {
 
 To get started you will also need to install an adapter for your test runner.
 
+#### Important note:
+In order to neotest works correctly, please ensure that your runner is correctly set up, please read the documentation of the adapters
+first.
+
 ### Supported Runners
 
 | Test Runner     |                               Adapter                                |
