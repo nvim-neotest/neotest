@@ -86,7 +86,7 @@ return function(spec)
           end,
         })
         data_accum:subscribe(function(data)
-          nio.api.nvim_chan_send(attach_chan, data)
+          pcall(nio.api.nvim_chan_send, attach_chan, data)
         end)
       end
       attach_win = lib.ui.float.open({
