@@ -313,6 +313,7 @@ function NeotestConfigModule.setup_project(project_root, config)
     adapters = user_config.adapters,
     discovery = user_config.discovery,
     running = user_config.running,
+    default_strategy = user_config.default_strategy,
   })
   user_config.projects[path].discovery.concurrent =
     convert_concurrent(user_config.projects[path].discovery.concurrent)

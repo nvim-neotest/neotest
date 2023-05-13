@@ -76,7 +76,9 @@ return function(spec)
     attach = function()
       -- nvim_create_buf returns 0 on error, but bufexists(0) tests for
       -- existance of an alternate file name, so coerce 0 to nil
-      if attach_buf == 0 then attach_buf = nil end
+      if attach_buf == 0 then
+        attach_buf = nil
+      end
 
       if vim.fn.bufexists(attach_buf) == 0 then
         attach_buf = nio.api.nvim_create_buf(false, true)
