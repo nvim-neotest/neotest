@@ -73,6 +73,7 @@ use {
 ```
 
 To get started you will also need to install an adapter for your test runner.
+See the adapter's documentation for their specific setup instructions.
 
 ### Supported Runners
 
