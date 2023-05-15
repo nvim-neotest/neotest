@@ -80,7 +80,7 @@ return function(spec)
         attach_buf = nil
       end
 
-      if vim.fn.bufexists(attach_buf) == 0 then
+      if nio.fn.bufexists(attach_buf) == 0 then
         attach_buf = nio.api.nvim_create_buf(false, true)
         attach_chan = lib.ui.open_term(attach_buf, {
           on_input = function(_, _, _, data)
@@ -96,8 +96,8 @@ return function(spec)
         width = spec.strategy.width,
         buffer = attach_buf,
       })
-      vim.api.nvim_buf_set_option(attach_buf, "filetype", "neotest-attach")
-      vim.api.nvim_buf_set_option(attach_buf, "bufhidden", "wipe")
+      nio.api.nvim_buf_set_option(attach_buf, "filetype", "neotest-attach")
+      nio.api.nvim_buf_set_option(attach_buf, "bufhidden", "wipe")
       attach_win:jump_to()
     end,
     result = function()
