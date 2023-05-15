@@ -6,6 +6,10 @@ local OutputPanel = require("neotest.consumers.output_panel.panel")
 ---@type neotest.OutputPanel
 local panel
 
+---@private
+---@type number
+local chan
+
 local neotest = {}
 
 ---@toc_entry Output Panel Consumer
@@ -19,7 +23,6 @@ neotest.output_panel = {}
 local init = function(client)
   panel = OutputPanel(client)
 
-  local chan
   ---@param results table<string, neotest.Result>
   client.listeners.results = function(adapter_id, results, partial)
     if partial then
@@ -80,6 +83,16 @@ function neotest.output_panel.toggle()
     neotest.output_panel.close()
   else
     neotest.output_panel.open()
+  end
+end
+
+--- Clears the output panel
+--- >vim
+---   lua require("neotest").output_panel.clear()
+--- <
+function neotest.output_panel.clear()
+  if chan then
+    vim.api.nvim_chan_send(chan, "\x1b[H\x1b[2J")
   end
 end
 
