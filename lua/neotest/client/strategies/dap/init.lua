@@ -46,7 +46,7 @@ return function(spec)
       end
       dap.listeners.after.event_exited[handler_id] = function(_, info)
         result_code = info.exitCode
-        finish_future.set()
+        pcall(finish_future.set)
       end
 
       return adapter_before and adapter_before() or config
