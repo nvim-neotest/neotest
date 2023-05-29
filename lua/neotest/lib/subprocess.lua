@@ -55,6 +55,7 @@ function neotest.lib.subprocess.init()
     local mode = nio.fn.rpcrequest(child_chan, "nvim_get_mode")
     if mode.blocking then
       logger.error("Child process is waiting for input at startup. Aborting.")
+      return
     end
     -- Trigger lazy loading of neotest
     nio.fn.rpcrequest(child_chan, "nvim_exec_lua", "return require('neotest') and 0", {})
