@@ -44,7 +44,7 @@ function Watcher:_get_linked_files(path, root_path, args)
         [[require("neotest.consumers.watch.watcher")._parse_symbols]],
         { path }
       )
-      or self._parse_symbols(path)
+    or self._parse_symbols(path)
   local path_uri = vim.uri_from_fname(path)
   local dependency_uris = {}
   logger.debug("Getting symbol definitions for", path)
@@ -87,11 +87,11 @@ function Watcher:_files_in_tree(tree)
   end
   local paths = {}
   for _, pos in
-  tree:iter({
-    continue = function(node)
-      return node:data().type == "dir"
-    end,
-  })
+    tree:iter({
+      continue = function(node)
+        return node:data().type == "dir"
+      end,
+    })
   do
     if pos.type == "file" then
       paths[#paths + 1] = pos.path
