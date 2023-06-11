@@ -571,6 +571,20 @@ already being watched, the existing watcher will be stopped.
 Parameters~
 {args?} `(neotest.run.RunArgs|string)`
 
+                                                        *neotest.watch.toggle()*
+`toggle`({args})
+
+Toggle watching a position and run it whenever related files are changed.
+Arguments are the same as the `neotest.run.run`, which allows
+for custom runner arguments, env vars, strategy etc.
+
+Toggle watching the current file
+>vim
+  lua require("neotest").watch.toggle(vim.fn.expand("%"))
+<
+Parameters~
+{args?} `(neotest.run.RunArgs|string)`
+
                                                           *neotest.watch.stop()*
 `stop`({position_id})
 
@@ -638,9 +652,9 @@ Close the summary window
 
 the summary window
 
-
+>vim
  lua require("neotest").summary.toggle()
-
+<
 
                                                 *neotest.summmary.RunMarkedArgs*
 Inherits: `neotest.run.RunArgs`

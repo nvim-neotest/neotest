@@ -181,11 +181,7 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
     canvas:add_mapping(
       "watch",
       async_func(function()
-        if neotest.watch.is_watching(position.id) then
-          neotest.watch.stop(position.id)
-        else
-          neotest.watch.watch({ position.id, adapter = self.adapter_id })
-        end
+        neotest.watch.toggle({ position.id, adapter = self.adapter_id })
         neotest.summary.render()
       end)
     )

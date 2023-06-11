@@ -16,11 +16,11 @@ local neotest = {}
 --- The client interface provides methods for interacting with tests, fetching
 --- results as well as event listeners. To listen to an event, just assign the event
 --- listener to a function:
---- >lua
+--- ```lua
 ---   client.listeners.discover_positions = function (adapter_id, tree)
 ---     ...
 ---   end
---- <
+--- ```
 --- Available events and the listener signatures are visible as properties on the
 --- `client.listeners` table
 ---

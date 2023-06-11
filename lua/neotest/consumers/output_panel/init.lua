@@ -56,25 +56,25 @@ local init = function(client)
 end
 
 --- Open the output panel
---- >vim
+--- ```vim
 ---   lua require("neotest").output_panel.open()
---- <
+--- ```
 function neotest.output_panel.open()
   panel.win:open()
 end
 
 --- Close the output panel
---- >vim
+--- ```vim
 ---   lua require("neotest").output_panel.close()
---- <
+--- ```
 function neotest.output_panel.close()
   panel.win:close()
 end
 
 --- Toggle the output panel
---- >vim
+--- ```vim
 ---   lua require("neotest").output_panel.toggle()
---- <
+--- ```
 function neotest.output_panel.toggle()
   if panel.win:is_open() then
     neotest.output_panel.close()

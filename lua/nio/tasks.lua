@@ -91,7 +91,7 @@ function nio.tasks.run(func, cb)
       future.set_error(err)
       if cb then
         cb(false, err)
-      else
+      elseif not cancelled then
         error("Async task failed without callback: " .. err)
       end
     else

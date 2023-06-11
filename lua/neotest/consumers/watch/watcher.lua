@@ -44,7 +44,7 @@ function Watcher:_get_linked_files(path, root_path, args)
         [[require("neotest.consumers.watch.watcher")._parse_symbols]],
         { path }
       )
-    or self._parse_symbols(path)
+      or self._parse_symbols(path)
   local path_uri = vim.uri_from_fname(path)
   local dependency_uris = {}
   logger.debug("Getting symbol definitions for", path)
@@ -52,7 +52,7 @@ function Watcher:_get_linked_files(path, root_path, args)
     local _, defs = self.lsp_client.request.textDocument_definition({
       position = { line = range[1], character = range[2] },
       textDocument = { uri = path_uri },
-    })
+    }, nil, { timeout = 1000 })
 
     if defs ~= nil and type(defs[1]) ~= "table" then
       defs = { defs }
@@ -83,11 +83,11 @@ function Watcher:_files_in_tree(tree)
   end
   local paths = {}
   for _, pos in
-    tree:iter({
-      continue = function(node)
-        return node:data().type == "dir"
-      end,
-    })
+  tree:iter({
+    continue = function(node)
+      return node:data().type == "dir"
+    end,
+  })
   do
     if pos.type == "file" then
       paths[#paths + 1] = pos.path
@@ -184,7 +184,6 @@ function Watcher:watch(tree, args)
 
   run.run(vim.tbl_extend("keep", { tree:data().id }, args))
   logger.info("Starting watch of", tree:data().id)
-  lib.notify(("Watching %s"):format(tree:data().name))
 end
 
 function Watcher:stop_watch()
