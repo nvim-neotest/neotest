@@ -71,9 +71,9 @@ neotest.summary.render = function(positions)
 end
 
 --- Open the summary window
---- >vim
+--- ```vim
 ---   lua require("neotest").summary.open()
---- <
+--- ```
 function neotest.summary.open()
   if summary.win:is_open() then
     return
@@ -83,18 +83,18 @@ function neotest.summary.open()
 end
 
 --- Close the summary window
---- >vim
+--- ```vim
 ---   lua require("neotest").summary.close()
---- <
+--- ```
 function neotest.summary.close()
   summary:close()
 end
 
 ---Toggle the summary window
 ---
---->vim
+--- ```vim
 ---  lua require("neotest").summary.toggle()
----<
+--- ```
 function neotest.summary.toggle()
   nio.run(function()
     if summary.win:is_open() then

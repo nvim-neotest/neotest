@@ -5,6 +5,9 @@ local nio = require("nio")
 local Watcher = require("neotest.consumers.watch.watcher")
 
 local watchers = {}
+---@type table<string, nio.tasks.Task>
+---@private
+local start_tasks = {}
 
 local neotest = {}
 
@@ -110,9 +113,39 @@ neotest.watch.watch = nio.create(function(args)
   end
   watchers[pos_id] = watcher
 
-  nio.run(function()
+  start_tasks[pos_id] = nio.run(function()
+    lib.notify(("Starting watcher for %s"):format(tree:data().name))
     watcher:watch(tree, args)
+    lib.notify(("Watcher running for %s"):format(tree:data().name))
+    start_tasks[pos_id] = nil
   end)
+end, 1)
+
+--- Toggle watching a position and run it whenever related files are changed.
+--- Arguments are the same as the `neotest.run.run`, which allows
+--- for custom runner arguments, env vars, strategy etc.
+---
+--- Toggle watching the current file
+--- ```vim
+---   lua require("neotest").watch.toggle(vim.fn.expand("%"))
+--- ```
+---@param args? neotest.run.RunArgs|string
+neotest.watch.toggle = nio.create(function(args)
+  local run = require("neotest").run
+  local tree = run.get_tree_from_args(args, false)
+
+  if not tree then
+    lib.notify(("No position found with args %s"):format(vim.inspect(args)), vim.log.levels.ERROR)
+    return
+  end
+
+  local position_id = tree:data().id
+
+  if neotest.watch.is_watching(position_id) then
+    neotest.watch.stop(position_id)
+  else
+    neotest.watch.watch(args)
+  end
 end, 1)
 
 --- Stop watching a position. If no position is provided, all watched positions are stopped.
@@ -129,9 +162,13 @@ function neotest.watch.stop(position_id)
     lib.notify(("%s is not being watched"):format(position_id), vim.log.levels.WARN)
     return
   end
-
+  lib.notify(("Stopping watch for %s"):format(position_id), vim.log.levels.INFO)
   watchers[position_id]:stop_watch()
   watchers[position_id] = nil
+  if start_tasks[position_id] then
+    start_tasks[position_id].cancel()
+    start_tasks[position_id] = nil
+  end
 end
 
 --- Check if a position is being watched.

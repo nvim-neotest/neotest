@@ -17,6 +17,10 @@ neotest.run = {}
 ---@package
 ---@nodoc
 function neotest.run.get_tree_from_args(args, store)
+  args = args or {}
+  if type(args) == "string" then
+    args = { args }
+  end
   local tree, adapter = (function()
     if args.suite then
       if not args.adapter then
@@ -46,25 +50,21 @@ end
 --- All arguments are optional
 ---
 --- Run the current file
---- >vim
+--- ```vim
 ---   lua require("neotest").run.run(vim.fn.expand("%"))
---- <
+--- ```
 ---
 --- Run the nearest test
---- >vim
+--- ```vim
 ---   lua require("neotest").run.run()
---- <
+--- ```
 ---
 --- Debug the current file with nvim-dap
---- >vim
+--- ```vim
 ---   lua require("neotest").run.run({vim.fn.expand("%"), strategy = "dap"})
---- <
+--- ```
 ---@param args string|neotest.run.RunArgs? Position ID to run or args.
 neotest.run.run = nio.create(function(args)
-  args = args or {}
-  if type(args) == "string" then
-    args = { args }
-  end
   local tree = neotest.run.get_tree_from_args(args, true)
   if not tree then
     lib.notify("No tests found")
@@ -77,15 +77,15 @@ end, 1)
 --- Arguments are optional
 ---
 --- Run the last position that was run with the same arguments and strategy
---- >vim
+--- ```vim
 ---   lua require("neotest").run.run_last()
---- <
+--- ```
 ---
 --- Run the last position that was run with the same arguments but debug with
 --- nvim-dap
---- >vim
+--- ```vim
 ---   lua require("neotest").run.run_last({ strategy = "dap" })
---- <
+--- ```
 ---@param args neotest.run.RunArgs? Argument overrides
 neotest.run.run_last = nio.create(function(args)
   args = args or {}
