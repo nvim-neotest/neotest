@@ -81,7 +81,7 @@ local default_args = {
 --- for custom runner arguments, env vars, strategy etc. If a position is
 --- already being watched, the existing watcher will be stopped.
 ---@param args? neotest.run.RunArgs|string
-neotest.watch.watch = nio.create(function(args)
+function neotest.watch.watch(args)
   args = args or {}
   if type(args) == "string" then
     args = { args }
@@ -119,7 +119,9 @@ neotest.watch.watch = nio.create(function(args)
     lib.notify(("Watcher running for %s"):format(tree:data().name))
     start_tasks[pos_id] = nil
   end)
-end, 1)
+end
+
+neotest.watch.watch = nio.create(neotest.watch.watch, 1)
 
 --- Toggle watching a position and run it whenever related files are changed.
 --- Arguments are the same as the `neotest.run.run`, which allows
@@ -130,7 +132,7 @@ end, 1)
 ---   lua require("neotest").watch.toggle(vim.fn.expand("%"))
 --- ```
 ---@param args? neotest.run.RunArgs|string
-neotest.watch.toggle = nio.create(function(args)
+function neotest.watch.toggle(args)
   local run = require("neotest").run
   local tree = run.get_tree_from_args(args, false)
 
@@ -146,7 +148,9 @@ neotest.watch.toggle = nio.create(function(args)
   else
     neotest.watch.watch(args)
   end
-end, 1)
+end
+
+neotest.watch.toggle = nio.create(neotest.watch.toggle, 1)
 
 --- Stop watching a position. If no position is provided, all watched positions are stopped.
 ---@param position_id string

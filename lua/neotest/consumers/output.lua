@@ -149,7 +149,7 @@ end
 ---   lua require("neotest").output.open({ enter = true })
 --- ```
 ---@param opts? neotest.consumers.output.OpenArgs
-neotest.output.open = nio.create(function(opts)
+function neotest.output.open(opts)
   opts = opts or {}
   if win then
     if opts.short ~= short_opened then
@@ -188,7 +188,9 @@ neotest.output.open = nio.create(function(opts)
     return
   end
   open_output(result, opts)
-end, 1)
+end
+
+neotest.output.open = nio.create(neotest.output.open, 1)
 
 neotest.output = setmetatable(neotest.output, {
   __call = function(_, client_)
