@@ -70,7 +70,7 @@ function neotest.run.run(args)
     lib.notify("No tests found")
     return
   end
-  client:run_tree(tree, args)
+  client:run_tree(tree, type(args) == "string" and { args } or args)
 end
 
 neotest.run.run = nio.create(neotest.run.run, 1)
