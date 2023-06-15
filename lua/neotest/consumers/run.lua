@@ -64,14 +64,16 @@ end
 ---   lua require("neotest").run.run({vim.fn.expand("%"), strategy = "dap"})
 --- ```
 ---@param args string|neotest.run.RunArgs? Position ID to run or args.
-neotest.run.run = nio.create(function(args)
+function neotest.run.run(args)
   local tree = neotest.run.get_tree_from_args(args, true)
   if not tree then
     lib.notify("No tests found")
     return
   end
   client:run_tree(tree, args)
-end, 1)
+end
+
+neotest.run.run = nio.create(neotest.run.run, 1)
 
 --- Re-run the last position that was run.
 --- Arguments are optional
@@ -87,7 +89,7 @@ end, 1)
 ---   lua require("neotest").run.run_last({ strategy = "dap" })
 --- ```
 ---@param args neotest.run.RunArgs? Argument overrides
-neotest.run.run_last = nio.create(function(args)
+function neotest.run.run_last(args)
   args = args or {}
   if not last_run then
     lib.notify("No tests run yet")
@@ -103,7 +105,9 @@ neotest.run.run_last = nio.create(function(args)
     end
     client:run_tree(tree, args)
   end)
-end, 1)
+end
+
+neotest.run.run_last = nio.create(neotest.run.run_last, 1)
 
 local function get_tree_interactive()
   local running = client:running_positions()
@@ -126,7 +130,7 @@ end
 ---
 ---@param args string|neotest.run.StopArgs? Position ID to stop or args. If
 --- args then args[1] should be the position ID.
-neotest.run.stop = nio.create(function(args)
+function neotest.run.stop(args)
   args = args or {}
   if type(args) == "string" then
     args = { args }
@@ -142,7 +146,8 @@ neotest.run.stop = nio.create(function(args)
     return
   end
   client:stop(pos, args)
-end, 1)
+end
+neotest.run.stop = nio.create(neotest.run.stop, 1)
 
 ---@class neotest.run.AttachArgs : neotest.client.AttachArgs
 ---@field interactive boolean Select a running position interactively
@@ -151,7 +156,7 @@ end, 1)
 ---
 ---@param args string|neotest.run.AttachArgs? Position ID to attach to or args. If args then
 --- args[1] should be the position ID.
-neotest.run.attach = nio.create(function(args)
+function neotest.run.attach(args)
   args = args or {}
   if type(args) == "string" then
     args = { args }
@@ -167,7 +172,8 @@ neotest.run.attach = nio.create(function(args)
     return
   end
   client:attach(pos, args)
-end, 1)
+end
+neotest.run.attach = nio.create(neotest.run.attach, 1)
 
 --- Get the list of all known adapter IDs.
 ---@return string[]
