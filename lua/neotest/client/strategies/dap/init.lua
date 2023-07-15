@@ -52,6 +52,11 @@ return function(spec)
       return adapter_before and adapter_before() or config
     end,
     after = function()
+      local received_exit = result_code ~= nil
+      if not received_exit then
+        result_code = 0
+        pcall(finish_future.set)
+      end
       dap.listeners.after.event_output[handler_id] = nil
       dap.listeners.after.event_exited[handler_id] = nil
       if adapter_after then
