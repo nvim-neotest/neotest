@@ -136,7 +136,7 @@ Default values:
     projects = {},
     quickfix = {
       enabled = true,
-      open = true
+      open = false
     },
     run = {
       enabled = true

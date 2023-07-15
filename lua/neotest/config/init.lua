@@ -263,7 +263,7 @@ local default_config = {
   },
   quickfix = {
     enabled = true,
-    open = true,
+    open = false,
   },
   state = {
     enabled = true,
