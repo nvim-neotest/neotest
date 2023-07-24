@@ -69,7 +69,6 @@ end
 function NeotestClientState:update_results(adapter_id, results, partial)
   logger.debug("New results for adapter", adapter_id)
   logger.trace(results)
-  local positions = self:positions(adapter_id)
   self._results[adapter_id] = vim.tbl_extend("force", self._results[adapter_id] or {}, results)
   if not self._running[adapter_id] then
     self._running[adapter_id] = {}

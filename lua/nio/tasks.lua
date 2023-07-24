@@ -126,10 +126,12 @@ function nio.tasks.run(func, cb)
     local _, nargs, err_or_fn = unpack(yielded)
 
     if type(err_or_fn) ~= "function" then
-      error("Async internal error: expected function, got %s\nContext: %s\n%s"):format(
-        type(err_or_fn),
-        vim.inspect(yielded),
-        debug.traceback(co)
+      error(
+        ("Async internal error: expected function, got %s\nContext: %s\n%s"):format(
+          type(err_or_fn),
+          vim.inspect(yielded),
+          debug.traceback(co)
+        )
       )
     end
 
