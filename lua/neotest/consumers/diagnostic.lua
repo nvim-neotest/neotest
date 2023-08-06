@@ -92,16 +92,20 @@ local function init(client)
               self.tracking_marks[pos_id][error_i],
               {}
             )
-            local mark_code = api.nvim_buf_get_lines(bufnr, mark[1], mark[1] + 1, false)[1]
 
-            if mark_code == self.error_code_lines[pos_id][error_i] then
-              diagnostics[#diagnostics + 1] = {
-                lnum = mark[1],
-                col = mark_code:find("%S") - 1,
-                message = error.message,
-                source = "neotest",
-                severity = config.diagnostic.severity,
-              }
+            -- After closing the buf, the mark[1] becomes nil
+            if mark and #mark > 0 then
+              local mark_code = api.nvim_buf_get_lines(bufnr, mark[1], mark[1] + 1, false)[1]
+
+              if mark_code == self.error_code_lines[pos_id][error_i] then
+                diagnostics[#diagnostics + 1] = {
+                  lnum = mark[1],
+                  col = mark_code:find("%S") - 1,
+                  message = error.message,
+                  source = "neotest",
+                  severity = config.diagnostic.severity,
+                }
+              end
             end
           end
         end
