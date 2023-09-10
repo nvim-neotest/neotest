@@ -72,6 +72,19 @@ use {
 }
 ```
 
+[lazy.nvim](https://github.com/folke/lazy.nvim)
+
+```lua
+{ 
+  "nvim-neotest/neotest",
+  dependencies = {
+    "nvim-lua/plenary.nvim",
+    "nvim-treesitter/nvim-treesitter",
+    "antoinemadec/FixCursorHold.nvim"
+  }
+}
+```
+
 To get started you will also need to install an adapter for your test runner.
 See the adapter's documentation for their specific setup instructions.
 
