@@ -329,7 +329,7 @@ For languages unsupported by treesitter you can use regexes like neotest-vim-tes
 ### Constructing Test Commands
 
 This is the easiest part of writing an adapter. You need to handle the different types of positions that a user may run
-(directiory, file, namespace and test).
+(directory, file, namespace and test).
 
 If you are hooking into the runner, you may not be running the test runner command directly. neotest-python and
 neotest-plenary both are examples of this, with a script being used to run each runner to handle parsing results and
