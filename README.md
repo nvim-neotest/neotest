@@ -113,6 +113,7 @@ See the adapter's documentation for their specific setup instructions.
 | deno            |    [neotest-deno](https://github.com/MarkEmmons/neotest-deno)        |
 | java            |    [neotest-java](https://github.com/andy-bell101/neotest-java)      |
 | foundry         |    [neotest-foundry](https://github.com/llllvvuu/neotest-foundry)    |
+| zig             |    [neotest-zig](https://github.com/lawrence-laz/neotest-zig)    |
 
 For any runner without an adapter you can use [neotest-vim-test](https://github.com/nvim-neotest/neotest-vim-test) which supports any runner that vim-test supports.
 The vim-test adapter does not support some of the more advanced features such as error locations or per-test output.
