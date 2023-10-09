@@ -45,7 +45,6 @@ Install with your favourite package manager alongside nvim-dap
 
 ```vim
 call dein#add("nvim-lua/plenary.nvim")
-call dein#add("nvim-treesitter/nvim-treesitter")
 call dein#add("antoinemadec/FixCursorHold.nvim")
 call dein#add("nvim-neotest/neotest")
 ```
@@ -54,7 +53,6 @@ call dein#add("nvim-neotest/neotest")
 
 ```vim
 Plug 'nvim-lua/plenary.nvim'
-Plug 'nvim-treesitter/nvim-treesitter'
 Plug 'antoinemadec/FixCursorHold.nvim'
 Plug 'nvim-neotest/neotest'
 ```
@@ -66,7 +64,6 @@ use {
   "nvim-neotest/neotest",
   requires = {
     "nvim-lua/plenary.nvim",
-    "nvim-treesitter/nvim-treesitter",
     "antoinemadec/FixCursorHold.nvim"
   }
 }
@@ -79,7 +76,6 @@ use {
   "nvim-neotest/neotest",
   dependencies = {
     "nvim-lua/plenary.nvim",
-    "nvim-treesitter/nvim-treesitter",
     "antoinemadec/FixCursorHold.nvim"
   }
 }
