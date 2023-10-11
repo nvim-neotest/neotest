@@ -111,7 +111,7 @@ See the adapter's documentation for their specific setup instructions.
 | scala           |    [neotest-scala](https://github.com/stevanmilic/neotest-scala)     |
 | haskell         |    [neotest-haskell](https://github.com/mrcjkb/neotest-haskell)      |
 | deno            |    [neotest-deno](https://github.com/MarkEmmons/neotest-deno)        |
-| java            |    [neotest-java](https://github.com/andy-bell101/neotest-java)      |
+| java            |    [neotest-java](https://github.com/rcasia/neotest-java)      |
 | foundry         |    [neotest-foundry](https://github.com/llllvvuu/neotest-foundry)    |
 
 For any runner without an adapter you can use [neotest-vim-test](https://github.com/nvim-neotest/neotest-vim-test) which supports any runner that vim-test supports.
