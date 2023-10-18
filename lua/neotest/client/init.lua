@@ -394,6 +394,11 @@ function neotest.Client:_start(args)
 
   autocmd({ "BufAdd", "BufWritePost" }, function()
     local file_path = vim.fn.expand("<afile>:p")
+
+    if not lib.files.exists(file_path) then
+      return
+    end
+
     nio.run(function()
       local adapter_id = self:_get_adapter(file_path)
       if not adapter_id then
@@ -459,6 +464,11 @@ function neotest.Client:_start(args)
 
   autocmd("BufEnter", function()
     local path = vim.fn.expand("<afile>:p")
+
+    if not lib.files.exists(path) then
+      return
+    end
+
     nio.run(function()
       self:_set_focused_file(path)
     end)
@@ -466,6 +476,11 @@ function neotest.Client:_start(args)
 
   autocmd({ "CursorHold", "BufEnter" }, function()
     local path, line = vim.fn.expand("<afile>:p"), vim.fn.line(".")
+
+    if not lib.files.exists(path) then
+      return
+    end
+
     nio.run(function()
       local pos, pos_adapter_id = self:get_nearest(path, line - 1)
       if not pos then
