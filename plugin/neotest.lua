@@ -133,7 +133,12 @@ commands = {
 }
 
 local function eval_luastring(value)
-  return loadstring("return " .. value, value)()
+  local evaluated = loadstring("return " .. value, value)()
+  if evaluated == nil then
+    -- Treat as unquoted string
+    evaluated = value
+  end
+  return evaluated
 end
 
 local function make_params(info, args)
