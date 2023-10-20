@@ -114,7 +114,7 @@ end
 function neotest.lib.treesitter.get_parse_root(file_path, content, opts)
   local fast = opts.fast ~= false
   local ft = lib.files.detect_filetype(file_path)
-  local lang = require("nvim-treesitter.parsers").ft_to_lang(ft)
+  local lang = vim.treesitter.language.get_lang(ft) or ft
   nio.scheduler()
   local lang_tree = vim.treesitter.get_string_parser(
     content,
