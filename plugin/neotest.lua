@@ -16,6 +16,7 @@ local cmd_completion_store = {
     "open",
     "close",
     "toggle",
+    "clear",
   },
   run = {
     "file",
@@ -77,6 +78,9 @@ commands = {
     end,
     toggle = function()
       require("neotest").output_panel.toggle()
+    end,
+    clear = function()
+      require("neotest").output_panel.clear()
     end,
   },
   run = {

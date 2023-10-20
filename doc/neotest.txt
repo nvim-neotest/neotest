@@ -446,6 +446,14 @@ Toggle the output panel
   lua require("neotest").output_panel.toggle()
 <
 
+                                                  *neotest.output_panel.clear()*
+`clear`()
+
+Clears the output panel
+>vim
+  lua require("neotest").output_panel.clear()
+<
+
 
 ==============================================================================
 neotest.run                                                        *neotest.run*

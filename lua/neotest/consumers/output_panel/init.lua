@@ -6,10 +6,6 @@ local OutputPanel = require("neotest.consumers.output_panel.panel")
 ---@type neotest.OutputPanel
 local panel
 
----@private
----@type number
-local chan
-
 local neotest = {}
 
 ---@toc_entry Output Panel Consumer
@@ -23,6 +19,7 @@ neotest.output_panel = {}
 local init = function(client)
   panel = OutputPanel(client)
 
+  local chan
   ---@param results table<string, neotest.Result>
   client.listeners.results = function(adapter_id, results, partial)
     if partial then
@@ -91,9 +88,9 @@ end
 ---   lua require("neotest").output_panel.clear()
 --- <
 function neotest.output_panel.clear()
-  if chan then
-    vim.api.nvim_chan_send(chan, "\x1b[H\x1b[2J")
-  end
+  nio.api.nvim_buf_set_option(panel.win:buffer(), "modifiable", true)
+  nio.api.nvim_buf_set_lines(panel.win:buffer(), 0, -1, false, {})
+  nio.api.nvim_buf_set_option(panel.win:buffer(), "modifiable", false)
 end
 
 neotest.output_panel = setmetatable(neotest.output_panel, {
