@@ -18,27 +18,29 @@ jobs:
 
   tests:
     name: tests
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-20.04
-            url: https://github.com/neovim/neovim/releases/download/v0.7.0/nvim-linux64.tar.gz
+          - os: ubuntu-22.04
+            rev: nightly/nvim-linux64.tar.gz
+          - os: ubuntu-22.04
+            rev: v0.9.1/nvim-linux64.tar.gz
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: date +%F > todays-date
       - name: Restore cache for today's nightly.
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: _neovim
-          key: ${{ runner.os }}-x64-${{ hashFiles('todays-date') }}
+          key: ${{ runner.os }}-${{ matrix.rev }}-${{ hashFiles('todays-date') }}
 
       - name: Prepare dependencies
         run: |
           test -d _neovim || {
             mkdir -p _neovim
-            curl -sL ${{ matrix.url }} | tar xzf - --strip-components=1 -C "${PWD}/_neovim"
+            curl -sL "https://github.com/neovim/neovim/releases/download/${{ matrix.rev }}" | tar xzf - --strip-components=1 -C "${PWD}/_neovim"
           }
           mkdir -p ~/.local/share/nvim/site/pack/vendor/start
           git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
