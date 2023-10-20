@@ -83,6 +83,16 @@ function neotest.output_panel.toggle()
   end
 end
 
+--- Clears the output panel
+--- >vim
+---   lua require("neotest").output_panel.clear()
+--- <
+function neotest.output_panel.clear()
+  nio.api.nvim_buf_set_option(panel.win:buffer(), "modifiable", true)
+  nio.api.nvim_buf_set_lines(panel.win:buffer(), 0, -1, false, {})
+  nio.api.nvim_buf_set_option(panel.win:buffer(), "modifiable", false)
+end
+
 neotest.output_panel = setmetatable(neotest.output_panel, {
   __call = function(_, client)
     init(client)
