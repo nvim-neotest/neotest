@@ -27,10 +27,10 @@ return function(spec)
   local open_err, output_fd = nio.uv.fs_open(output_path, "w", 438)
   assert(not open_err, open_err)
 
-  data_accum:subscribe(function(data)
+  data_accum:subscribe(nio.create(function(data)
     local write_err, _ = nio.uv.fs_write(output_fd, data)
     assert(not write_err, write_err)
-  end)
+  end, 1))
 
   local success, job = pcall(nio.fn.jobstart, command, {
     cwd = cwd,
@@ -39,9 +39,7 @@ return function(spec)
     height = spec.strategy.height,
     width = spec.strategy.width,
     on_stdout = function(_, data)
-      nio.run(function()
-        data_accum:push(table.concat(data, "\n"))
-      end)
+      data_accum:push(table.concat(data, "\n"))
     end,
     on_exit = function(_, code)
       result_code = code
@@ -67,10 +65,16 @@ return function(spec)
     output_stream = function()
       local queue = nio.control.queue()
       data_accum:subscribe(function(d)
-        queue.put(d)
+        queue.put_nowait(d)
       end)
       return function()
-        return nio.first({ finish_future.wait, queue.get })
+        local data = nio.first({ queue.get, finish_future.wait })
+        if data then
+          return data
+        end
+        while queue.size() ~= 0 do
+          return queue.get()
+        end
       end
     end,
     attach = function()
