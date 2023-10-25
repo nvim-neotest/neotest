@@ -24,7 +24,8 @@ local init = function()
     local buffer_cache = {}
     for pos_id, result in pairs(results) do
       if result.status == "failed" and tree:get_key(pos_id) then
-        local pos = assert(tree:get_key(pos_id)):data()
+        local node = assert(tree:get_key(pos_id))
+        local pos = node:data()
         if pos.type == "test" then
           local bufnr = buffer_cache[pos.path]
           if not bufnr then
@@ -33,12 +34,13 @@ local init = function()
             buffer_cache[pos.path] = bufnr
           end
 
+          local range = node:closest_value_for("range")
           for _, error in ipairs(result.errors or {}) do
             qf_results[#qf_results + 1] = {
               bufnr = bufnr > 0 and bufnr or nil,
               filename = bufnr <= 0 and pos.path or nil,
-              lnum = (error.line or pos.range[1]) + 1,
-              col = pos.range[2] + 1,
+              lnum = (error.line or range[1]) + 1,
+              col = range[2] + 1,
               text = error.message,
               type = result.status == "failed" and "E" or "W",
             }
