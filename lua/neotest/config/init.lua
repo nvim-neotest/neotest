@@ -105,6 +105,7 @@ define_highlights()
 ---@class neotest.Config.output
 ---@field enabled boolean
 ---@field open_on_run string|boolean Open nearest test result after running
+---@field close_mapping string|boolean key to map the close action
 
 ---@class neotest.Config.state
 ---@field enabled boolean
@@ -241,6 +242,7 @@ local default_config = {
   output = {
     enabled = true,
     open_on_run = "short",
+    close_mapping = false,
   },
   output_panel = {
     enabled = true,
@@ -384,7 +386,7 @@ function NeotestConfigModule.setup_project(project_root, config)
     default_strategy = user_config.default_strategy,
   })
   user_config.projects[path].discovery.concurrent =
-    convert_concurrent(user_config.projects[path].discovery.concurrent)
+      convert_concurrent(user_config.projects[path].discovery.concurrent)
   local logger = require("neotest.logging")
   logger.info("Project", path, "configuration complete")
   logger.debug("Project config", user_config.projects[path])

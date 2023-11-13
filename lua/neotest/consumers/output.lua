@@ -56,16 +56,16 @@ local function open_output(result, opts)
   end
 
   opts.open_win = opts.open_win
-    or function(win_opts)
-      local float = lib.ui.float.open({
-        width = win_opts.width,
-        height = win_opts.height,
-        buffer = buf,
-        auto_close = opts.auto_close,
-      })
-      float:listen("close", on_close)
-      return float.win_id
-    end
+      or function(win_opts)
+        local float = lib.ui.float.open({
+          width = win_opts.width,
+          height = win_opts.height,
+          buffer = buf,
+          auto_close = opts.auto_close,
+        })
+        float:listen("close", on_close)
+        return float.win_id
+      end
 
   local cur_win = vim.api.nvim_get_current_win()
 
@@ -84,6 +84,9 @@ local function open_output(result, opts)
   end
 
   vim.api.nvim_buf_set_option(buf, "filetype", "neotest-output")
+  if config.output.close_mapping then
+    vim.api.nvim_buf_set_keymap(buf, "n", config.output.close_mapping, on_close, { noremap = true, silent = true })
+  end
 end
 
 local neotest = {}
@@ -115,11 +118,11 @@ local init = function()
         local pos = node:data()
         local range = node:closest_value_for("range")
         if
-          pos.type == "test"
-          and results[pos.id]
-          and results[pos.id].status == "failed"
-          and range[1] <= line
-          and range[3] >= line
+            pos.type == "test"
+            and results[pos.id]
+            and results[pos.id].status == "failed"
+            and range[1] <= line
+            and range[3] >= line
         then
           open_output(
             results[pos.id],
