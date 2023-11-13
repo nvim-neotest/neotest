@@ -277,6 +277,17 @@ local default_config = {
         (import_from_statement (_ (identifier) @symbol))
         (import_statement (_ (identifier) @symbol))
       ]],
+      go = [[
+        ;query
+        ;Captures imported types
+        (qualified_type name: (type_identifier) @symbol)
+        ;Captures package-local and built-in types
+        (type_identifier)@symbol
+        ;Captures imported function calls and variables/constants
+        (selector_expression field: (field_identifier) @symbol)
+        ;Captures package-local functions calls
+        (call_expression function: (identifier) @symbol)
+      ]],
       lua = [[
         ;query
         ;Captures module names in require calls
