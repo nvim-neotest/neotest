@@ -64,12 +64,13 @@ local function open_output(result, opts)
           auto_close = opts.auto_close,
         })
         float:listen("close", on_close)
-        return float.win_id
+        return float
       end
 
   local cur_win = vim.api.nvim_get_current_win()
 
-  win = opts.open_win({ width = width, height = height }) or vim.api.nvim_get_current_win()
+  local float = opts.open_win({ width = width, height = height }) or vim.api.nvim_get_current_win()
+  win = float.win_id
 
   vim.api.nvim_create_autocmd("WinClosed", {
     pattern = tostring(win),
@@ -84,8 +85,17 @@ local function open_output(result, opts)
   end
 
   vim.api.nvim_buf_set_option(buf, "filetype", "neotest-output")
+
   if config.output.close_mapping then
-    vim.api.nvim_buf_set_keymap(buf, "n", config.output.close_mapping, on_close, { noremap = true, silent = true })
+    vim.keymap.set("n", config.output.close_mapping, "", {
+      buffer = buf,
+      desc = "closes the output popup",
+      noremap = true,
+      silent = true,
+      callback = function()
+        float:close(true)
+      end
+    })
   end
 end
 
