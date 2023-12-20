@@ -1,12 +1,29 @@
+local M = {}
+
+---@enum neotest.PositionType
+M.PositionType = {
+  dir = "dir",
+  file = "file",
+  namespace = "namespace",
+  test = "test",
+}
+
 ---@class neotest.Position
 ---@field id string
----@field type "dir"|"file"|"namespace"|"test"
+---@field type neotest.PositionType
 ---@field name string
 ---@field path string
 ---@field range integer[]
 
+---@enum neotest.ResultStatus
+M.ResultStatus = {
+  passed = "passed",
+  failed = "failed",
+  skipped = "skipped",
+}
+
 ---@class neotest.Result
----@field status "passed"|"failed"|"skipped"
+---@field status neotest.ResultStatus
 ---@field output? string Path to file containing full output data
 ---@field short? string Shortened output string
 ---@field errors? neotest.Error[]
@@ -44,8 +61,6 @@
 ---@field context? table Arbitrary data to preserve state between running and result collection
 ---@field strategy? table|neotest.Strategy Arguments for strategy or override for chosen strategy
 ---@field stream fun(output_stream: fun(): string[]): fun(): table<string, neotest.Result>
-
-local M = {}
 
 M.Tree = require("neotest.types.tree")
 M.FanoutAccum = require("neotest.types.fanout_accum")
