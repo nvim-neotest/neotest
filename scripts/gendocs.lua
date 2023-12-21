@@ -869,17 +869,3 @@ minidoc.generate(
   create_config("neotest", "*neotest.txt*	A framework to interact with tests within NeoVim")
 
 )
-minidoc.generate(
-  {
-    "./lua/nio/init.lua",
-    "./lua/nio/control.lua",
-    "./lua/nio/lsp.lua",
-    "./lua/nio/uv.lua",
-    "./lua/nio/ui.lua",
-    "./lua/nio/tests.lua",
-
-  },
-  "doc/nio.txt",
-  create_config("nio", "*nvim-nio.txt*	A library for asynchronous IO in Neovim")
-
-)
