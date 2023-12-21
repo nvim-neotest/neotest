@@ -56,7 +56,7 @@ See the table of contents for the consumers
 
 
 Neotest strategies and consumers
-See also~
+See also ~
 |neotest.Config|
 
 Parameters~
@@ -189,6 +189,7 @@ Default values:
       enabled = true,
       symbol_queries = {
         elixir = <function 1>,
+        go = "        ;query\n        ;Captures imported types\n        (qualified_type name: (type_identifier) @symbol)\n        ;Captures package-local and built-in types\n        (type_identifier)@symbol\n        ;Captures imported function calls and variables/constants\n        (selector_expression field: (field_identifier) @symbol)\n        ;Captures package-local functions calls\n        (call_expression function: (identifier) @symbol)\n      ",
         lua = '        ;query\n        ;Captures module names in require calls\n        (function_call\n          name: ((identifier) @function (#eq? @function "require"))\n          arguments: (arguments (string) @symbol))\n      ',
         python = "        ;query\n        ;Captures imports and modules they're imported from\n        (import_from_statement (_ (identifier) @symbol))\n        (import_statement (_ (identifier) @symbol))\n      "
       }
@@ -626,7 +627,7 @@ A consumer that displays error messages using the vim.diagnostic API.
 This consumer is completely passive and so has no interface.
 
 You can configure the diagnostic API for neotest using the "neotest" namespace
-See also~
+See also ~
 |vim.diagnostic.config()|
 
 
@@ -636,7 +637,7 @@ neotest.summary                                                *neotest.summary*
 
 A consumer that displays the structure of the test suite, along with results and
 allows running tests.
-See also~
+See also ~
 |neotest.Config.summary.mappings| for all mappings in the summary window
 
                                                         *neotest.summary.open()*
@@ -817,7 +818,7 @@ partial: boolean))`
 {test_focused} `(fun(adapter_id: string, position_id: string)>)`
 {starting} `(fun())`
 {started} `(fun())`
-Type~
+Type ~
 neotest.Client
 
                                                     *neotest.client.RunTreeArgs*
@@ -1073,7 +1074,7 @@ Return~
 neotest.lib.files.sep                                    *neotest.lib.files.sep*
 
 Path separator for the current OS
-Type~
+Type ~
 `(string)`
 
                                            *neotest.lib.files.detect_filetype()*
@@ -1548,17 +1549,27 @@ Parameters~
 
 
 ==============================================================================
+                                                                *M.PositionType*
+`PositionType`
+
+neotest.PositionType
+
                                                               *neotest.Position*
 Fields~
 {id} `(string)`
-{type} `("dir"|"file"|"namespace"|"test")`
+{type} `(neotest.PositionType)`
 {name} `(string)`
 {path} `(string)`
 {range} `(integer[])`
 
+                                                                *M.ResultStatus*
+`ResultStatus`
+
+neotest.ResultStatus
+
                                                                 *neotest.Result*
 Fields~
-{status} `("passed"|"failed"|"skipped")`
+{status} `(neotest.ResultStatus)`
 {output?} `(string)` Path to file containing full output data
 {short?} `(string)` Shortened output string
 {errors?} `(neotest.Error[])`

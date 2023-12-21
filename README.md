@@ -47,6 +47,7 @@ Install with your favourite package manager alongside nvim-dap
 call dein#add("nvim-lua/plenary.nvim")
 call dein#add("antoinemadec/FixCursorHold.nvim")
 call dein#add("nvim-neotest/neotest")
+call dein#add("nvim-treesitter/nvim-treesitter")
 ```
 
 [**vim-plug**](https://github.com/junegunn/vim-plug)
@@ -55,6 +56,7 @@ call dein#add("nvim-neotest/neotest")
 Plug 'nvim-lua/plenary.nvim'
 Plug 'antoinemadec/FixCursorHold.nvim'
 Plug 'nvim-neotest/neotest'
+Plug 'nvim-treesitter/nvim-treesitter'
 ```
 
 [packer.nvim](https://github.com/wbthomason/packer.nvim)
@@ -64,7 +66,8 @@ use {
   "nvim-neotest/neotest",
   requires = {
     "nvim-lua/plenary.nvim",
-    "antoinemadec/FixCursorHold.nvim"
+    "antoinemadec/FixCursorHold.nvim",
+    "nvim-treesitter/nvim-treesitter"
   }
 }
 ```
@@ -76,7 +79,8 @@ use {
   "nvim-neotest/neotest",
   dependencies = {
     "nvim-lua/plenary.nvim",
-    "antoinemadec/FixCursorHold.nvim"
+    "antoinemadec/FixCursorHold.nvim",
+    "nvim-treesitter/nvim-treesitter"
   }
 }
 ```
@@ -86,31 +90,33 @@ See the adapter's documentation for their specific setup instructions.
 
 ### Supported Runners
 
-| Test Runner     |                               Adapter                                |
-| :-------------- | :------------------------------------------------------------------: |
-| pytest          |   [neotest-python](https://github.com/nvim-neotest/neotest-python)   |
-| python-unittest |   [neotest-python](https://github.com/nvim-neotest/neotest-python)   |
-| plenary         |  [neotest-plenary](https://github.com/nvim-neotest/neotest-plenary)  |
-| go              |         [neotest-go](https://github.com/akinsho/neotest-go)          |
-| jest            |     [neotest-jest](https://github.com/haydenmeade/neotest-jest)      |
-| vitest          |     [neotest-vitest](https://github.com/marilari88/neotest-vitest)   |
-| playwright      |  [neotest-playwright](https://github.com/thenbe/neotest-playwright)  |
-| rspec           |     [neotest-rspec](https://github.com/olimorris/neotest-rspec)      |
-| minitest        |   [neotest-minitest](https://github.com/zidhuss/neotest-minitest)    |
-| dart, flutter   |       [neotest-dart](https://github.com/sidlatau/neotest-dart)       |
-| testthat        | [neotest-testthat](https://github.com/shunsambongi/neotest-testthat) |
-| phpunit         |   [neotest-phpunit](https://github.com/olimorris/neotest-phpunit)    |
-| pest            | [neotest-pest](https://github.com/theutz/neotest-pest)               |
-| rust            |        [neotest-rust](https://github.com/rouge8/neotest-rust)        |
-| elixir          |    [neotest-elixir](https://github.com/jfpedroza/neotest-elixir)     |
-| dotnet          |    [neotest-dotnet](https://github.com/Issafalcon/neotest-dotnet)    |
-| scala           |    [neotest-scala](https://github.com/stevanmilic/neotest-scala)     |
-| haskell         |    [neotest-haskell](https://github.com/mrcjkb/neotest-haskell)      |
-| deno            |    [neotest-deno](https://github.com/MarkEmmons/neotest-deno)        |
-| java            |    [neotest-java](https://github.com/rcasia/neotest-java)      |
-| bash            |    [neotest-bash](https://github.com/rcasia/neotest-bash)            |
-| foundry         |    [neotest-foundry](https://github.com/llllvvuu/neotest-foundry)    |
-| zig             |    [neotest-zig](https://github.com/lawrence-laz/neotest-zig)    |
+| Test Runner       |                               Adapter                                |
+| :---------------- | :------------------------------------------------------------------: |
+| pytest            |   [neotest-python](https://github.com/nvim-neotest/neotest-python)   |
+| python-unittest   |   [neotest-python](https://github.com/nvim-neotest/neotest-python)   |
+| plenary           |  [neotest-plenary](https://github.com/nvim-neotest/neotest-plenary)  |
+| go                |         [neotest-go](https://github.com/akinsho/neotest-go)          |
+| jest              |     [neotest-jest](https://github.com/haydenmeade/neotest-jest)      |
+| vitest            |     [neotest-vitest](https://github.com/marilari88/neotest-vitest)   |
+| playwright        |  [neotest-playwright](https://github.com/thenbe/neotest-playwright)  |
+| rspec             |     [neotest-rspec](https://github.com/olimorris/neotest-rspec)      |
+| minitest          |   [neotest-minitest](https://github.com/zidhuss/neotest-minitest)    |
+| dart, flutter     |       [neotest-dart](https://github.com/sidlatau/neotest-dart)       |
+| testthat          | [neotest-testthat](https://github.com/shunsambongi/neotest-testthat) |
+| phpunit           |   [neotest-phpunit](https://github.com/olimorris/neotest-phpunit)    |
+| pest              | [neotest-pest](https://github.com/theutz/neotest-pest)               |
+| rust              |        [neotest-rust](https://github.com/rouge8/neotest-rust)        |
+| elixir            |    [neotest-elixir](https://github.com/jfpedroza/neotest-elixir)     |
+| dotnet            |    [neotest-dotnet](https://github.com/Issafalcon/neotest-dotnet)    |
+| scala             |    [neotest-scala](https://github.com/stevanmilic/neotest-scala)     |
+| haskell           |    [neotest-haskell](https://github.com/mrcjkb/neotest-haskell)      |
+| deno              |    [neotest-deno](https://github.com/MarkEmmons/neotest-deno)        |
+| java              |    [neotest-java](https://github.com/rcasia/neotest-java)            |
+| foundry           |    [neotest-foundry](https://github.com/llllvvuu/neotest-foundry)    |
+| zig               |    [neotest-zig](https://github.com/lawrence-laz/neotest-zig)        |
+| c++ (google test) |    [neotest-gtest](https://github.com/alfaix/neotest-gtest)          |
+| gradle            |     [neotest-gradle](https://github.com/weilbith/neotest-gradle)     |
+| bash              |    [neotest-bash](https://github.com/rcasia/neotest-bash)            |
 
 For any runner without an adapter you can use [neotest-vim-test](https://github.com/nvim-neotest/neotest-vim-test) which supports any runner that vim-test supports.
 The vim-test adapter does not support some of the more advanced features such as error locations or per-test output.
