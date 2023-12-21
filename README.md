@@ -90,7 +90,7 @@ See the adapter's documentation for their specific setup instructions.
 
 ### Supported Runners
 
-| Test Runner     |                               Adapter                                |
+| Test Runner       |                               Adapter                                |
 | :---------------- | :------------------------------------------------------------------: |
 | pytest            |   [neotest-python](https://github.com/nvim-neotest/neotest-python)   |
 | python-unittest   |   [neotest-python](https://github.com/nvim-neotest/neotest-python)   |
@@ -116,6 +116,7 @@ See the adapter's documentation for their specific setup instructions.
 | zig               |    [neotest-zig](https://github.com/lawrence-laz/neotest-zig)        |
 | c++ (google test) |    [neotest-gtest](https://github.com/alfaix/neotest-gtest)          |
 | gradle            |     [neotest-gradle](https://github.com/weilbith/neotest-gradle)     |
+| bash              |    [neotest-bash](https://github.com/rcasia/neotest-bash)            |
 
 For any runner without an adapter you can use [neotest-vim-test](https://github.com/nvim-neotest/neotest-vim-test) which supports any runner that vim-test supports.
 The vim-test adapter does not support some of the more advanced features such as error locations or per-test output.
