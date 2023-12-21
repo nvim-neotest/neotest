@@ -38,7 +38,7 @@ function neotest.lib.subprocess.init()
     logger.error("Failed to start server: " .. parent_address)
     return
   end
-  local cmd = { vim.loop.exepath(), "--embed", "--headless" }
+  local cmd = { vim.loop.exepath(), "--embed", "--headless", "-n" }
   logger.info("Starting child process with command: " .. table.concat(cmd, " "))
   success, child_chan = pcall(nio.fn.jobstart, cmd, {
     rpc = true,
