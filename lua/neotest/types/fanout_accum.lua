@@ -22,13 +22,21 @@ function neotest.FanoutAccum:new(accum, init)
   }, self)
 end
 
----@param cb fun(data: T)
+---@param cb fun(data: T): boolean|nil
 function neotest.FanoutAccum:subscribe(cb)
   self.consumers[#self.consumers + 1] = cb
   if self.data then
     xpcall(cb, function(msg)
       logger.error("Error in fanout accumulator callback: " .. debug.traceback(msg))
     end, self.data)
+  end
+  return function()
+    for i, consumer in ipairs(self.consumers) do
+      if consumer == cb then
+        table.remove(self.consumers, i)
+        break
+      end
+    end
   end
 end
 
