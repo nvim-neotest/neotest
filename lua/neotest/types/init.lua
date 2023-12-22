@@ -42,6 +42,7 @@ M.ResultStatus = {
 
 ---@class neotest.StrategyContext
 ---@field position neotest.Position
+---@field adapter neotest.Adapter
 
 ---@alias neotest.Strategy async fun(spec: neotest.RunSpec, context: neotest.StrategyContext): neotest.Process
 

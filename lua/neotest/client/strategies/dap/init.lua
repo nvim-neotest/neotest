@@ -1,9 +1,30 @@
 local nio = require("nio")
+local lib = require("neotest.lib")
 local FanoutAccum = require("neotest.types").FanoutAccum
 
+---@param adapter neotest.Adapter
+---@param position neotest.Position
+---@return string|nil
+local function get_test_filetype(adapter, position)
+  local path_matcher = position.path and string.format("^%s$", position.path)
+  local test_bufnr = nio.fn.bufnr(path_matcher or -1)
+  if test_bufnr ~= -1 then
+    return nio.api.nvim_buf_get_option(test_bufnr, "filetype")
+  end
+
+  for _, buf in ipairs(nio.api.nvim_list_bufs()) do
+    local name = nio.api.nvim_buf_get_name(buf)
+    local real = lib.files.path.real(name)
+    if real and adapter.is_test_file(real) then
+      return nio.api.nvim_buf_get_option(buf, "filetype")
+    end
+  end
+end
+
 ---@param spec neotest.RunSpec
+---@param context neotest.StrategyContext
 ---@return neotest.StrategyResult?
-return function(spec)
+return function(spec, context)
   if vim.tbl_isempty(spec.strategy) then
     return
   end
@@ -36,6 +57,7 @@ return function(spec)
 
   nio.scheduler()
   dap.run(vim.tbl_extend("keep", spec.strategy, { env = spec.env, cwd = spec.cwd }), {
+    filetype = get_test_filetype(context.adapter, context.position),
     before = function(config)
       dap.listeners.after.event_output[handler_id] = function(_, body)
         if vim.tbl_contains({ "stdout", "stderr" }, body.category) then
