@@ -117,6 +117,7 @@ See the adapter's documentation for their specific setup instructions.
 | c++ (google test) |    [neotest-gtest](https://github.com/alfaix/neotest-gtest)          |
 | gradle            |     [neotest-gradle](https://github.com/weilbith/neotest-gradle)     |
 | bash              |    [neotest-bash](https://github.com/rcasia/neotest-bash)            |
+| hardhat           | [neotest-hardhat](https://github.com/TheSnakeWitcher/hardhat.nvim)   |
 
 For any runner without an adapter you can use [neotest-vim-test](https://github.com/nvim-neotest/neotest-vim-test) which supports any runner that vim-test supports.
 The vim-test adapter does not support some of the more advanced features such as error locations or per-test output.
