@@ -132,17 +132,17 @@ local init = function()
 end
 
 ---@class neotest.consumers.output.OpenArgs
----@field open_win function Function that takes a table with width and height keys
+---@field open_win function? Function that takes a table with width and height keys
 --- and opens a window for the output. If a window ID is not returned, the current
 --- window will be used
----@field short boolean Show shortened output
----@field enter boolean Enter output window
----@field quiet boolean Suppress warnings of no output
----@field last_run boolean Open output for last test run
----@field position_id string Open output for position with this ID, opens nearest
+---@field short boolean? Show shortened output
+---@field enter boolean? Enter output window
+---@field quiet boolean? Suppress warnings of no output
+---@field last_run boolean? Open output for last test run
+---@field position_id string? Open output for position with this ID, opens nearest
 --- position if not given
----@field adapter string Adapter ID, defaults to first found with matching position
----@field auto_close boolean Close output window when leaving it, or when cursor moves outside of window
+---@field adapter string? Adapter ID, defaults to first found with matching position
+---@field auto_close boolean? Close output window when leaving it, or when cursor moves outside of window
 
 --- Open the output of a test result
 --- ```vim
