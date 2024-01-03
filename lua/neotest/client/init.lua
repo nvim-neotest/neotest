@@ -228,6 +228,18 @@ function neotest.Client:is_running(position_id, args)
   return #self:_get_running_adapters(position_id) > 0
 end
 
+---Loads results from cache into state
+---@async
+---@param cached_results_file_path string
+---@return nil
+function neotest.Client:load_cached_results(cached_results_file_path)
+  if vim.fn.filereadable(cached_results_file_path) == 1 then
+    for adapter_id, results in pairs(vim.fn.json_decode(vim.fn.readfile(cached_results_file_path))) do
+      self._state:update_results(adapter_id, results)
+    end
+  end
+end
+
 ---@param position_id string
 ---@return string[]
 ---@private
