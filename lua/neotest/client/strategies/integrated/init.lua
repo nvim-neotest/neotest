@@ -27,10 +27,11 @@ return function(spec)
   local open_err, output_fd = nio.uv.fs_open(output_path, "w", 438)
   assert(not open_err, open_err)
 
-  output_accum:subscribe(nio.create(function(data)
-    local write_err, _ = nio.uv.fs_write(output_fd, data)
-    assert(not write_err, write_err)
-  end, 1))
+  output_accum:subscribe(function(data)
+    vim.loop.fs_write(output_fd, data, nil, function(write_err)
+      assert(not write_err, write_err)
+    end)
+  end)
 
   local success, job = pcall(nio.fn.jobstart, command, {
     cwd = cwd,
