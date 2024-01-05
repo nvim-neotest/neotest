@@ -1,4 +1,5 @@
 local nio = require("nio")
+local lib = require("neotest.lib")
 
 ---@private
 ---@type neotest.Client
@@ -41,9 +42,7 @@ function neotest.result_cache:cache()
     results_to_cache[adapter_id] = adapter_results
   end
 
-  local _, file = nio.uv.fs_open(result_cache_file_path, "w", 438)
-  nio.uv.fs_write(file, vim.json.encode(results_to_cache))
-  nio.uv.fs_close(file)
+  lib.files.write(result_cache_file_path, vim.json.encode(results_to_cache))
 end
 
 neotest.result_cache.cache = nio.create(neotest.result_cache.cache, 1)
@@ -52,7 +51,7 @@ neotest.result_cache.cache = nio.create(neotest.result_cache.cache, 1)
 ---@async
 ---@return nil
 function neotest.result_cache._cache_output_tmp_file(output_file_tmp_path, output_file_cache_path)
-  if vim.fn.filereadable(output_file_cache_path) == 0 then
+  if not lib.files.exists(output_file_cache_path) then
     nio.uv.fs_copyfile(output_file_tmp_path, output_file_cache_path)
   end
 end
@@ -61,13 +60,9 @@ end
 ---@async
 ---@return nil
 function neotest.result_cache:clear()
-  local err, dir_handle = nio.uv.fs_opendir(consumer_cache, 100)
-  assert(not err, err)
-
-  err, files = nio.uv.fs_readdir(dir_handle)
-  assert(not err, err)
-  for _, file in pairs(files) do
-    os.remove(consumer_cache .. "/" .. file.name)
+  local cache_files = lib.files.find(consumer_cache)
+  for _, file in pairs(cache_files) do
+    os.remove(file)
   end
 end
 

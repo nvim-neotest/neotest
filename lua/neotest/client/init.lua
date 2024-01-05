@@ -234,7 +234,7 @@ end
 ---@return nil
 function neotest.Client:load_cached_results(cached_results_file_path)
   if lib.files.exists(cached_results_file_path) then
-    local cached_results = vim.fn.json_decode(lib.files.read(cached_results_file_path))
+    local cached_results = vim.json.decode(lib.files.read(cached_results_file_path))
     for adapter_id, results in pairs(cached_results) do
       self._state:update_results(adapter_id, results)
     end
