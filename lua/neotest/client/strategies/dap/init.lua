@@ -103,6 +103,9 @@ return function(spec, context)
     attach = function()
       dap.repl.open()
     end,
+    stop = function()
+      dap.terminate()
+    end,
     result = function()
       finish_future:wait()
       return result_code
