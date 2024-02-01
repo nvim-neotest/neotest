@@ -368,6 +368,17 @@ local default_config = {
                 ((identifier) @symbol)
               ])]))
       ]],
+      haskell = [[
+        ;query
+        ;explicit import
+        ((import_item [(variable)]) @symbol)
+        ;symbols that may be imported implicitly
+        ((type) @symbol)
+        (qualified_variable (variable) @symbol)
+        (exp_apply (exp_name (variable) @symbol))
+        ((constructor) @symbol)
+        ((operator) @symbol)
+      ]],
     },
     filter_path = nil,
   },
