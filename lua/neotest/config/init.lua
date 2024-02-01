@@ -340,6 +340,34 @@ local default_config = {
               name: (constant) @symbol))
         )
       ]],
+      rust = [[
+        ;query
+        ;submodule import
+        (mod_item
+          name: (identifier) @symbol)
+        ;single import
+        (use_declaration
+          argument: (scoped_identifier
+            name: (identifier) @symbol))
+        ;import list
+        (use_declaration
+          argument: (scoped_use_list
+            list: (use_list
+                [(scoped_identifier
+                   path: (identifier)
+                   name: (identifier) @symbol)
+                 ((identifier) @symbol)])))
+        ;wildcard import
+        (use_declaration
+          argument: (scoped_use_list
+            path: (identifier)
+            [(use_list
+              [(scoped_identifier
+                path: (identifier)
+                name: (identifier) @symbol)
+                ((identifier) @symbol)
+              ])]))
+      ]],
     },
     filter_path = nil,
   },
