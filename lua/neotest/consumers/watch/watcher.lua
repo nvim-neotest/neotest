@@ -63,7 +63,10 @@ function Watcher:_get_linked_files(path, root_path, args)
     end
 
     for _, def in ipairs(defs or {}) do
-      dependency_uris[def.uri or def.targetUri] = true
+      local index = def.uri or def.targetUri
+      if index then
+        dependency_uris[def.uri or def.targetUri] = true
+      end
     end
   end
   local paths = { path }
