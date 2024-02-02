@@ -105,7 +105,8 @@ See the adapter's documentation for their specific setup instructions.
 | testthat          | [neotest-testthat](https://github.com/shunsambongi/neotest-testthat) |
 | phpunit           |   [neotest-phpunit](https://github.com/olimorris/neotest-phpunit)    |
 | pest              | [neotest-pest](https://github.com/theutz/neotest-pest)               |
-| rust              |        [neotest-rust](https://github.com/rouge8/neotest-rust)        |
+| rust (treesitter) |        [neotest-rust](https://github.com/rouge8/neotest-rust)        |
+| rust (LSP)        |        [rustaceanvim](https://github.com/mrcjkb/rustaceanvim)        |
 | elixir            |    [neotest-elixir](https://github.com/jfpedroza/neotest-elixir)     |
 | dotnet            |    [neotest-dotnet](https://github.com/Issafalcon/neotest-dotnet)    |
 | scala             |    [neotest-scala](https://github.com/stevanmilic/neotest-scala)     |
