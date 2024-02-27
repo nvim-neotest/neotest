@@ -50,9 +50,9 @@ function M.find(root, opts)
       local name, path_type = entry.name, entry.type
       local rel_path = name and (dir == "" and name or (dir .. sep .. name))
       if
-          path_type == "directory"
-          and name:sub(1, 1) ~= "."
-          and (not filter_dir or filter_dir(name, rel_path, root))
+        path_type == "directory"
+        and name:sub(1, 1) ~= "."
+        and (not filter_dir or filter_dir(name, rel_path, root))
       then
         dirs_to_scan[#dirs_to_scan + 1] = rel_path
       elseif path_type == "file" then
