@@ -104,7 +104,7 @@ See the adapter's documentation for their specific setup instructions.
 | dart, flutter     |       [neotest-dart](https://github.com/sidlatau/neotest-dart)       |
 | testthat          | [neotest-testthat](https://github.com/shunsambongi/neotest-testthat) |
 | phpunit           |   [neotest-phpunit](https://github.com/olimorris/neotest-phpunit)    |
-| pest              | [neotest-pest](https://github.com/theutz/neotest-pest)               |
+| pest              | [neotest-pest](https://github.com/V13Axel/neotest-pest)              |
 | rust (treesitter) |        [neotest-rust](https://github.com/rouge8/neotest-rust)        |
 | rust (LSP)        |        [rustaceanvim](https://github.com/mrcjkb/rustaceanvim)        |
 | elixir            |    [neotest-elixir](https://github.com/jfpedroza/neotest-elixir)     |
