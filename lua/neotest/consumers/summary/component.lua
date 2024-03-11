@@ -233,6 +233,31 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
       neotest.summary.clear_marked({ adapter = self.adapter_id })
     end)
 
+    canvas:add_mapping("help", async_func(function()
+      local help_text = {
+        "SUMMARY MAPPINGS",
+        "================",
+      }
+      for name, mapping in pairs(config.summary.mappings) do
+        local mappings = type(mapping) == "table" and table.concat(mapping, ", ") or mapping
+        local line = "(" .. name .. "): " .. mappings
+        table.insert(help_text, line)
+      end
+
+      local buf = vim.api.nvim_create_buf(false, true)
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, help_text)
+      vim.api.nvim_buf_set_option(buf, "modifiable", false)
+      local float = lib.ui.float.open({
+        width = 80,
+        height = 60,
+        buffer = buf,
+        auto_close = true,
+      })
+      local win = float.win_id
+      vim.api.nvim_win_set_buf(win, buf)
+      vim.api.nvim_set_current_win(win)
+    end))
+
     local status = self:_get_status(position)
     has_running = has_running or status == "running"
 
