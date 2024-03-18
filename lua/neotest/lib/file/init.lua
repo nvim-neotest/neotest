@@ -230,8 +230,9 @@ neotest.lib.files.path = {
   sep = neotest.lib.files.sep,
   exists = neotest.lib.files.exists,
   real = function(path)
-    local err, real = nio.uv.fs_realpath(path)
-    return real, err
+    local normalized_path = nio.fn.fnamemodify(path, ":p")
+    local exists = neotest.lib.files.exists(normalized_path)
+    return exists and normalized_path or nil, exists
   end,
 }
 
