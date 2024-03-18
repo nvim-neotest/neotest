@@ -384,25 +384,22 @@ nio.tests                                                            *nio.tests*
 
 
 Async versions of plenary's test functions.
+Fields~
+{it} `(fun(name: string, async_fun: fun()))`
+{before_each} `(fun(async_fun: fun()))`
+{after_each} `(fun(async_fun: fun()))`
 
-                                                                *nio.tests.it()*
-`it`({name}, {async_func})
+                                                *nio.tests.with_async_context()*
+`with_async_context`({async_func}, {...})
 
+the given function, applied to the remaining arguments, in an
+context.  The return value (or values) is the return value of
+asynchronous function.
 Parameters~
-{name} `(string)`
-{async_func} `(function)`
-
-                                                       *nio.tests.before_each()*
-`before_each`({async_func})
-
-Parameters~
-{async_func} `(function)`
-
-                                                        *nio.tests.after_each()*
-`after_each`({async_func})
-
-Parameters~
-{async_func} `(function)`
+{async_func} `(function)`  Function to execute
+{...} `(any)`  Arguments to `async_func`
+Return~
+`(any)` ...  Return values of `async_func`
 
 
  vim:tw=78:ts=8:noet:ft=help:norl:
