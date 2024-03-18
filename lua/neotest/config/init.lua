@@ -233,6 +233,7 @@ local default_config = {
       next_failed = "J",
       prev_failed = "K",
       watch = "w",
+      help = "?",
     },
   },
   benchmark = {
