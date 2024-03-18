@@ -11,12 +11,14 @@ local nio = {}
 nio.tests = {}
 
 local with_timeout = function(func, timeout)
-  local success, err
+  local success, err, results
   return function()
-    local task = tasks.run(func, function(success_, err_)
+    local task = tasks.run(func, function(success_, ...)
       success = success_
       if not success_ then
-        err = err_
+        err = ...
+      else
+        results = { ... }
       end
     end)
 
@@ -29,6 +31,7 @@ local with_timeout = function(func, timeout)
     elseif not success then
       error(string.format("Test task failed with message:\n%s", err))
     end
+    return unpack(results)
   end
 end
 
@@ -55,5 +58,20 @@ local mt = {
 }
 
 setmetatable(nio.tests, mt)
+
+---Run the given function, applied to the remaining arguments, in an
+---asynchronous context.  The return value (or values) is the return value of
+---the asynchronous function.
+---@param async_func function  Function to execute
+---@param ... any  Arguments to `async_func`
+---@return any ...  Return values of `async_func`
+nio.tests.with_async_context = function(async_func, ...)
+  local args = { ... }
+  local thunk = function()
+    return async_func(unpack(args))
+  end
+  local result = with_timeout(thunk, tonumber(vim.env.PLENARY_TEST_TIMEOUT))()
+  return result
+end
 
 return nio.tests
