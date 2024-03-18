@@ -28,6 +28,20 @@ local augroup = vim.api.nvim_create_augroup("NeotestColorSchemeRefresh", {})
 vim.api.nvim_create_autocmd("ColorScheme", { callback = define_highlights, group = augroup })
 define_highlights()
 
+local js_watch_query = [[
+  ;query
+  ;Captures named imports
+  (import_specifier name: (identifier) @symbol)
+  ;Captures default import
+  (import_clause (identifier) @symbol)
+  ;Capture require statements
+  (variable_declarator 
+  name: (identifier) @symbol
+  value: (call_expression (identifier) @function  (#eq? @function "require")))
+  ;Capture namespace imports
+  (namespace_import (identifier) @symbol)
+]]
+
 ---@class neotest.CoreConfig
 ---@field adapters neotest.Adapter[]
 ---@field discovery neotest.Config.discovery
@@ -272,6 +286,9 @@ local default_config = {
   watch = {
     enabled = true,
     symbol_queries = {
+      typescript = js_watch_query,
+      javascript = js_watch_query,
+      tsx = js_watch_query,
       python = [[
         ;query
         ;Captures imports and modules they're imported from
