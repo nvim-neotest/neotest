@@ -27,3 +27,4 @@ jobs:
           version: ${{ env.LUAROCKS_VERSION }}
           dependencies: |
             plenary.nvim
+            nvim-nio
