@@ -5,6 +5,9 @@ local nio = {}
 ---@text
 --- Async versions of plenary's test functions.
 ---@class nio.tests
+---@field it fun(name: string, async_fun: fun())
+---@field before_each fun(async_fun: fun())
+---@field after_each fun(async_fun: fun())
 nio.tests = {}
 
 local with_timeout = function(func, timeout)
@@ -29,20 +32,28 @@ local with_timeout = function(func, timeout)
   end
 end
 
----@param name string
----@param async_func function
-nio.tests.it = function(name, async_func)
-  it(name, with_timeout(async_func, tonumber(vim.env.PLENARY_TEST_TIMEOUT)))
-end
+local mt = {
+  __index = function(_table, key)
+    -- Hook functions from busted are only available within scope when the
+    -- test is defined, not when it is run, so we need to capture them
+    -- dynamically here.
+    local hook = getfenv(2)[key]
+    if not hook then
+      return nil
+    end
 
----@param async_func function
-nio.tests.before_each = function(async_func)
-  before_each(with_timeout(async_func))
-end
+    if key == "it" then
+      return function(name, async_func)
+        hook(name, with_timeout(async_func, tonumber(vim.env.PLENARY_TEST_TIMEOUT)))
+      end
+    elseif key == "before_each" or key == "after_each" then
+      return function(async_func)
+        hook(with_timeout(async_func))
+      end
+    end
+  end,
+}
 
----@param async_func function
-nio.tests.after_each = function(async_func)
-  after_each(with_timeout(async_func))
-end
+setmetatable(nio.tests, mt)
 
 return nio.tests
