@@ -1,4 +1,3 @@
-local lib = require("neotest.lib")
 ---@tag neotest.config
 ---@toc_entry Configuration Options
 
@@ -314,6 +313,7 @@ local default_config = {
           arguments: (arguments (string) @symbol))
       ]],
       elixir = function(root, content)
+        local lib = require("neotest.lib")
         local query = lib.treesitter.normalise_query(
           "elixir",
           [[;; query

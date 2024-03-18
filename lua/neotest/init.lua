@@ -41,6 +41,13 @@
 ---@nodoc
 local neotest = {}
 
+local success, _ = pcall(require, "nio")
+if not success then
+  error(
+    "Neotest requires nvim-nio to be installed. Install from https://github.com/nvim-neotest/nvim-nio"
+  )
+end
+
 local config = require("neotest.config")
 
 local consumers = {}

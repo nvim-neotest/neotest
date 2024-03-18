@@ -39,7 +39,7 @@ neotest.lib.notify = function(msg, level, opts)
       level,
       vim.tbl_extend("keep", opts or {}, {
         title = "Neotest",
-        icon = "ﭧ",
+        icon = "",
       })
     )
   end)
