@@ -29,14 +29,14 @@ local neotest = {}
 ---@class neotest.consumers.watch
 neotest.watch = {}
 
-local function get_valid_client_id(bufnr)
-  local sync_clients = vim.lsp.get_active_clients({ bufnr = bufnr })
-  for _, client in ipairs(sync_clients) do
+local function get_valid_client(bufnr)
+  local clients = nio.lsp.get_clients({ bufnr = bufnr })
+  for _, client in ipairs(clients) do
     ---@type nio.lsp.types.ServerCapabilities
     local caps = client.server_capabilities
     if caps.definitionProvider then
       logger.debug("Found client", client.name, "for watch")
-      return client.id
+      return client
     end
   end
 end
@@ -45,9 +45,9 @@ local function get_lsp_client(tree)
   for _, buf in ipairs(nio.api.nvim_list_bufs()) do
     local path = nio.fn.fnamemodify(nio.api.nvim_buf_get_name(buf), ":p")
     if tree:get_key(path) then
-      local client_id = get_valid_client_id(buf)
-      if client_id then
-        return nio.lsp.client(client_id)
+      local client = get_valid_client(buf)
+      if client then
+        return client
       end
     end
   end
