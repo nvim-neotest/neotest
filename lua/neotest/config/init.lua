@@ -121,6 +121,7 @@ local js_watch_query = [[
 
 ---@class neotest.Config.state
 ---@field enabled boolean
+---@field fetch_cached_results_on_startup boolean
 
 ---@class neotest.Config.output_panel
 ---@field enabled boolean
@@ -281,6 +282,7 @@ local default_config = {
   },
   state = {
     enabled = true,
+    fetch_cached_results_on_startup = false
   },
   watch = {
     enabled = true,
