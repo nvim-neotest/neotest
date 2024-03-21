@@ -228,16 +228,13 @@ function neotest.Client:is_running(position_id, args)
   return #self:_get_running_adapters(position_id) > 0
 end
 
----Loads results from cache into state
+---Loads results for all adapters into state
 ---@async
----@param cached_results_file_path string
+---@param all_results table<string, neotest.Result>
 ---@return nil
-function neotest.Client:load_cached_results(cached_results_file_path)
-  if lib.files.exists(cached_results_file_path) then
-    local cached_results = vim.json.decode(lib.files.read(cached_results_file_path))
-    for adapter_id, results in pairs(cached_results) do
-      self._state:update_results(adapter_id, results)
-    end
+function neotest.Client:load_results(all_results)
+  for adapter_id, adapter_results in pairs(all_results) do
+    self._state:update_results(adapter_id, adapter_results)
   end
 end
 
