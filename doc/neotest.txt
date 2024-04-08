@@ -114,6 +114,7 @@ Default values:
       final_child_indent = " ",
       final_child_prefix = "╰",
       non_collapsible = "─",
+      notify = "",
       passed = "",
       running = "",
       running_animated = { "/", "|", "\\", "-", "/", "|", "\\", "-" },
