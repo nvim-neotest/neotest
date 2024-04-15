@@ -42,7 +42,7 @@ local js_watch_query = [[
 ]]
 
 ---@class neotest.CoreConfig
----@field adapters neotest.Adapter[]
+---@field adapters (neotest.Adapter[]|fun(): neotest.Adapter[])
 ---@field discovery neotest.Config.discovery
 ---@field running neotest.Config.running
 ---@field default_strategy string|function
@@ -432,6 +432,10 @@ function NeotestConfigModule.setup(config)
     user_config.discovery,
     { concurrent = convert_concurrent(user_config.discovery.concurrent) }
   )
+
+  if type(user_config.adapters) == "function" then
+    user_config.adapters = user_config.adapters()
+  end
 
   user_config.projects = setmetatable({}, {
     __index = function()
