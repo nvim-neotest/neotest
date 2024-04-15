@@ -42,7 +42,7 @@ local js_watch_query = [[
 ]]
 
 ---@class neotest.CoreConfig
----@field adapters (neotest.Adapter[]|fun(): neotest.Adapter[])
+---@field adapters neotest.Adapter[]|fun():neotest.Adapter[]
 ---@field discovery neotest.Config.discovery
 ---@field running neotest.Config.running
 ---@field default_strategy string|function
