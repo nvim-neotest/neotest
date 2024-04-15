@@ -102,6 +102,7 @@ See the adapter's documentation for their specific setup instructions.
 | go                |         [neotest-go](https://github.com/akinsho/neotest-go)          |
 | jest              |     [neotest-jest](https://github.com/haydenmeade/neotest-jest)      |
 | vitest            |    [neotest-vitest](https://github.com/marilari88/neotest-vitest)    |
+| stenciljs         |  [neotest-stenciljs](https://github.com/benelan/neotest-stenciljs)   |
 | playwright        |  [neotest-playwright](https://github.com/thenbe/neotest-playwright)  |
 | rspec             |     [neotest-rspec](https://github.com/olimorris/neotest-rspec)      |
 | minitest          |   [neotest-minitest](https://github.com/zidhuss/neotest-minitest)    |
