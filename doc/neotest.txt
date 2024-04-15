@@ -219,7 +219,7 @@ neotest.config                                                  *neotest.config*
 
                                                             *neotest.CoreConfig*
 Fields~
-{adapters} `(neotest.Adapter[])`
+{adapters} `(neotest.Adapter[]|fun():neotest.Adapter[])`
 {discovery} `(neotest.Config.discovery)`
 {running} `(neotest.Config.running)`
 {default_strategy} `(string|function)`
