@@ -412,7 +412,11 @@ local NeotestConfigModule = {}
 
 local convert_concurrent = function(val)
   if val == 0 or val == true then
-    return #vim.loop.cpu_info() + 4
+    if string.find(vim.loop.os_uname().release, "android") then
+      return tonumber(vim.fn.system("nproc --all")) + 4
+    else
+      return #vim.loop.cpu_info() + 4
+    end
   end
   if val == false then
     return 1
@@ -478,5 +482,4 @@ setmetatable(NeotestConfigModule, {
     return user_config[key]
   end,
 })
-
 return NeotestConfigModule
