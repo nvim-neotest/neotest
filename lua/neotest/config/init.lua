@@ -11,7 +11,7 @@ local function define_highlights()
   hi default NeotestNamespace ctermfg=Magenta guifg=#D484FF
   hi default NeotestFocused gui=bold,underline cterm=bold,underline
   hi default NeotestFile ctermfg=Cyan guifg=#00f1f5
-  hi default NeotestDir ctermfg=Cyan guifg=#00f1f5
+  hi default link NeotestDir Directory
   hi default NeotestIndent ctermfg=Grey guifg=#8B8B8B
   hi default NeotestExpandMarker ctermfg=Grey guifg=#8094b4
   hi default NeotestAdapterName ctermfg=Red guifg=#F70067
