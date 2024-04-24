@@ -80,19 +80,17 @@ function neotest.Client:run_tree(tree, args)
     return
   end
   self._state:update_running(adapter_id, root.id, pos_ids)
-  local success, all_results = pcall(
-    self._runner.run_tree,
-    self._runner,
-    tree,
-    args,
-    adapter_id,
-    adapter,
-    function(results)
+  local errmsg = ""
+  local success, all_results = xpcall(function()
+    return self._runner.run_tree(self._runner, tree, args, adapter_id, adapter, function(results)
       self._state:update_results(adapter_id, results, true)
-    end
-  )
+    end)
+  end, function(err)
+    errmsg = debug.traceback(err, 1)
+  end)
+
   if not success then
-    lib.notify(("%s: %s"):format(adapter.name, all_results), "warn")
+    lib.notify(("%s: %s"):format(adapter.name, errmsg), "warn")
     all_results = {}
     for _, pos in tree:iter() do
       all_results[pos.id] = { status = "skipped" }
