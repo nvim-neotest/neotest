@@ -55,7 +55,9 @@ local function init(client)
     logger.debug("Setting diagnostics for", self.file_path, diagnostics)
 
     vim.schedule(function()
-      if not vim.api.nvim_buf_is_valid(self.bufnr) then return end
+      if not vim.api.nvim_buf_is_valid(self.bufnr) then
+        return
+      end
       diag.set(diag_namespace, self.bufnr, diagnostics)
     end)
   end
