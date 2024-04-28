@@ -85,7 +85,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Get Version 
-        run: echo "LUAROCKS_VERSION=$(git describe --abbrev=0 --tags)" >> $GITHUB_ENV
+        run: echo "LUAROCKS_VERSION=$(git fetch --tags; git describe --abbrev=0 --tags)" >> $GITHUB_ENV
       - name: LuaRocks Upload
         uses: nvim-neorocks/luarocks-tag-release@v5
         env:
