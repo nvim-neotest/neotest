@@ -94,7 +94,11 @@ neotest.lib.ui.open_buf = function(bufnr, line, column)
     if line then
       api.nvim_win_set_cursor(win, { line + 1, column })
     end
-    api.nvim_set_current_win(win)
+    if api.nvim_win_is_valid(win) then
+      api.nvim_set_current_win(win)
+    else
+      print("Attempted to set an invalid window as current.")
+    end
   end
 
   for _, win in pairs(api.nvim_tabpage_list_wins(0)) do
@@ -106,10 +110,14 @@ neotest.lib.ui.open_buf = function(bufnr, line, column)
 
   local success, win = pcall(select_win)
   if not success or not win then
+    print("Failed to select a window for buffer: " .. bufnr)
     return
   end
-  api.nvim_win_set_buf(win, bufnr)
-  set_win_pos(win)
+  if api.nvim_buf_is_valid(bufnr) and api.nvim_win_is_valid(win) then
+    api.nvim_win_set_buf(win, bufnr)
+    set_win_pos(win)
+  else
+    print("Buffer or window is not valid.")
+  end
 end
-
 return neotest.lib.ui
