@@ -2,6 +2,9 @@ local fu = require("neotest.lib.func_util")
 
 local neotest = {}
 
+-- NOTE: Needed until compatibility with Neovim 0.9 is dropped
+local islist = vim.fn.has('nvim-0.10') == 1 and vim.islist or vim.tbl_islist
+
 --- Nested tree structure with nodes containing data and having any
 --- number of children
 ---@class neotest.Tree
@@ -64,7 +67,7 @@ end
 function neotest.Tree._from_list(data, key, parent, nodes)
   local node_key
   local node
-  if vim.tbl_islist(data) then
+  if islist(data) then
     local node_data = data[1]
     node_key = key(node_data)
     local children = {}
