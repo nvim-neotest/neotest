@@ -64,7 +64,7 @@ end
 function neotest.Tree._from_list(data, key, parent, nodes)
   local node_key
   local node
-  if vim.tbl_islist(data) then
+  if (vim.islist or vim.tbl_islist)(data) then
     local node_data = data[1]
     node_key = key(node_data)
     local children = {}
