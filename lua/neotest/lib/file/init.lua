@@ -4,6 +4,7 @@ local nio = require("nio")
 local filetype = require("plenary.filetype")
 local fu = require("neotest.lib.func_util")
 local types = require("neotest.types")
+local utils = require("neotest.utils")
 local Tree = types.Tree
 
 local neotest = { lib = {} }
@@ -354,7 +355,7 @@ end
 ---@param ... string Patterns to match e.g "*.py"
 ---@return fun(path: string): string | nil
 function neotest.lib.files.match_root_pattern(...)
-  local patterns = vim.tbl_flatten({ ... })
+  local patterns = utils.tbl_flatten({ ... })
   return function(start_path)
     local start_parents = Path:new(start_path):parents()
     local home = os.getenv("HOME")

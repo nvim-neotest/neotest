@@ -1,4 +1,5 @@
 local config = require("neotest.config")
+local utils = require("neotest.utils")
 local loggers = {}
 
 local log_date_format = "%FT%H:%M:%SZ%z"
@@ -37,7 +38,7 @@ function Logger.new(filename, opts)
   end)()
 
   local function path_join(...)
-    return table.concat(vim.tbl_flatten({ ... }), path_sep)
+    return table.concat(utils.tbl_flatten({ ... }), path_sep)
   end
 
   logger._level = opts.level or config.log_level
