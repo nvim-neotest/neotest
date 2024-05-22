@@ -1,6 +1,7 @@
 -- TODO: A lot of this is private code from minidoc, which could be removed if made public
 
 local minidoc = require("mini.doc")
+local utils = require("neotest.utils")
 
 local H = {}
 --stylua: ignore start
@@ -107,7 +108,7 @@ H.default_input = function()
     table.insert(res, files)
   end
 
-  return vim.tbl_flatten(res)
+  return utils.tbl_flatten(res)
 end
 
 -- Parsing --------------------------------------------------------------------
@@ -297,7 +298,7 @@ H.toc_insert = function(s)
     toc_entry:clear_lines()
   end
 
-  for _, l in ipairs(vim.tbl_flatten(toc_lines)) do
+  for _, l in ipairs(utils.tbl_flatten(toc_lines)) do
     s:insert(l)
   end
 end
@@ -620,7 +621,7 @@ H.collect_strings = function(x)
     end
   end, x)
   -- Flatten to only have strings and not table of strings (from `vim.split`)
-  return vim.tbl_flatten(res)
+  return utils.tbl_flatten(res)
 end
 
 H.file_read = function(path)
