@@ -1,5 +1,6 @@
 local Path = require("plenary.path")
 local Tree = require("neotest.types").Tree
+local utils = require("neotest.utils")
 
 local neotest = { lib = {} }
 
@@ -251,7 +252,7 @@ function neotest.lib.positions.parse_tree(positions, opts)
     ---@param parents neotest.Position[] Parent positions for the position
     position_id = function(position, parents)
       return table.concat(
-        vim.tbl_flatten({
+        utils.tbl_flatten({
           position.path,
           vim.tbl_map(function(pos)
             return pos.name
