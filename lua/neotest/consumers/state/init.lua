@@ -11,6 +11,15 @@ local tracker
 ---@nodoc
 local function init(client)
   local updated_event = nio.control.event()
+  local semaphore = nio.control.semaphore()
+  local wrap_listener = function(listener)
+    return function(...)
+      local args = { ... }
+      semaphore.with(function()
+        listener(unpack(args))
+      end)
+    end
+  end
   tracker = StateTracker:new(client)
   local function update_positions()
     while true do
@@ -38,21 +47,21 @@ local function init(client)
       logger.error("Error in state consumer", debug.traceback(msg, 2))
     end)
   end)
-  client.listeners.discover_positions = function(adapter_id)
+  client.listeners.discover_positions = wrap_listener(function(adapter_id)
     if not tracker:adapter_state(adapter_id) then
       tracker:register_adapter(adapter_id)
     end
     updated_event.set()
-  end
+  end)
 
-  client.listeners.run = function(adapter_id, _, position_ids)
+  client.listeners.run = wrap_listener(function(adapter_id, _, position_ids)
     tracker:update_running(adapter_id, position_ids)
-  end
+  end)
 
-  client.listeners.results = function(adapter_id, results)
+  client.listeners.results = wrap_listener(function(adapter_id, results)
     tracker:decrement_running(adapter_id, results)
     updated_event.set()
-  end
+  end)
 end
 
 ---@param args? table
