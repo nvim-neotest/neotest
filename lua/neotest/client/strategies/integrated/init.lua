@@ -37,6 +37,7 @@ return function(spec)
     cwd = cwd,
     env = env,
     pty = true,
+    stdout_buffered = true,
     height = spec.strategy.height,
     width = spec.strategy.width,
     on_stdout = function(_, data)
