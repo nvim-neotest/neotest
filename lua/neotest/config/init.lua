@@ -398,6 +398,13 @@ local default_config = {
         ((constructor) @symbol)
         ((operator) @symbol)
       ]],
+      java = [[
+        ;query
+        ;captures imported classes
+        (import_declaration
+            (scoped_identifier name: ((identifier) @symbol))
+        )
+      ]],
     },
     filter_path = nil,
   },
