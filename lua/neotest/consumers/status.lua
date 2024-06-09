@@ -26,27 +26,37 @@ local function init(client)
     if not status then
       return
     end
-    if config.status.signs then
-      nio.fn.sign_place(0, sign_group, "neotest_" .. status, pos.path, {
-        lnum = pos.range[1] + 1,
-        priority = 1000,
-      })
+    if config.status.signs and nio.api.nvim_buf_is_valid(buf) and nio.fn.buflisted(buf) ~= 0 then
+      local line_count = vim.api.nvim_buf_line_count(buf)
+      local line_number = pos.range[1] + 1
+      if line_number <= line_count then
+        nio.fn.sign_place(0, sign_group, "neotest_" .. status, buf, {
+          lnum = line_number,
+          priority = 1000,
+        })
+      end
     end
-    if config.status.virtual_text then
-      nio.api.nvim_buf_set_extmark(buf, namespace, pos.range[1], 0, {
-        virt_text = {
-          { statuses[status].text .. " ", statuses[status].texthl },
-        },
-      })
+    if config.status.virtual_text and nio.api.nvim_buf_is_valid(buf) then
+      local line_count = vim.api.nvim_buf_line_count(buf)
+      local line_number = pos.range[1]
+      if line_number < line_count then
+        nio.api.nvim_buf_set_extmark(buf, namespace, line_number, 0, {
+          virt_text_pos = "eol",
+          virt_text = {
+            { statuses[status].text .. " ", statuses[status].texthl },
+          },
+        })
+      end
     end
   end
 
   local function render_files(adapter_id, files)
     for _, file_path in pairs(files) do
-      if nio.fn.buflisted(nio.fn.bufnr(file_path)) ~= 0 then
+      local bufnr = nio.fn.bufnr(file_path)
+      if nio.fn.buflisted(bufnr) ~= 0 and nio.api.nvim_buf_is_valid(bufnr) then
         local results = client:get_results(adapter_id)
-        nio.fn.sign_unplace(sign_group, { buffer = file_path })
-        nio.api.nvim_buf_clear_namespace(nio.fn.bufnr(file_path), namespace, 0, -1)
+        nio.fn.sign_unplace(sign_group, { buffer = bufnr })
+        nio.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)
         local tree = client:get_position(file_path, { adapter = adapter_id })
         if not tree then
           return
@@ -54,7 +64,7 @@ local function init(client)
         for _, node in tree:iter_nodes() do
           local pos = node:data()
           if pos.range ~= nil and pos.type ~= "file" then
-            place_sign(nio.fn.bufnr(file_path), pos, adapter_id, results)
+            place_sign(bufnr, pos, adapter_id, results)
           end
         end
       end
