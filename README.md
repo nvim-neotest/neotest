@@ -149,15 +149,8 @@ require("neotest").setup({
 
 See `:h neotest.Config` for configuration options and `:h neotest.setup()` for the default values.
 
-It is highly recommended to use [neodev.nvim](https://github.com/folke/neodev.nvim) to enable type checking for neotest to get
+It is highly recommended to use [lazydev.nvim](https://github.com/folke/lazydev.nvim) to enable type checking for neotest to get
 type checking, documentation and autocompletion for all API functions.
-
-```lua
-require("neodev").setup({
-  library = { plugins = { "neotest" }, types = true },
-  ...
-})
-```
 
 The default icons use [codicons](https://github.com/microsoft/vscode-codicons).
 It's recommended to use this [fork](https://github.com/ChristianChiarulli/neovim-codicons) which fixes alignment issues
