@@ -99,7 +99,7 @@ See the adapter's documentation for their specific setup instructions.
 | pytest            |   [neotest-python](https://github.com/nvim-neotest/neotest-python)   |
 | python-unittest   |   [neotest-python](https://github.com/nvim-neotest/neotest-python)   |
 | plenary           |  [neotest-plenary](https://github.com/nvim-neotest/neotest-plenary)  |
-| go                |         [neotest-go](https://github.com/akinsho/neotest-go)          |
+| go                |         [neotest-go](https://github.com/akinsho/neotest-go) <br> [neotest-golang](https://github.com/fredrikaverpil/neotest-golang) |
 | jest              |     [neotest-jest](https://github.com/haydenmeade/neotest-jest)      |
 | vitest            |    [neotest-vitest](https://github.com/marilari88/neotest-vitest)    |
 | stenciljs         |  [neotest-stenciljs](https://github.com/benelan/neotest-stenciljs)   |
