@@ -13,9 +13,17 @@ end
 local ProcessTracker = {}
 
 function ProcessTracker:new()
+  local cpu_core = 4
+
+  if string.find(vim.loop.os_uname().release, "android") then
+    cpu_core = tonumber(vim.fn.system("nproc --all")) + cpu_core
+  else
+    cpu_core = #vim.loop.cpu_info() + cpu_core
+  end
+
   local tracker = {
     _instances = {},
-    _process_semaphore = nio.control.semaphore(#vim.loop.cpu_info() + 4),
+    _process_semaphore = nio.control.semaphore(cpu_core),
   }
   self.__index = self
   setmetatable(tracker, self)
