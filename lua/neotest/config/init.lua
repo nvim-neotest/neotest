@@ -419,7 +419,9 @@ local NeotestConfigModule = {}
 
 local convert_concurrent = function(val)
   if val == 0 or val == true then
-    return #vim.loop.cpu_info() + 4
+    -- Hack for Android devices, where cpu_info() returns nil
+    local cpu_info = vim.loop.cpu_info() or {}
+    return #cpu_info + 4
   end
   if val == false then
     return 1
