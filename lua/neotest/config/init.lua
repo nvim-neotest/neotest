@@ -54,6 +54,7 @@ local js_watch_query = [[
 ---@field highlights table<string, string>
 ---@field floating neotest.Config.floating
 ---@field strategies neotest.Config.strategies
+---@field run neotest.Config.run
 ---@field summary neotest.Config.summary
 ---@field output neotest.Config.output
 ---@field output_panel neotest.Config.output_panel
@@ -86,6 +87,10 @@ local js_watch_query = [[
 
 ---@class neotest.Config.strategies
 ---@field integrated neotest.Config.strategies.integrated
+
+---@class neotest.Config.run
+---@field enabled boolean
+---@field augment? fun(tree: neotest.Tree, arg: neotest.run.RunArgs):neotest.run.RunArgs A function to augment the arguments any tests being run
 
 ---@class neotest.Config.summary
 ---@field enabled boolean

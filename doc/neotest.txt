@@ -193,6 +193,7 @@ Default values:
         elixir = <function 1>,
         go = "        ;query\n        ;Captures imported types\n        (qualified_type name: (type_identifier) @symbol)\n        ;Captures package-local and built-in types\n        (type_identifier)@symbol\n        ;Captures imported function calls and variables/constants\n        (selector_expression field: (field_identifier) @symbol)\n        ;Captures package-local functions calls\n        (call_expression function: (identifier) @symbol)\n      ",
         haskell = "        ;query\n        ;explicit import\n        ((import_item [(variable)]) @symbol)\n        ;symbols that may be imported implicitly\n        ((type) @symbol)\n        (qualified_variable (variable) @symbol)\n        (exp_apply (exp_name (variable) @symbol))\n        ((constructor) @symbol)\n        ((operator) @symbol)\n      ",
+        java = "        ;query\n        ;captures imported classes\n        (import_declaration\n            (scoped_identifier name: ((identifier) @symbol))\n        )\n      ",
         javascript = '  ;query\n  ;Captures named imports\n  (import_specifier name: (identifier) @symbol)\n  ;Captures default import\n  (import_clause (identifier) @symbol)\n  ;Capture require statements\n  (variable_declarator \n  name: (identifier) @symbol\n  value: (call_expression (identifier) @function  (#eq? @function "require")))\n  ;Capture namespace imports\n  (namespace_import (identifier) @symbol)\n',
         lua = '        ;query\n        ;Captures module names in require calls\n        (function_call\n          name: ((identifier) @function (#eq? @function "require"))\n          arguments: (arguments (string) @symbol))\n      ',
         python = "        ;query\n        ;Captures imports and modules they're imported from\n        (import_from_statement (_ (identifier) @symbol))\n        (import_statement (_ (identifier) @symbol))\n      ",
@@ -234,6 +235,7 @@ Fields~
 {highlights} `(table<string, string>)`
 {floating} `(neotest.Config.floating)`
 {strategies} `(neotest.Config.strategies)`
+{run} `(neotest.Config.run)`
 {summary} `(neotest.Config.summary)`
 {output} `(neotest.Config.output)`
 {output_panel} `(neotest.Config.output_panel)`
@@ -279,6 +281,13 @@ Fields~
                                                      *neotest.Config.strategies*
 Fields~
 {integrated} `(neotest.Config.strategies.integrated)`
+
+                                                            *neotest.Config.run*
+Fields~
+{enabled} `(boolean)`
+{augment?} `(fun(tree: neotest.Tree, arg:
+neotest.run.RunArgs):neotest.run.RunArgs)` A function to augment the arguments
+any tests being run
 
                                                         *neotest.Config.summary*
 Fields~

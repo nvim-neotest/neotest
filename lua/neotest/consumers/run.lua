@@ -1,5 +1,6 @@
 local nio = require("nio")
 local lib = require("neotest.lib")
+local config = require("neotest.config")
 
 ---@private
 ---@type neotest.Client
@@ -46,6 +47,17 @@ end
 ---@field [1] string? Position ID to run
 ---@field suite boolean Run the entire suite instead of a single position
 
+local function augment_args(tree, args)
+  args = type(args) == "string" and { args } or args
+  args = args or {}
+  local aug = config.run.augment
+  if not aug then
+    return args
+  end
+  nio.scheduler()
+  return aug(tree, args)
+end
+
 --- Run the given position or the nearest position if not given.
 --- All arguments are optional
 ---
@@ -70,7 +82,7 @@ function neotest.run.run(args)
     lib.notify("No tests found")
     return
   end
-  client:run_tree(tree, type(args) == "string" and { args } or args)
+  client:run_tree(tree, augment_args(tree, args))
 end
 
 neotest.run.run = nio.create(neotest.run.run, 1)
@@ -103,7 +115,7 @@ function neotest.run.run_last(args)
       lib.notify("Last test run no longer exists")
       return
     end
-    client:run_tree(tree, args)
+    client:run_tree(tree, augment_args(tree, args))
   end)
 end
 
@@ -147,6 +159,7 @@ function neotest.run.stop(args)
   end
   client:stop(pos, args)
 end
+
 neotest.run.stop = nio.create(neotest.run.stop, 1)
 
 ---@class neotest.run.AttachArgs : neotest.client.AttachArgs
@@ -173,6 +186,7 @@ function neotest.run.attach(args)
   end
   client:attach(pos, args)
 end
+
 neotest.run.attach = nio.create(neotest.run.attach, 1)
 
 --- Get the list of all known adapter IDs.
