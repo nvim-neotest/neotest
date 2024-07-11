@@ -13,9 +13,11 @@ end
 local ProcessTracker = {}
 
 function ProcessTracker:new()
+  -- Hack for Android devices, where cpu_info() returns nil
+  local cpu_info = vim.loop.cpu_info() or {}
   local tracker = {
     _instances = {},
-    _process_semaphore = nio.control.semaphore(#vim.loop.cpu_info() + 4),
+    _process_semaphore = nio.control.semaphore(#cpu_info + 4),
   }
   self.__index = self
   setmetatable(tracker, self)
