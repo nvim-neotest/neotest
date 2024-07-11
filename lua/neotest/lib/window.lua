@@ -69,7 +69,7 @@ function PersistentWindow:buffer()
   nio.api.nvim_buf_set_name(self._bufnr, self.name)
   for k, v in pairs(self._bufopts) do
     if k ~= "filetype" then
-      nio.api.nvim_buf_set_option(self._bufnr, k, v)
+      nio.api.nvim_set_option_value(k, v, { buf = self._bufnr })
     end
   end
   return self._bufnr
