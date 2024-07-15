@@ -1,6 +1,8 @@
 local nio = require("nio")
 
+--- Base module definition
 local neotest = { lib = {} }
+
 ---@toc_entry Library: Processes
 ---@text
 --- Utilities to run external processes easily.
@@ -8,9 +10,42 @@ local neotest = { lib = {} }
 ---@class neotest.lib.process
 neotest.lib.process = {}
 
+--- @return table<string,string>
+local function base_env()
+  --- @type table<string,string>
+  local env = vim.fn.environ()
+  env["NVIM"] = vim.v.servername
+  env["NVIM_LISTEN_ADDRESS"] = nil
+  return env
+end
+
+--- uv.spawn will completely overwrite the environment
+--- when we just want to modify the existing one, so
+--- make sure to prepopulate it with the current env.
+--- @param env? table<string,string|number>
+--- @param clear_env? boolean
+--- @return string[]?
+local function setup_env(env, clear_env)
+  if not env or clear_env == true then
+    return env
+  end
+
+  --- @type table<string,string|number>
+  env = vim.tbl_extend("force", base_env(), env or {})
+
+  local renv = {} --- @type string[]
+  for k, v in pairs(env) do
+    renv[#renv + 1] = string.format("%s=%s", k, tostring(v))
+  end
+
+  return renv
+end
+
 ---@class neotest.lib.process.RunArgs
 ---@field stdout boolean Read stdout
 ---@field stderr boolean Read stderr
+---@field clear_env boolean Do not inherit default env
+---@field env table<string, any>  Environment variables
 
 ---@class neotest.lib.process.RunResult
 ---@field stdout? string
@@ -34,6 +69,7 @@ function neotest.lib.process.run(command, args)
   local handle, pid = vim.loop.spawn(command[1], {
     stdio = { stdin, stdout, stderr },
     detached = false,
+    env = setup_env(args.env, args.clear_env),
     args = #command > 1 and vim.list_slice(command, 2, #command) or nil,
   }, exit_future.set)
 

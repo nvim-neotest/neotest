@@ -12,6 +12,13 @@ describe("process lib", function()
       local _, data = lib.process.run({ "printf", "hello" }, { stdout = true })
       assert.equal("hello", data.stdout)
     end)
+    a.it("prints out preset env variable", function()
+      local _, data = lib.process.run(
+        { "sh", "-c", "printf $CUSTOM_ENV_VAR >& 2" },
+        { env = { ["CUSTOM_ENV_VAR"] = "custom_value" } }
+      )
+      assert.equal("custom_value", data.stdout)
+    end)
     a.it("doesn't records stdout", function()
       local _, data = lib.process.run({ "printf", "hello" })
       assert.Nil(data.stdout)
