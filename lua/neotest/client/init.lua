@@ -391,6 +391,10 @@ function neotest.Client:_start(args)
   end
 
   autocmd({ "BufAdd", "BufWritePost" }, function(ev)
+    -- Don't update positions when saving or creating non-file buffers
+    if ev.file == "" then
+      return
+    end
     local file_path = vim.fn.fnamemodify(ev.file, ":p")
 
     if not lib.files.exists(file_path) then
