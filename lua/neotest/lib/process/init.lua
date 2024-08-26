@@ -41,9 +41,6 @@ function neotest.lib.process.run(command, args)
     error(pid)
   end
 
-  local result_code = exit_future.wait()
-  handle:close()
-
   local stdout_data, stderr_data
   if args.stdout then
     stdout_data = ""
@@ -71,6 +68,9 @@ function neotest.lib.process.run(command, args)
     end)
     read_future.wait()
   end
+
+  local result_code = exit_future.wait()
+  handle:close()
 
   stdin:close()
   stdout:close()
