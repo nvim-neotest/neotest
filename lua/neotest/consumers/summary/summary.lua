@@ -89,8 +89,17 @@ function Summary:run()
       if self._starting then
         for _, adapter_id in ipairs(self.client:get_adapters()) do
           local tree = assert(self.client:get_position(nil, { adapter = adapter_id }))
+          local count = 0
+          if config.summary.count then
+            for _, pos in tree:iter() do
+              if pos.type == "test" then
+                count = count + 1
+              end
+            end
+          end
           canvas:write(
-            vim.split(adapter_id, ":", { trimempty = true })[1] .. "\n",
+            vim.split(adapter_id, ":", { trimempty = true })[1]
+            .. (count == 0 and "" or string.format(" %d Tests Found", count)) .. "\n",
             { group = config.highlights.adapter_name }
           )
           if tree:data().path ~= cwd then
@@ -98,7 +107,7 @@ function Summary:run()
             canvas:write(root_dir .. "\n", { group = config.highlights.dir })
           end
           self.components[adapter_id] = self.components[adapter_id]
-            or SummaryComponent(self.client, adapter_id)
+              or SummaryComponent(self.client, adapter_id)
           if config.summary.animated then
             if self.components[adapter_id]:render(canvas, tree, all_expanded, self.focused) then
               self.render_ready.set()

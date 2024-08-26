@@ -91,8 +91,8 @@ function neotest.lib.treesitter.fast_parse(lang_tree)
 end
 
 ---@class neotest.lib.treesitter.ParseOptions : neotest.lib.positions.ParseOptions
----@field fast boolean Use faster parsing (Should be unchanged unless injections are needed)
----@field build_position fun(file_path: string, source: string, captured_nodes: table<string, userdata>): neotest.Position|neotest.Position[]|nil Builds one or more positions from the captured nodes from a query match.
+---@field fast? boolean Use faster parsing (Should be unchanged unless injections are needed)
+---@field build_position? fun(file_path: string, source: string, captured_nodes: table<string, userdata>): neotest.Position|neotest.Position[]|nil Builds one or more positions from the captured nodes from a query match.
 
 --- Build a parsed Query object from a string
 ---@param lang string

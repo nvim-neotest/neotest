@@ -161,6 +161,7 @@ Default values:
     },
     summary = {
       animated = true,
+      count = true,
       enabled = true,
       expand_errors = true,
       follow = true,
@@ -299,6 +300,7 @@ Fields~
 window
 {open} `(string)` | fun(): integer A command or function to open a window for
 the summary
+{count} `(boolean)` Display number of tests found beside the adapter name
 
                                                *neotest.Config.summary.mappings*
 Fields~
@@ -1324,9 +1326,9 @@ https://github.com/neovim/neovim/blob/master/runtime/lua/vim/treesitter/language
 Inherits: `neotest.lib.positions.ParseOptions`
 
 Fields~
-{fast} `(boolean)` Use faster parsing (Should be unchanged unless injections
+{fast?} `(boolean)` Use faster parsing (Should be unchanged unless injections
 are needed)
-{build_position} `(fun(file_path: string, source: string, captured_nodes:
+{build_position?} `(fun(file_path: string, source: string, captured_nodes:
 table<string, userdata>): neotest.Position|neotest.Position[]|nil)` Builds one
 or more positions from the captured nodes from a query match.
 
@@ -1409,7 +1411,7 @@ outputs. Use vim.jobstart instead.
 
 Parameters~
 {command} `(string[])`
-{args} `(neotest.lib.process.RunArgs)`
+{args?} `(neotest.lib.process.RunArgs)`
 Return~
 `(integer,neotest.lib.process.RunResult)` Exit code and table containing stdout/stderr keys if requested
 

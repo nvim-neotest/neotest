@@ -99,6 +99,7 @@ local js_watch_query = [[
 ---@field expand_errors boolean Expand all failed positions
 ---@field mappings neotest.Config.summary.mappings Buffer mappings for summary window
 ---@field open string | fun(): integer A command or function to open a window for the summary
+---@field count boolean Display number of tests found beside the adapter name
 
 ---@class neotest.Config.summary.mappings
 ---@field expand string|string[] Expand currently selected position
@@ -229,6 +230,7 @@ local default_config = {
   },
   summary = {
     enabled = true,
+    count = true,
     animated = true,
     follow = true,
     expand_errors = true,
