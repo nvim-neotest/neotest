@@ -391,6 +391,10 @@ function neotest.Client:_start(args)
   end
 
   autocmd({ "BufAdd", "BufWritePost" }, function(ev)
+    if ev.file == "" then
+      return
+    end
+
     local file_path = vim.fn.fnamemodify(ev.file, ":p")
 
     if not lib.files.exists(file_path) then
@@ -447,6 +451,9 @@ function neotest.Client:_start(args)
   end)
 
   autocmd({ "BufAdd", "BufDelete" }, function(ev)
+    if ev.file == "" then
+      return
+    end
     local updated_dir = vim.fn.fnamemodify(ev.file, ":p:h")
     nio.run(function()
       local adapter_id = self:_get_adapter(updated_dir, nil)
@@ -461,6 +468,9 @@ function neotest.Client:_start(args)
   end)
 
   autocmd("BufEnter", function(ev)
+    if ev.file == "" then
+      return
+    end
     local path = vim.fn.fnamemodify(ev.file, ":p")
 
     if not lib.files.exists(path) then
@@ -473,6 +483,9 @@ function neotest.Client:_start(args)
   end)
 
   autocmd({ "CursorHold", "BufEnter" }, function()
+    if vim.fn.expand("%") == "" then
+      return
+    end
     local path, line = vim.fn.expand("%:p"), vim.fn.line(".")
 
     if not lib.files.exists(path) then
