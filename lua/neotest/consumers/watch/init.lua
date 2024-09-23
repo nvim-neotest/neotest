@@ -38,11 +38,15 @@ local function get_valid_client(bufnr)
       has_definition_support = client.server_capabilities.definitionProvider
     elseif type(client.supports_method) == "function" then
       has_definition_support = client.supports_method("textDocument/definition")
+    else
+      has_definition_support = false
     end
 
     if has_definition_support then
       logger.debug("Found client", client.name, "for watch")
       return client
+    else
+      logger.debug("Client for watch not found")
     end
   end
 end
