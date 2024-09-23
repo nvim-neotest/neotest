@@ -32,10 +32,13 @@ neotest.watch = {}
 local function get_valid_client(bufnr)
   local clients = nio.lsp.get_clients({ bufnr = bufnr })
   for _, client in ipairs(clients) do
-    local has_definition_support = client.supports_method
-        and client.supports_method("textDocument/definition")
-      -- for compatibility with Neovim versions earlier than v0.10.1
-      or client.server_capabilities.definitionProvider
+    local has_definition_support
+    if client.server_capabilities then
+      -- for compatibility with Neovim versions earlier and equal to v0.10.1
+      has_definition_support = client.server_capabilities.definitionProvider
+    elseif type(client.supports_method) == "function" then
+      has_definition_support = client.supports_method("textDocument/definition")
+    end
 
     if has_definition_support then
       logger.debug("Found client", client.name, "for watch")
