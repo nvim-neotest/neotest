@@ -33,13 +33,12 @@ local function get_valid_client(bufnr)
   local clients = nio.lsp.get_clients({ bufnr = bufnr })
   for _, client in ipairs(clients) do
     local has_definition_support
-    if client.server_capabilities then
-      -- for compatibility with Neovim versions earlier and equal to v0.10.1
-      has_definition_support = client.server_capabilities.definitionProvider
-    elseif type(client.supports_method) == "function" then
-      has_definition_support = client.supports_method("textDocument/definition")
+    if nio.fn.has("nvim-0.10.1") == 0 then
+      -- for compatibility with Neovim versions earlier than v0.10.1
+      has_definition_support = client.server_capabilities ~= nil
+        and client.server_capabilities.definitionProvider
     else
-      has_definition_support = false
+      has_definition_support = client.supports_method.textDocument_definition({ bufnr = bufnr })
     end
 
     if has_definition_support then
