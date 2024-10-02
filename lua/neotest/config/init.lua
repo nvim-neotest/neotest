@@ -333,7 +333,7 @@ local default_config = {
           ]]
         )
         local symbols = {}
-        for _, match, metadata in query:iter_matches(root, content, _, _, { all = false }) do
+        for _, match, metadata in query:iter_matches(root, content, nil, nil, { all = false }) do
           for id, node in pairs(match) do
             local name = query.captures[id]
 

@@ -56,7 +56,7 @@ local function collect(file_path, query, source, root, opts)
       range = { root:range() },
     },
   }
-  for _, match in query:iter_matches(root, source, _, _, { all = false }) do
+  for _, match in query:iter_matches(root, source, nil, nil, { all = false }) do
     local captured_nodes = {}
     for i, capture in ipairs(query.captures) do
       captured_nodes[capture] = match[i]
