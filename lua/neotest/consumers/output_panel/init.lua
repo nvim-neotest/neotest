@@ -25,7 +25,12 @@ local init = function(client)
     if partial then
       return
     end
-    if not chan then
+
+    local channel_is_valid = function(chan_id)
+      return chan_id and pcall(vim.api.nvim_chan_send, chan_id, "\n")
+    end
+
+    if not channel_is_valid(chan) then
       chan = lib.ui.open_term(panel.win:buffer())
       -- neovim sometimes adds random blank lines when creating a terminal buffer
       nio.api.nvim_buf_set_option(panel.win:buffer(), "modifiable", true)
@@ -50,7 +55,11 @@ local init = function(client)
     for file, _ in pairs(files_to_read) do
       local output = lib.files.read(file)
       local dos_newlines = string.find(output, "\r\n") ~= nil
-      nio.api.nvim_chan_send(chan, dos_newlines and output or output:gsub("\n", "\r\n"))
+      if not pcall(nio.api.nvim_chan_send, chan, dos_newlines and output or output:gsub("\n", "\r\n")) then
+        lib.notify(("Error sending output to term channel: %s"):format(chan), vim.log.levels.ERROR)
+        chan = nil
+        break
+      end
     end
   end
 end
