@@ -6,6 +6,8 @@ local config = require("neotest.config")
 ---@class neotest.consumers.watch.Watcher
 ---@field lsp_client nio.lsp.Client
 ---@field autocmd_id? string
+---@field tree neotest.Tree
+---@field discover_positions_event nio.control.Future
 local Watcher = {}
 
 function Watcher:new(lsp_client)
@@ -159,6 +161,9 @@ function Watcher:watch(tree, args)
   logger.debug("Built dependencies in", elapsed, "ms for", tree:data().id, ":", dependencies)
   local dependants = self:_build_dependants(dependencies)
 
+  self.tree = tree
+  self.discover_positions_event = nio.control.future()
+
   self.autocmd_id = nio.api.nvim_create_autocmd("BufWritePost", {
     callback = function(autocmd_args)
       if type(args.run_predicate) == "function" and not args.run_predicate(autocmd_args.buf) then
@@ -171,6 +176,9 @@ function Watcher:watch(tree, args)
         if not buf_dependants then
           return
         end
+
+        self.discover_positions_event.wait()
+        self.discover_positions_event = nio.control.future()
 
         if tree:data().type ~= "dir" then
           run.run(vim.tbl_extend("keep", { tree:data().id }, args))
