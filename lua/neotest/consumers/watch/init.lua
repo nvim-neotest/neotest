@@ -29,6 +29,17 @@ local neotest = {}
 ---@class neotest.consumers.watch
 neotest.watch = {}
 
+local init = function(client)
+  client.listeners.discover_positions = function(_, tree)
+    for _, watcher in pairs(watchers) do
+      if watcher.tree:data().path == tree:data().path
+        and not watcher.discover_positions_event.is_set() then
+          watcher.discover_positions_event.set()
+      end
+    end
+  end
+end
+
 local function get_valid_client(bufnr)
   local clients = nio.lsp.get_clients({ bufnr = bufnr })
   for _, client in ipairs(clients) do
@@ -200,7 +211,8 @@ function neotest.watch.is_watching(position_id)
 end
 
 neotest.watch = setmetatable(neotest.watch, {
-  __call = function()
+  __call = function(_, client)
+    init(client)
     return neotest.watch
   end,
 })
