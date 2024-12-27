@@ -394,6 +394,11 @@ local default_config = {
                 ((identifier) @symbol)
               ])]))
       ]],
+      swift = [[
+        ;query
+        ;import
+        (simple_identifier) @symbol
+      ]],
       haskell = [[
         ;query
         ;explicit import
