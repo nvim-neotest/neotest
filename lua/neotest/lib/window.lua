@@ -61,8 +61,18 @@ function PersistentWindow:open()
 end
 
 function PersistentWindow:buffer()
-  if self._bufnr and vim.fn.bufexists(self._bufnr) == 1 then
+  if
+    self._bufnr
+    and nio.api.nvim_buf_is_valid(self._bufnr)
+    and nio.api.nvim_buf_is_loaded(self._bufnr)
+  then
     return self._bufnr
+  end
+
+  for _, bufnr in ipairs(nio.api.nvim_list_bufs()) do
+    if nio.api.nvim_buf_get_name(bufnr):find(self.name, 1, true) then
+      nio.api.nvim_buf_delete(bufnr, { force = true })
+    end
   end
 
   self._bufnr = nio.api.nvim_create_buf(false, true)
