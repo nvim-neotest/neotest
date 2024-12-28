@@ -32,9 +32,11 @@ neotest.watch = {}
 local init = function(client)
   client.listeners.discover_positions = function(_, tree)
     for _, watcher in pairs(watchers) do
-      if watcher.tree:data().path == tree:data().path
-        and not watcher.discover_positions_event.is_set() then
-          watcher.discover_positions_event.set()
+      if
+        watcher.tree:data().path == tree:data().path
+        and not watcher.discover_positions_event.is_set()
+      then
+        watcher.discover_positions_event.set()
       end
     end
   end

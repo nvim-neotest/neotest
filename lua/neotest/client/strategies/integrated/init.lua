@@ -13,6 +13,7 @@ return function(spec)
   local env, cwd = spec.env, spec.cwd
 
   local finish_future = nio.control.future()
+  local output_finish_future = nio.control.future()
   local result_code = nil
   local command = spec.command
   local output_accum = FanoutAccum(function(prev, new)
@@ -40,6 +41,10 @@ return function(spec)
     height = spec.strategy.height,
     width = spec.strategy.width,
     on_stdout = function(_, data)
+      if #data == 1 and data[1] == "" then
+        output_finish_future.set()
+        return
+      end
       output_accum:push(table.concat(data, "\n"))
     end,
     on_exit = function(_, code)
@@ -69,7 +74,7 @@ return function(spec)
         queue.put_nowait(d)
       end)
       return function()
-        local data = nio.first({ queue.get, finish_future.wait })
+        local data = nio.first({ queue.get, output_finish_future.wait })
         if data then
           return data
         end
@@ -114,7 +119,17 @@ return function(spec)
     end,
     result = function()
       if result_code == nil then
-        finish_future:wait()
+        finish_future.wait()
+        if not output_finish_future.is_set() then
+          -- jobstart doesn't necessarily call on_stdout if the process
+          -- stops quickly, so add a timeout to prevent deadlock
+          nio.first({
+            output_finish_future.wait,
+            function()
+              nio.sleep(100)
+            end,
+          })
+        end
       end
       local close_err = nio.uv.fs_close(output_fd)
       assert(not close_err, close_err)

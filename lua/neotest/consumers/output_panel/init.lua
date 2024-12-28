@@ -55,7 +55,13 @@ local init = function(client)
     for file, _ in pairs(files_to_read) do
       local output = lib.files.read(file)
       local dos_newlines = string.find(output, "\r\n") ~= nil
-      if not pcall(nio.api.nvim_chan_send, chan, dos_newlines and output or output:gsub("\n", "\r\n")) then
+      if
+        not pcall(
+          nio.api.nvim_chan_send,
+          chan,
+          dos_newlines and output or output:gsub("\n", "\r\n")
+        )
+      then
         lib.notify(("Error sending output to term channel: %s"):format(chan), vim.log.levels.ERROR)
         chan = nil
         break

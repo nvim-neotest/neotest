@@ -23,7 +23,7 @@ describe("neotest consumer - output_panel", function()
   local files
   local dirs = { dir }
   local notify
-  local notify_msg = ''
+  local notify_msg = ""
 
   ---@return neotest.Tree
   local get_pos = function(...)
@@ -136,7 +136,7 @@ describe("neotest consumer - output_panel", function()
     for _, buf in ipairs(vim.api.nvim_list_bufs()) do
       vim.api.nvim_buf_delete(buf, { force = true })
     end
-    notify_msg = ''
+    notify_msg = ""
   end)
 
   describe("user forcefully closes the panel", function()
@@ -165,7 +165,7 @@ describe("neotest consumer - output_panel", function()
         assert.has_no_error(function()
           client:run_tree(tree, { strategy = mock_strategy })
         end)
-        assert.is_not.matches('Error sending output to term channel:', notify_msg)
+        assert.is_not.matches("Error sending output to term channel:", notify_msg)
       end)
       exit_future_2.set()
     end)

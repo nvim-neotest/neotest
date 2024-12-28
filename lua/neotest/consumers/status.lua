@@ -45,7 +45,7 @@ local function init(client)
           virt_text = {
             { statuses[status].text .. " ", statuses[status].texthl },
           },
-          hl_mode = "combine"
+          hl_mode = "combine",
         })
       end
     end
