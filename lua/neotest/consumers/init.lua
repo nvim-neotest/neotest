@@ -39,6 +39,7 @@ neotest.consumers = {
   quickfix = require("neotest.consumers.quickfix"),
   state = require("neotest.consumers.state"),
   watch = require("neotest.consumers.watch"),
+  result_cache = require("neotest.consumers.result_cache"),
 }
 
 return neotest.consumers
