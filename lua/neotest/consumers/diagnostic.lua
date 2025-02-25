@@ -84,15 +84,20 @@ local function init(client)
         local pos_by_id = positions:get_key(pos_id)
         local default_line = pos_by_id and pos_by_id:closest_value_for("range")[1]
         local placed = self.tracking_marks[pos_id]
-          or self:init_mark(pos_id, result.errors, default_line)
+            or self:init_mark(pos_id, result.errors, default_line)
         if placed then
           for error_i, error in pairs(result.errors or {}) do
-            local mark = api.nvim_buf_get_extmark_by_id(
+            local success, mark = pcall(
+              api.nvim_buf_get_extmark_by_id,
               bufnr,
               tracking_namespace,
               self.tracking_marks[pos_id][error_i],
               {}
             )
+            if not success then
+              logger.error("Invalid extmark id", self.tracking_marks[pos_id], error_i, mark)
+              mark = nil
+            end
 
             -- After closing the buf, the mark[1] becomes nil
             if mark and #mark > 0 then
@@ -135,7 +140,7 @@ local function init(client)
         0,
         { end_line = line }
       )
-      if not success then
+      if not success or type(mark_id) ~= "number" then
         logger.error("Failed to place mark for buf", self.bufnr, mark_id)
         return false
       end
