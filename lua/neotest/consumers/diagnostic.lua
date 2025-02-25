@@ -84,7 +84,7 @@ local function init(client)
         local pos_by_id = positions:get_key(pos_id)
         local default_line = pos_by_id and pos_by_id:closest_value_for("range")[1]
         local placed = self.tracking_marks[pos_id]
-            or self:init_mark(pos_id, result.errors, default_line)
+          or self:init_mark(pos_id, result.errors, default_line)
         if placed then
           for error_i, error in pairs(result.errors or {}) do
             local success, mark = pcall(
