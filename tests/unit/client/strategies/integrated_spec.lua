@@ -70,4 +70,37 @@ describe("integrated strategy", function()
     process.attach()
     assert.Not.equal(nio.api.nvim_win_get_config(0), "")
   end)
+
+  a.it("produces correct output", function()
+    local marker = "\n" .. string.rep("1", 10) .. "\n"
+    local chunk = string.rep("0", 1024) .. marker
+    local datablock = string.rep(chunk, 10)
+    local datafile = vim.fn.tempname()
+    lib.files.write(datafile, datablock)
+    local data = lib.files.read_lines(datafile)
+    local processes = {}
+    for _ = 1, 10 do
+      table.insert(
+        processes,
+        strategy({
+          command = { "cat", datafile },
+          strategy = {
+            height = 10,
+            width = 10,
+          },
+        })
+      )
+    end
+    nio.gather(vim
+      .iter(processes)
+      :map(function(p)
+        return p.result
+      end)
+      :totable())
+    for _, process in pairs(processes) do
+      local output = lib.files.read_lines(process.output())
+      assert.equal(#data, #output)
+      assert.same(output, data)
+    end
+  end)
 end)

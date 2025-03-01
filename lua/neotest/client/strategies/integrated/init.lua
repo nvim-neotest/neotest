@@ -29,8 +29,9 @@ return function(spec)
   assert(not open_err, open_err)
 
   output_accum:subscribe(function(data)
-    vim.loop.fs_write(output_fd, data, nil, function(write_err)
-      assert(not write_err, write_err)
+    nio.run(function()
+      local ok, write_err = vim.uv.fs_write(output_fd, data, nil)
+      assert(ok, write_err)
     end)
   end)
 
