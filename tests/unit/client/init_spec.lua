@@ -684,6 +684,42 @@ describe("neotest client", function()
         end
       end)
 
+      a.it("fills test and namespace results from different output", function()
+        mock_adapter.build_spec = function()
+          return {
+            { strategy = { output = "test_file_1" } },
+            { strategy = { output = "test_file_2" } },
+          }
+        end
+
+        mock_adapter.results = function(_, process, tree)
+          local results = {}
+          for _, pos in tree:iter() do
+            if pos.type == "test" then
+              if pos.id:find(process.output) then
+                results[pos.id] = {
+                  status = "success",
+                }
+              end
+            end
+          end
+          return results
+        end
+
+        local tree = get_pos(dir)
+        exit_future.set()
+        client:run_tree(tree, { strategy = mock_strategy })
+        local adapter_id = client:get_adapters()[1]
+        local results = client:get_results(adapter_id)
+        assert.equal(9, #vim.tbl_keys(results))
+        for id, result in pairs(results) do
+          if id ~= dir then
+            assert.Not.Nil(id:find(result.output))
+          end
+          assert.equal("success", result.status)
+        end
+      end)
+
       a.it("fills test and namespace results from failed files", function()
         mock_adapter.results = function(_, _, tree)
           local results = {}
