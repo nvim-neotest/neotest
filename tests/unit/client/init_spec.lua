@@ -673,7 +673,18 @@ describe("neotest client", function()
         end
       end)
 
-      a.it("fills test and namespace results fromm failed files", function()
+      a.it("fills output from child tests", function()
+        local tree = get_pos(dir .. "/test_file_1")
+        exit_future.set()
+        client:run_tree(tree, { strategy = mock_strategy })
+        local adapter_id = client:get_adapters()[1]
+        local results = client:get_results(adapter_id)
+        for _, pos in tree:iter() do
+          assert.equal(results[pos.id].output, "not_a_file")
+        end
+      end)
+
+      a.it("fills test and namespace results from failed files", function()
         mock_adapter.results = function(_, _, tree)
           local results = {}
           for _, pos in tree:iter() do

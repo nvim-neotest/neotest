@@ -254,6 +254,7 @@ function TestRunner:_missing_results(tree, results, partial)
 
       if pos_result.status ~= "skipped" and parent_result.status == "passed" then
         parent_result.status = pos_result.status
+        parent_result.output = pos_result.output
       end
 
       results_proxy[parent_pos.id] = parent_result
@@ -287,7 +288,7 @@ function TestRunner:_missing_results(tree, results, partial)
         results_proxy[pos.id] = { status = "skipped" }
       elseif pos.type ~= "dir" and not results_proxy[pos.id] and root_result then
         -- Tests and namespaces not being present means that they failed to even start, count as root result
-        results_proxy[pos.id] = { status = root_result.status }
+        results_proxy[pos.id] = { status = root_result.status, output = root_result.output }
       end
     end
   end
