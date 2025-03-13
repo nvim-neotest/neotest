@@ -5,7 +5,7 @@ local neotest = {}
 --- Consumers provide user consumable APIs by wrapping the lower level client
 --- object. If you are developing a consumer, it is strongly recommended to enable
 --- type checking of the `neotest` repo, as it will provide very helpful type
---- hints/docs. You can use https://github.com/folke/lua-dev.nvim to do this easily.
+--- hints/docs. You can use https://github.com/folke/lazydev.nvim to do this easily.
 ---
 --- A consumer is a function which takes a neotest.Client object. The function can
 --- optionally return a table containing functions which will be directly accessable
