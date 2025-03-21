@@ -402,11 +402,11 @@ local default_config = {
       haskell = [[
         ;query
         ;explicit import
-        ((import_item [(variable)]) @symbol)
+        (import_name (variable) @symbol)
         ;symbols that may be imported implicitly
         ((type) @symbol)
-        (qualified_variable (variable) @symbol)
-        (exp_apply (exp_name (variable) @symbol))
+        (qualified (name) @symbol)
+        (apply (variable) @symbol)
         ((constructor) @symbol)
         ((operator) @symbol)
       ]],
