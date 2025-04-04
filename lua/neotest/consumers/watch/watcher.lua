@@ -177,7 +177,9 @@ function Watcher:watch(tree, args)
           return
         end
 
-        self.discover_positions_event.wait()
+        if path == tree:data().path then
+          self.discover_positions_event.wait()
+        end
         self.discover_positions_event = nio.control.future()
 
         if tree:data().type ~= "dir" then
