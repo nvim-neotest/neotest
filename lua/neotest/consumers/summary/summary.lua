@@ -77,10 +77,10 @@ function Summary:_write_header(canvas, adapter_id, tree)
 
         local result = results[pos.id]
 
-        if self.client:is_running(pos.id, { adapter = adapter_id }) then
-          status_counts.running = status_counts.running + 1
-        elseif result and status_counts[result.status] ~= nil then
+        if result and status_counts[result.status] ~= nil then
           status_counts[result.status] = status_counts[result.status] + 1
+        elseif self.client:is_running(pos.id, { adapter = adapter_id }) then
+          status_counts.running = status_counts.running + 1
         end
       end
     end

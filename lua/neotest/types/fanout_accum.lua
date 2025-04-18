@@ -21,7 +21,7 @@ function neotest.FanoutAccum:new(accum, init)
     data = init,
     accum = accum,
     consumers = {},
-    semaphore = nio.control.semaphore(1)
+    semaphore = nio.control.semaphore(1),
   }, self)
 end
 

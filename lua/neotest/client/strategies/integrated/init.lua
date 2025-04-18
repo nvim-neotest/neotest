@@ -45,7 +45,9 @@ return function(spec)
         output_finish_future.set()
         return
       end
-      nio.run(function() output_accum:push(table.concat(data, "\n")) end)
+      nio.run(function()
+        output_accum:push(table.concat(data, "\n"))
+      end)
     end,
     on_exit = function(_, code)
       result_code = code
