@@ -29,7 +29,7 @@ return function(spec)
   assert(not open_err, open_err)
 
   output_accum:subscribe(function(data)
-    vim.loop.fs_write(output_fd, data, nil, function(write_err)
+    vim.uv.fs_write(output_fd, data, nil, function(write_err)
       assert(not write_err, write_err)
     end)
   end)
@@ -45,7 +45,7 @@ return function(spec)
         output_finish_future.set()
         return
       end
-      output_accum:push(table.concat(data, "\n"))
+      nio.run(function() output_accum:push(table.concat(data, "\n")) end)
     end,
     on_exit = function(_, code)
       result_code = code

@@ -1,3 +1,4 @@
+local nio = require("nio")
 local logger = require("neotest.logging")
 local neotest = {}
 
@@ -7,6 +8,7 @@ local neotest = {}
 ---@field consumers fun(data: T)[]
 ---@field data? T
 ---@field accum fun(prev: T, new: any): T A function to combine previous data and new data
+---@field semaphore nio.control.Semaphore
 neotest.FanoutAccum = {}
 
 ---@generic T
@@ -19,6 +21,7 @@ function neotest.FanoutAccum:new(accum, init)
     data = init,
     accum = accum,
     consumers = {},
+    semaphore = nio.control.semaphore(1)
   }, self)
 end
 
@@ -40,12 +43,15 @@ function neotest.FanoutAccum:subscribe(cb)
   end
 end
 
+---@async
 ---@param data T
 function neotest.FanoutAccum:push(data)
-  self.data = self.accum(self.data, data)
-  for _, cb in ipairs(self.consumers) do
-    cb(data)
-  end
+  self.semaphore.with(function()
+    self.data = self.accum(self.data, data)
+    for _, cb in ipairs(self.consumers) do
+      cb(data)
+    end
+  end)
 end
 
 ---@private
