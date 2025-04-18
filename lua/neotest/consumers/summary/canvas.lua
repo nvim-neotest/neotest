@@ -3,7 +3,7 @@ local M = {}
 local api = vim.api
 M.namespace = api.nvim_create_namespace("neotest-canvas")
 
----@class Canvas
+---@class neotest.summary.Canvas
 ---@field lines table
 ---@field matches table
 ---@field mappings table
@@ -12,7 +12,7 @@ M.namespace = api.nvim_create_namespace("neotest-canvas")
 ---@field position table
 local Canvas = {}
 
----@return Canvas
+---@return neotest.summary.Canvas
 function Canvas:new(config)
   local mappings = {}
   local canvas = {
@@ -99,7 +99,7 @@ function Canvas:width()
 end
 
 ---Apply a render canvas to a buffer
----@param self Canvas
+---@param self neotest.summary.Canvas
 ---@param buffer number
 function Canvas:render_buffer(buffer)
   local success, err = pcall(api.nvim_buf_set_option, buffer, "modifiable", true)
@@ -181,7 +181,7 @@ function Canvas:render_buffer(buffer)
   return true
 end
 
---- @return Canvas
+--- @return neotest.summary.Canvas
 function M.new(config)
   return Canvas:new(config)
 end
