@@ -193,6 +193,7 @@ local default_config = {
     child_indent = "│",
     final_child_indent = " ",
     watching = "",
+    test = "",
     notify = "",
   },
   highlights = {

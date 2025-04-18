@@ -39,7 +39,7 @@ local async_func = function(f)
   end
 end
 
----@param canvas Canvas
+---@param canvas neotest.summary.Canvas
 ---@param tree neotest.Tree
 function SummaryComponent:render(canvas, tree, expanded, focused, indent)
   self.renders = self.renders + 1

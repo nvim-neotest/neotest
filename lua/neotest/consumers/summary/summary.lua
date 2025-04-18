@@ -1,4 +1,5 @@
 local lib = require("neotest.lib")
+local types = require("neotest.types")
 local logger = require("neotest.logging")
 local config = require("neotest.config")
 local Canvas = require("neotest.consumers.summary.canvas")
@@ -52,6 +53,54 @@ end
 
 local all_expanded = {}
 
+---@param canvas neotest.summary.Canvas
+---@param adapter_id string
+function Summary:_write_header(canvas, adapter_id, tree)
+  canvas:write(
+    vim.split(adapter_id, ":", { trimempty = true })[1] .. " ",
+    { group = config.highlights.adapter_name }
+  )
+
+  if config.summary.count then
+    local status_counts = {
+      test = 0,
+      running = 0,
+      passed = 0,
+      failed = 0,
+      skipped = 0,
+    }
+    local results = self.client:get_results(adapter_id)
+
+    for _, pos in tree:iter() do
+      if pos.type == "test" then
+        status_counts.test = status_counts.test + 1
+
+        local result = results[pos.id]
+
+        if self.client:is_running(pos.id, { adapter = adapter_id }) then
+          status_counts.running = status_counts.running + 1
+        elseif result and status_counts[result.status] ~= nil then
+          status_counts[result.status] = status_counts[result.status] + 1
+        end
+      end
+    end
+
+    for _, status in ipairs({ "test", "passed", "failed", "running", "skipped" }) do
+      canvas:write(
+        config.icons[status] .. " " .. tostring(status_counts[status]) .. " ",
+        { group = config.highlights[status] or config.highlights.namespace }
+      )
+    end
+  end
+  canvas:write("\n")
+
+  local cwd = vim.loop.cwd()
+  if tree:data().path ~= cwd then
+    local root_dir = nio.fn.fnamemodify(tree:data().path, ":.")
+    canvas:write(root_dir .. "\n", { group = config.highlights.dir })
+  end
+end
+
 function Summary:render(expanded)
   if not self.win:is_open() then
     return
@@ -85,28 +134,10 @@ function Summary:run()
       self.render_ready.wait()
       self.render_ready.clear()
       local canvas = Canvas.new(config.summary)
-      local cwd = vim.loop.cwd()
       if self._starting then
         for _, adapter_id in ipairs(self.client:get_adapters()) do
           local tree = assert(self.client:get_position(nil, { adapter = adapter_id }))
-          local count = 0
-          if config.summary.count then
-            for _, pos in tree:iter() do
-              if pos.type == "test" then
-                count = count + 1
-              end
-            end
-          end
-          canvas:write(
-            vim.split(adapter_id, ":", { trimempty = true })[1]
-              .. (count == 0 and "" or string.format(" %d Tests Found", count))
-              .. "\n",
-            { group = config.highlights.adapter_name }
-          )
-          if tree:data().path ~= cwd then
-            local root_dir = nio.fn.fnamemodify(tree:data().path, ":.")
-            canvas:write(root_dir .. "\n", { group = config.highlights.dir })
-          end
+          self:_write_header(canvas, adapter_id, tree)
           self.components[adapter_id] = self.components[adapter_id]
             or SummaryComponent(self.client, adapter_id)
           if config.summary.animated then
@@ -136,7 +167,7 @@ function Summary:run()
       if not rendered then
         logger.error("Couldn't render buffer", err)
       end
-      nio.api.nvim_exec("redraw", false)
+      nio.api.nvim_exec2("redraw", {})
       nio.sleep(100)
     end
   end, function(msg)
