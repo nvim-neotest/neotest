@@ -29,9 +29,8 @@ return function(spec)
   assert(not open_err, open_err)
 
   output_accum:subscribe(function(data)
-    vim.uv.fs_write(output_fd, data, nil, function(write_err)
-      assert(not write_err, write_err)
-    end)
+    local write_err = nio.uv.fs_write(output_fd, data, nil)
+    assert(not write_err, write_err)
   end)
 
   local success, job = pcall(nio.fn.jobstart, command, {
