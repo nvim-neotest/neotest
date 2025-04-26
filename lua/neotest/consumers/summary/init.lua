@@ -48,38 +48,31 @@ local function init(client)
   end
 
   if config.summary.follow then
-    local function on_summary_open(func)
-      vim.api.nvim_create_autocmd("User", {
-        pattern = "NeotestSummaryOpen",
-        group = group,
-        callback = function()
-          func()
-          vim.api.nvim_clear_autocmds({ group = group })
-        end,
-      })
+    local function now_or_on_summary_open(func)
+      if summary.win:is_open() then
+        func()
+      else
+        vim.api.nvim_clear_autocmds({ group = group })
+        vim.api.nvim_create_autocmd("User", {
+          pattern = "NeotestSummaryOpen",
+          group = group,
+          callback = func,
+          once = true,
+        })
+      end
     end
 
     client.listeners.test_file_focused = function(_, file_path)
-      local expand = function()
+      now_or_on_summary_open(function()
+        vim.notify("test")
         summary:expand(file_path, true)
-      end
-
-      if summary.win:is_open() then
-        expand()
-      else
-        on_summary_open(expand)
-      end
+      end)
     end
     client.listeners.test_focused = function(_, pos_id)
-      local expand = function()
+      now_or_on_summary_open(function()
+        vim.notify("test")
         summary:expand(pos_id, false, true)
-      end
-
-      if summary.win:is_open() then
-        expand()
-      else
-        on_summary_open(expand)
-      end
+      end)
     end
   end
 end
