@@ -64,13 +64,11 @@ local function init(client)
 
     client.listeners.test_file_focused = function(_, file_path)
       now_or_on_summary_open(function()
-        vim.notify("test")
         summary:expand(file_path, true)
       end)
     end
     client.listeners.test_focused = function(_, pos_id)
       now_or_on_summary_open(function()
-        vim.notify("test")
         summary:expand(pos_id, false, true)
       end)
     end
