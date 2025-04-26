@@ -47,10 +47,26 @@ local function init(client)
 
   if config.summary.follow then
     client.listeners.test_file_focused = function(_, file_path)
-      summary:expand(file_path, true)
+      local expand = function()
+        summary:expand(file_path, true)
+      end
+
+      if summary.win:is_open() then
+        expand()
+      else
+        summary.on_next_open = expand
+      end
     end
     client.listeners.test_focused = function(_, pos_id)
-      summary:expand(pos_id, false, true)
+      local expand = function()
+        summary:expand(pos_id, false, true)
+      end
+
+      if summary.win:is_open() then
+        expand()
+      else
+        summary.on_next_open = expand
+      end
     end
   end
 end

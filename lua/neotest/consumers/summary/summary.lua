@@ -18,6 +18,7 @@ local events = {
 ---@field render_ready nio.control.Event
 ---@field focused? string
 ---@field running boolean
+---@field on_next_open nil | fun()
 local Summary = {}
 
 function Summary:new(client)
@@ -35,11 +36,16 @@ function Summary:new(client)
     render_ready = nio.control.event(),
     focused = nil,
     running = false,
+    on_next_open = nil,
   }, self)
 end
 
 function Summary:open()
   self.win:open()
+  if self.on_next_open ~= nil then
+    self.on_next_open()
+    self.on_next_open = nil
+  end
   vim.api.nvim_exec_autocmds("User", { pattern = events.open })
 end
 
