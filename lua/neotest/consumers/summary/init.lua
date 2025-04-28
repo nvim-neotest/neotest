@@ -52,7 +52,6 @@ local function init(client)
       if summary.win:is_open() then
         func()
       else
-        vim.api.nvim_clear_autocmds({ group = group })
         vim.api.nvim_create_autocmd("User", {
           pattern = "NeotestSummaryOpen",
           group = group,
