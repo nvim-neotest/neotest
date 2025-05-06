@@ -142,7 +142,7 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
             end
           else
             for _, pos in
-              self.client:get_position(position.id, { adapter = self.adapter_id }):iter()
+            self.client:get_position(position.id, { adapter = self.adapter_id }):iter()
             do
               positions[pos.id] = true
             end
@@ -178,13 +178,15 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
         neotest.run.attach(position.id, { adapter = self.adapter_id })
       end)
     )
-    canvas:add_mapping(
-      "watch",
-      async_func(function()
-        neotest.watch.toggle({ position.id, adapter = self.adapter_id })
-        neotest.summary.render()
-      end)
-    )
+    if neotest.watch then
+      canvas:add_mapping(
+        "watch",
+        async_func(function()
+          neotest.watch.toggle({ position.id, adapter = self.adapter_id })
+          neotest.summary.render()
+        end)
+      )
+    end
     canvas:add_mapping(
       "output",
       async_func(function()
@@ -270,7 +272,7 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
 
     local state_icon, state_icon_group = self:_state_icon(status)
 
-    if neotest.watch.is_watching(position.id) then
+    if neotest.watch and neotest.watch.is_watching(position.id) then
       state_icon = config.icons.watching
     end
 
@@ -308,7 +310,7 @@ function SummaryComponent:_state_icon(status)
     return icons[status], config.highlights[status]
   end
   return config.icons.running_animated[(self.renders % #config.icons.running_animated) + 1],
-    config.highlights.running
+      config.highlights.running
 end
 
 ---@return SummaryComponent
