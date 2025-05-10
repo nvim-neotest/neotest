@@ -546,6 +546,38 @@ Parameters~
 {args} `(string|neotest.run.StopArgs?)` Position ID to stop or args. If
 args then args[1] should be the position ID.
 
+                                                     *neotest.run.get_command()*
+`get_command`({args})
+
+Get the command that would be run for a test position as a string.
+
+Get the command for the nearest test
+>vim
+  local cmd = require("neotest").run.get_command()
+<
+
+Get the command for the current file
+>vim
+  local cmd = require("neotest").run.get_command(vim.fn.expand("%"))
+<
+
+Use the command programmatically
+>vim
+  local cmd = require('neotest').run.get_command()
+
+  if cmd then
+    vim.fn.setreg('*', table.concat(cmd, ' '))
+    -- get_command may block for a bit, so send a notification when it is done
+    vim.notify('Copied ' .. cmd[1] .. ' command!')
+  end
+<
+
+Parameters~
+{args} `(string|neotest.run.RunArgs?)` Position ID to get command for or args.
+
+Return~
+`(string|nil)` The command string that would be executed, or nil if no command is available
+
                                                         *neotest.run.AttachArgs*
 Inherits: `neotest.client.AttachArgs`
 
