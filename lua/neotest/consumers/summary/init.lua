@@ -7,6 +7,8 @@ local config = require("neotest.config")
 ---@private
 local summary
 
+local group = vim.api.nvim_create_augroup("FollowSummaryOnOpen", { clear = true })
+
 ---@param client neotest.Client
 ---@private
 local function init(client)
@@ -46,11 +48,28 @@ local function init(client)
   end
 
   if config.summary.follow then
+    local function now_or_on_summary_open(func)
+      if summary.win:is_open() then
+        func()
+      else
+        vim.api.nvim_create_autocmd("User", {
+          pattern = "NeotestSummaryOpen",
+          group = group,
+          callback = func,
+          once = true,
+        })
+      end
+    end
+
     client.listeners.test_file_focused = function(_, file_path)
-      summary:expand(file_path, true)
+      now_or_on_summary_open(function()
+        summary:expand(file_path, true)
+      end)
     end
     client.listeners.test_focused = function(_, pos_id)
-      summary:expand(pos_id, false, true)
+      now_or_on_summary_open(function()
+        summary:expand(pos_id, false, true)
+      end)
     end
   end
 end
