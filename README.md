@@ -114,7 +114,8 @@ See the adapter's documentation for their specific setup instructions.
 | rust (treesitter)     |                                   [neotest-rust](https://github.com/rouge8/neotest-rust)                                    |
 | rust (LSP)            |                                   [rustaceanvim](https://github.com/mrcjkb/rustaceanvim)                                    |
 | elixir                |                                [neotest-elixir](https://github.com/jfpedroza/neotest-elixir)                                |
-| dotnet                |                               [neotest-dotnet](https://github.com/Issafalcon/neotest-dotnet)                                |
+| dotnet (treesitter)   |                               [neotest-dotnet](https://github.com/Issafalcon/neotest-dotnet)                                |
+| dotnet (vstest)       |                               [neotest-vstest](https://github.com/nsidorenco/neotest-vstest)                                |
 | scala                 |                                [neotest-scala](https://github.com/stevanmilic/neotest-scala)                                |
 | haskell               |                                [neotest-haskell](https://github.com/mrcjkb/neotest-haskell)                                 |
 | deno                  |                                 [neotest-deno](https://github.com/MarkEmmons/neotest-deno)                                  |
