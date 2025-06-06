@@ -95,10 +95,6 @@ local function define_highlights()
   end
 end
 
-local augroup = vim.api.nvim_create_augroup("NeotestColorSchemeRefresh", {})
-vim.api.nvim_create_autocmd("ColorScheme", { callback = define_highlights, group = augroup })
-define_highlights()
-
 local js_watch_query = [[
   ;query
   ;Captures named imports
@@ -518,6 +514,8 @@ end
 ---@param config neotest.Config
 ---@private
 function NeotestConfigModule.setup(config)
+  define_highlights()
+
   ---@type neotest.Config
   user_config = vim.tbl_deep_extend("force", default_config, config)
   --- Avoid mutating default for docgen
