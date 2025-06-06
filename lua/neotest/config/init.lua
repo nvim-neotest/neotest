@@ -1,26 +1,98 @@
 ---@tag neotest.config
 ---@toc_entry Configuration Options
 
+local default_highlights = {
+  {
+    name = "NeotestPassed",
+    link = "DiagnosticOk",
+    desc = "Passed icon",
+  },
+  {
+    name = "NeotestFailed",
+    link = "DiagnosticError",
+    desc = "Failed icon",
+  },
+  {
+    name = "NeotestRunning",
+    link = "DiagnosticWarn",
+    desc = "Running test icon",
+  },
+  {
+    name = "NeotestSkipped",
+    link = "Comment",
+    desc = "Skipped test icon",
+  },
+  {
+    name = "NeotestTest",
+    link = "Normal",
+    desc = "Default test text",
+  },
+  {
+    name = "NeotestNamespace",
+    link = "Function",
+    desc = "Test namespace label",
+  },
+  {
+    name = "NeotestFocused",
+    link = "Visual",
+    desc = "Focused test with underline and bold",
+  },
+  {
+    name = "NeotestFile",
+    link = "Directory",
+    desc = "Filename in test tree",
+  },
+  {
+    name = "NeotestDir",
+    link = "Directory",
+    desc = "Directory name in test tree",
+  },
+  {
+    name = "NeotestIndent",
+    link = "LineNr",
+    desc = "Indentation marker in test tree",
+  },
+  {
+    name = "NeotestExpandMarker",
+    link = "FoldColumn", -- or "Folded"
+    desc = "Tree expand/collapse marker",
+  },
+  {
+    name = "NeotestAdapterName",
+    link = "Title",
+    desc = "Test adapter name",
+  },
+  {
+    name = "NeotestWinSelect",
+    link = "Identifier",
+    desc = "Win picker character",
+  },
+  {
+    name = "NeotestMarked",
+    link = "Constant",
+    desc = "Marked test indicator",
+  },
+  {
+    name = "NeotestTarget",
+    link = "DiagnosticError",
+    desc = "Target test node",
+  },
+  {
+    name = "NeotestWatching",
+    link = "DiagnosticWarn",
+    desc = "Watching test node",
+  },
+  {
+    name = "NeotestUnknown",
+    link = "Normal",
+    desc = "Unknown test status",
+  },
+}
+
 local function define_highlights()
-  vim.cmd([[
-  hi default NeotestPassed ctermfg=Green guifg=#96F291
-  hi default NeotestFailed ctermfg=Red guifg=#F70067
-  hi default NeotestRunning ctermfg=Yellow guifg=#FFEC63
-  hi default NeotestSkipped ctermfg=Cyan guifg=#00f1f5
-  hi default link NeotestTest Normal
-  hi default NeotestNamespace ctermfg=Magenta guifg=#D484FF
-  hi default NeotestFocused gui=bold,underline cterm=bold,underline
-  hi default NeotestFile ctermfg=Cyan guifg=#00f1f5
-  hi default NeotestDir ctermfg=Cyan guifg=#00f1f5
-  hi default NeotestIndent ctermfg=Grey guifg=#8B8B8B
-  hi default NeotestExpandMarker ctermfg=Grey guifg=#8094b4
-  hi default NeotestAdapterName ctermfg=Red guifg=#F70067
-  hi default NeotestWinSelect ctermfg=Cyan guifg=#00f1f5 gui=bold
-  hi default NeotestMarked ctermfg=Brown guifg=#F79000 gui=bold
-  hi default NeotestTarget ctermfg=Red guifg=#F70067
-  hi default NeotestWatching ctermfg=Yellow guifg=#FFEC63
-  hi default link NeotestUnknown Normal
-]])
+  for _, conf in ipairs(default_highlights) do
+    vim.api.nvim_set_hl(0, conf.name, { default = true, link = conf.link })
+  end
 end
 
 local augroup = vim.api.nvim_create_augroup("NeotestColorSchemeRefresh", {})
@@ -34,7 +106,7 @@ local js_watch_query = [[
   ;Captures default import
   (import_clause (identifier) @symbol)
   ;Capture require statements
-  (variable_declarator 
+  (variable_declarator
   name: (identifier) @symbol
   value: (call_expression (identifier) @function  (#eq? @function "require")))
   ;Capture namespace imports
@@ -480,7 +552,7 @@ function NeotestConfigModule.setup_project(project_root, config)
     default_strategy = user_config.default_strategy,
   })
   user_config.projects[path].discovery.concurrent =
-    convert_concurrent(user_config.projects[path].discovery.concurrent)
+      convert_concurrent(user_config.projects[path].discovery.concurrent)
   local logger = require("neotest.logging")
   logger.info("Project", path, "configuration complete")
   logger.debug("Project config", user_config.projects[path])
