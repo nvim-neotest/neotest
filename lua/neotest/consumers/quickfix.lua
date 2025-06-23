@@ -66,9 +66,9 @@ local init = function()
       return a.filename < b.filename
     end)
 
-    nio.fn.setqflist(qf_results)
-    vim.cmd.doautocmd("QuickFixCmdPost")
     if #qf_results > 0 then
+      nio.fn.setqflist(qf_results)
+      vim.cmd.doautocmd("QuickFixCmdPost")
       if config.quickfix.open then
         if type(config.quickfix.open) == "function" then
           config.quickfix.open()
