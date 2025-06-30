@@ -24,7 +24,7 @@ jobs:
       matrix:
         include:
           - os: ubuntu-22.04
-            rev: nightly/nvim-linux64.tar.gz
+            rev: nightly/nvim-linux-x86_64.tar.gz
           - os: ubuntu-22.04
             rev: v0.9.1/nvim-linux64.tar.gz
     steps:
