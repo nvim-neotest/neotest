@@ -22,7 +22,7 @@ local function get_match_type(captured_nodes)
   end
 end
 
-local function build_position(file_path, source, captured_nodes)
+local function build_position(file_path, source, captured_nodes, metadata)
   local match_type = get_match_type(captured_nodes)
   if match_type then
     ---@type string
@@ -56,12 +56,14 @@ local function collect(file_path, query, source, root, opts)
       range = { root:range() },
     },
   }
-  for _, match in query:iter_matches(root, source, nil, nil, { all = false }) do
+  for _, match, metadata in query:iter_matches(root, source, nil, nil, { all = false }) do
     local captured_nodes = {}
+    local node_metadata = {}
     for i, capture in ipairs(query.captures) do
       captured_nodes[capture] = match[i]
+      node_metadata[capture] = metadata[i]
     end
-    local res = opts.build_position(file_path, source, captured_nodes)
+    local res = opts.build_position(file_path, source, captured_nodes, node_metadata)
     if res then
       if res[1] then
         for _, pos in ipairs(res) do
@@ -92,7 +94,7 @@ end
 
 ---@class neotest.lib.treesitter.ParseOptions : neotest.lib.positions.ParseOptions
 ---@field fast? boolean Use faster parsing (Should be unchanged unless injections are needed)
----@field build_position? fun(file_path: string, source: string, captured_nodes: table<string, userdata>): neotest.Position|neotest.Position[]|nil Builds one or more positions from the captured nodes from a query match.
+---@field build_position? fun(file_path: string, source: string, captured_nodes: table<string, userdata>, metadata: table<string, vim.treesitter.query.TSMetadata>): neotest.Position|neotest.Position[]|nil Builds one or more positions from the captured nodes from a query match.
 
 --- Build a parsed Query object from a string
 ---@param lang string

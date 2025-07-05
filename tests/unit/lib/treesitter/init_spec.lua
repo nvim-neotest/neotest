@@ -27,6 +27,30 @@ local plenary_queries = [[
     ) (#match? @func_name "^it$")) @test.definition
     ]]
 
+local directive_gsub_plenary_namespace_query = [[
+  ;; describe blocks
+  ((function_call
+      name: (identifier) @func_name (#match? @func_name "^describe$") 
+      arguments: (arguments (_) @namespace.name (function_definition)) (#gsub! @namespace.name "$" "_example")
+  )) @namespace.definition
+]]
+
+local directive_set_plenary_namespace_query = [[
+  ;; describe blocks
+  ((function_call
+      name: (identifier) @func_name (#match? @func_name "^describe$") 
+      arguments: (arguments (_) @namespace.name (#set! @namespace.name type "parameter") (function_definition))
+  )) @namespace.definition
+]]
+
+local directive_offset_plenary_namespace_query = [[
+  ;; describe blocks
+  ((function_call
+      name: (identifier) @func_name (#match? @func_name "^describe$") 
+      arguments: (arguments (_) @namespace.name (#offset! @namespace.name 1 1 1 1) (function_definition))
+  )) @namespace.definition
+]]
+
 local simple_test_file = [[
 it("test", function()
 end)
@@ -45,6 +69,15 @@ end)
 it("test 3", function()
 end)
 ]]
+
+local function get_match_type(captured_nodes)
+  if captured_nodes["test.name"] then
+    return "test"
+  end
+  if captured_nodes["namespace.name"] then
+    return "namespace"
+  end
+end
 
 describe("treesitter parsing", function()
   a.it("finds all positions", function()
@@ -155,6 +188,90 @@ describe("treesitter parsing", function()
     for _, position in tree:iter() do
       if position.type ~= "file" then
         assert.are.same("same_name", position.name)
+      end
+    end
+  end)
+
+  a.it("build function - directive #gsub!", function()
+    local tree = ts.parse_positions_from_string(
+      "test_spec.lua",
+      complex_test_file,
+      directive_gsub_plenary_namespace_query,
+      {
+        build_position = function(file_path, source, captured_nodes, metadata)
+          local match_type = get_match_type(captured_nodes)
+          local name = metadata[match_type .. ".name"].text
+          local definition = captured_nodes[match_type .. ".definition"]
+
+          return {
+            type = type,
+            path = file_path,
+            name = name,
+            range = definition:range(),
+          }
+        end,
+      }
+    )
+
+    for _, position in tree:iter() do
+      if position.type ~= "file" then
+        assert.are.same('"top namespace"_example', position.name)
+      end
+    end
+  end)
+
+  a.it("build function - directive #set!", function()
+    local tree = ts.parse_positions_from_string(
+      "test_spec.lua",
+      complex_test_file,
+      directive_set_plenary_namespace_query,
+      {
+        build_position = function(file_path, source, captured_nodes, metadata)
+          local match_type = get_match_type(captured_nodes)
+          local name = metadata[match_type .. ".name"].type
+          local definition = captured_nodes[match_type .. ".definition"]
+
+          return {
+            type = type,
+            path = file_path,
+            name = name,
+            range = definition:range(),
+          }
+        end,
+      }
+    )
+
+    for _, position in tree:iter() do
+      if position.type ~= "file" then
+        assert.are.same("parameter", position.name)
+      end
+    end
+  end)
+
+  a.it("build function - directive #offset!", function()
+    local tree = ts.parse_positions_from_string(
+      "test_spec.lua",
+      complex_test_file,
+      directive_offset_plenary_namespace_query,
+      {
+        build_position = function(file_path, source, captured_nodes, metadata)
+          local match_type = get_match_type(captured_nodes)
+          local name = metadata[match_type .. ".name"].range
+          local definition = captured_nodes[match_type .. ".definition"]
+
+          return {
+            type = type,
+            path = file_path,
+            name = name,
+            range = definition:range(),
+          }
+        end,
+      }
+    )
+
+    for _, position in tree:iter() do
+      if position.type ~= "file" then
+        assert.are.same({ 1, 10, 1, 25 }, position.name)
       end
     end
   end)
