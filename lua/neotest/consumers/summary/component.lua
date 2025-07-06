@@ -142,7 +142,7 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
             end
           else
             for _, pos in
-            self.client:get_position(position.id, { adapter = self.adapter_id }):iter()
+              self.client:get_position(position.id, { adapter = self.adapter_id }):iter()
             do
               positions[pos.id] = true
             end
@@ -310,7 +310,7 @@ function SummaryComponent:_state_icon(status)
     return icons[status], config.highlights[status]
   end
   return config.icons.running_animated[(self.renders % #config.icons.running_animated) + 1],
-      config.highlights.running
+    config.highlights.running
 end
 
 ---@return SummaryComponent
