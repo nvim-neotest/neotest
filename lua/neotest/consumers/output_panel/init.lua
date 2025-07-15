@@ -108,6 +108,14 @@ function neotest.output_panel.clear()
   nio.api.nvim_buf_set_option(panel.win:buffer(), "modifiable", false)
 end
 
+--- Returns the buffer of the output panel
+--- ```vim
+---   lua require("neotest").output_panel.buffer()
+--- ```
+function neotest.output_panel.buffer()
+  return panel.win:buffer()
+end
+
 neotest.output_panel = setmetatable(neotest.output_panel, {
   __call = function(_, client)
     init(client)
