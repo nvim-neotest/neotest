@@ -85,6 +85,11 @@ function TestRunner:_run_tree(tree, args, adapter_id, adapter, results_callback)
   end
   local async_runners = {}
   for _, spec in ipairs(specs) do
+    if not (type(spec.strategy) == "function" or type(spec.strategy) == "table" or spec.strategy == nil) then
+        self:_run_broken_down_tree(tree, args, adapter_id, adapter, results_callback)
+        return
+    end
+
     table.insert(async_runners, function()
       self:_run_spec(spec, tree, args, adapter_id, adapter, results_callback)
     end)
