@@ -1,5 +1,6 @@
 local nio = require("nio")
 local logger = require("neotest.logging")
+local Path = require("plenary.path")
 
 local child_chan, parent_chan
 ---@type table<number, nio.control.Future>
@@ -38,7 +39,7 @@ function neotest.lib.subprocess.init()
     logger.error("Failed to start server: " .. parent_address)
     return
   end
-  local cmd = { vim.loop.exepath(), "--embed", "--headless", "-n" }
+  local cmd = { vim.loop.exepath(), "--embed", "--headless", "-n", "-u", "NONE" }
   logger.info("Starting child process with command: " .. table.concat(cmd, " "))
   success, child_chan = pcall(nio.fn.jobstart, cmd, {
     rpc = true,
@@ -57,6 +58,27 @@ function neotest.lib.subprocess.init()
       logger.error("Child process is waiting for input at startup. Aborting.")
       return
     end
+    local rtp = nio.fn.rpcrequest(child_chan, "nvim_get_option_value", "runtimepath", {})
+
+    local to_add = {
+      require("neotest").setup,
+      require("nio").sleep,
+      require("plenary.path").new,
+      require("nvim-treesitter").new,
+    }
+    if pcall(require, "nvim-treesitter") then
+      to_add[#to_add + 1] = require("nvim-treesitter").setup
+    end
+
+    for _, func in ipairs(to_add) do
+      local source = Path:new(debug.getinfo(func).source:sub(2))
+      while not vim.endswith(source.filename, Path.path.sep .. "lua") do
+        source = source:parent()
+      end
+      rtp = rtp .. "," .. source:parent().filename
+    end
+    nio.fn.rpcrequest(child_chan, "nvim_set_option_value", "runtimepath", rtp, {})
+
     -- Trigger lazy loading of neotest
     nio.fn.rpcrequest(child_chan, "nvim_exec_lua", "return require('neotest') and 0", {})
     nio.fn.rpcrequest(
