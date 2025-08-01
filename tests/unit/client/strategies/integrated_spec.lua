@@ -34,7 +34,7 @@ describe("integrated strategy", function()
 
   a.it("stops the job", function()
     local process = strategy({
-      command = { "bash", "-c", "sleep 1" },
+      command = { "bash", "-c", "sleep 10" },
       strategy = {
         height = 10,
         width = 10,
@@ -47,7 +47,7 @@ describe("integrated strategy", function()
 
   a.it("streams output", function()
     local process = strategy({
-      command = { "bash", "-c", "printf hello; sleep 0; printf world" },
+      command = { "bash", "-c", "printf hello; sleep 0.1; printf world" },
       strategy = {
         height = 10,
         width = 10,
