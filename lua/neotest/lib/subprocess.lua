@@ -1,6 +1,5 @@
 local nio = require("nio")
 local logger = require("neotest.logging")
-local Path = require("plenary.path")
 
 local child_chan, parent_chan
 ---@type table<number, nio.control.Future>
@@ -58,26 +57,43 @@ function neotest.lib.subprocess.init()
       logger.error("Child process is waiting for input at startup. Aborting.")
       return
     end
-    local rtp = nio.fn.rpcrequest(child_chan, "nvim_get_option_value", "runtimepath", {})
+    -- Copy the parent's runtime path to the child process
+    local parent_rtp = vim.opt.runtimepath:get()
+    local rtp_string = table.concat(parent_rtp, ",")
+    nio.fn.rpcrequest(child_chan, "nvim_set_option_value", "runtimepath", rtp_string, {})
 
-    local to_add = {
-      require("neotest").setup,
-      require("nio").sleep,
-      require("plenary.path").new,
-      require("nvim-treesitter").new,
-    }
-    if pcall(require, "nvim-treesitter") then
-      to_add[#to_add + 1] = require("nvim-treesitter").setup
-    end
-
-    for _, func in ipairs(to_add) do
-      local source = Path:new(debug.getinfo(func).source:sub(2))
-      while not vim.endswith(source.filename, Path.path.sep .. "lua") do
-        source = source:parent()
+    -- Copy treesitter parser directory for nvim-treesitter compatibility
+    xpcall(function()
+      -- Try to get the parser install directory from nvim-treesitter
+      local has_ts, ts_parsers = pcall(require, "nvim-treesitter.parsers")
+      if has_ts then
+        local parser_install_dir = ts_parsers.get_parser_install_dir()
+        if parser_install_dir and vim.fn.isdirectory(parser_install_dir) == 1 then
+          nio.fn.rpcrequest(child_chan, "nvim_exec_lua", [[
+            local parser_dir = ...
+            local scan = vim.fs and vim.fs.dir or function(path)
+              local handle = vim.loop.fs_scandir(path)
+              if not handle then return function() end end
+              return function()
+                return vim.loop.fs_scandir_next(handle)
+              end
+            end
+            
+            for name, type in scan(parser_dir) do
+              if type == 'file' and name:match('%.so$') then
+                local lang = name:gsub('%.so$', '')
+                pcall(vim.treesitter.language.add, lang, { 
+                  path = parser_dir .. '/' .. name, 
+                  symbol_name = 'tree_sitter_' .. lang 
+                })
+              end
+            end
+          ]], { parser_install_dir })
+        end
       end
-      rtp = rtp .. "," .. source:parent().filename
-    end
-    nio.fn.rpcrequest(child_chan, "nvim_set_option_value", "runtimepath", rtp, {})
+    end, function(err)
+      logger.warn("Failed to setup treesitter parsers in subprocess:", err)
+    end)
 
     -- Trigger lazy loading of neotest
     nio.fn.rpcrequest(child_chan, "nvim_exec_lua", "return require('neotest') and 0", {})
