@@ -31,6 +31,7 @@ M.ResultStatus = {
 ---@class neotest.Error
 ---@field message string
 ---@field line? integer
+---@field severity? integer Diagnostic severity (see vim.diagnostic.severity)
 
 ---@class neotest.Process
 ---@field output async fun(): string Path to file containing output data
