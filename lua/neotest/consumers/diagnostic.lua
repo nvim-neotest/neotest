@@ -116,7 +116,7 @@ local function init(client)
                   col = col,
                   message = error.message,
                   source = "neotest",
-                  severity = config.diagnostic.severity,
+                  severity = error.severity or config.diagnostic.severity,
                 }
               end
             end
