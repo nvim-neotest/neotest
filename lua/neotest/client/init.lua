@@ -248,6 +248,8 @@ function neotest.Client:get_adapter(file_path)
   return self:_get_adapter(file_path, nil)
 end
 
+local path_cache = {}
+
 ---@async
 ---@param path string
 ---@private
@@ -276,7 +278,21 @@ function neotest.Client:_update_positions(path, args)
           return
         end
       end
+      if path_cache[path] == nil then
+        path_cache[path] = true
+        vim.defer_fn(function()
+          path_cache[path] = nil
+        end, 2000)
+      else
+        logger.debug(
+          "Skipping search in",
+          path,
+          "for test files, because it has recently been searched"
+        )
+        return
+      end
       logger.info("Searching", path, "for test files")
+
       local root_path = existing_root and existing_root:data().path or path
       local files = lib.func_util.filter_list(
         adapter.is_test_file,
