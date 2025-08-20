@@ -535,35 +535,45 @@ function neotest.Client:_update_adapters(dir)
       return i, entry.root
     end, adapters_with_root))
 
+  local root = lib.files.is_dir(dir) and dir or vim.loop.cwd()
+  for _, adapter in ipairs(adapters_with_bufs) do
+    adapters_with_root[#adapters_with_root + 1] = { adapter = adapter, root = root }
+  end
+
   local found = {}
   for adapter_id, _ in pairs(self._adapters) do
     found[adapter_id] = true
   end
+
+  ---@type table<string, {adapter: neotest.Adapter, root: string}>
+  local new_adapters = {}
+
   for _, entry in ipairs(adapters_with_root) do
     local adapter = entry.adapter
-    local root = entry.root
-    local adapter_id = ("%s:%s"):format(adapter.name, root)
+    local adapter_id = ("%s:%s"):format(adapter.name, entry.root)
     if not found[adapter_id] then
       self._adapters[adapter_id] = adapter
       found[adapter_id] = true
-      if config.projects[root].discovery.enabled then
-        self:_update_positions(root, { adapter = adapter_id })
-      else
-        self:_update_open_buf_positions(adapter_id)
-      end
+      new_adapters[adapter_id] = entry
     end
   end
-  local root = lib.files.is_dir(dir) and dir or vim.loop.cwd()
-  for _, adapter in ipairs(adapters_with_bufs) do
-    local adapter_id = ("%s:%s"):format(adapter.name, root)
-    if not found[adapter_id] then
-      self._adapters[adapter_id] = adapter
-      found[adapter_id] = true
-      if config.projects[root].discovery.enabled then
-        self:_update_positions(root, { adapter = adapter_id })
-      else
-        self:_update_open_buf_positions(adapter_id)
-      end
+
+  local to_add = {}
+  for _, entry in pairs(new_adapters) do
+    to_add[#to_add + 1] = entry.adapter.is_test_file
+  end
+  if #to_add > 0 and lib.subprocess.enabled() then
+    local suc, err = pcall(lib.subprocess.add_to_rtp, to_add)
+    if not suc then
+      logger.error("Failed to add adapter to rtp", err)
+    end
+  end
+
+  for adapter_id, entry in pairs(new_adapters) do
+    if config.projects[entry.root].discovery.enabled then
+      self:_update_positions(entry.root, { adapter = adapter_id })
+    else
+      self:_update_open_buf_positions(adapter_id)
     end
   end
 end
