@@ -124,6 +124,7 @@ See the adapter's documentation for their specific setup instructions.
 | foundry               |                               [neotest-foundry](https://github.com/llllvvuu/neotest-foundry)                                |
 | zig                   |                                 [neotest-zig](https://github.com/lawrence-laz/neotest-zig)                                  |
 | c++ (google test)     |                                  [neotest-gtest](https://github.com/alfaix/neotest-gtest)                                   |
+| c++ (ctest)           |                                  [neotest-ctest](https://github.com/orjangj/neotest-ctest)                                  |
 | gradle                |                                [neotest-gradle](https://github.com/weilbith/neotest-gradle)                                 |
 | bazel                 |                                 [neotest-bazel](https://github.com/sluongng/neotest-bazel)                                  |
 | bash                  |                                   [neotest-bash](https://github.com/rcasia/neotest-bash)                                    |
