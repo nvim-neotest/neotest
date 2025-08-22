@@ -58,7 +58,6 @@ function neotest.lib.subprocess.init()
       logger.error("Child process is waiting for input at startup. Aborting.")
       return
     end
-    local rtp = nio.fn.rpcrequest(child_chan, "nvim_get_option_value", "runtimepath", {})
 
     local to_add = {
       require("neotest").setup,
@@ -70,14 +69,7 @@ function neotest.lib.subprocess.init()
       to_add[#to_add + 1] = require("nvim-treesitter").setup
     end
 
-    for _, func in ipairs(to_add) do
-      local source = Path:new(debug.getinfo(func).source:sub(2))
-      while not vim.endswith(source.filename, Path.path.sep .. "lua") do
-        source = source:parent()
-      end
-      rtp = rtp .. "," .. source:parent().filename
-    end
-    nio.fn.rpcrequest(child_chan, "nvim_set_option_value", "runtimepath", rtp, {})
+    neotest.lib.subprocess.add_to_rtp(to_add)
 
     -- Trigger lazy loading of neotest
     nio.fn.rpcrequest(child_chan, "nvim_exec_lua", "return require('neotest') and 0", {})
@@ -99,6 +91,31 @@ function neotest.lib.subprocess.init()
     cleanup()
     child_chan = nil
   end)
+end
+
+local function is_root(pathname)
+  if Path.path.sep == "\\" then
+    return string.match(pathname, "^[A-Z]:\\?$")
+  end
+  return pathname == "/"
+end
+
+function neotest.lib.subprocess.add_to_rtp(to_add)
+  local rtp = nio.fn.rpcrequest(child_chan, "nvim_get_option_value", "runtimepath", {})
+
+  for _, func in ipairs(to_add) do
+    local source = Path:new(debug.getinfo(func).source:sub(2))
+    while
+      not is_root(source.filename) and not vim.endswith(source.filename, Path.path.sep .. "lua")
+    do
+      source = source:parent()
+    end
+    if not is_root(source.filename) then
+      rtp = rtp .. "," .. source:parent().filename
+    end
+  end
+  logger.info("Setting rtp in subprocess", rtp)
+  nio.fn.rpcrequest(child_chan, "nvim_set_option_value", "runtimepath", rtp, {})
 end
 
 ---@private
