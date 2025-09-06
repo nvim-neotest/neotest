@@ -61,6 +61,8 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
   local children = tree:children()
   local neotest = require("neotest")
   local has_running = false
+  local parent_line = canvas:length() - 1
+  local prev_sibling_line = nil
   for index, node in ipairs(children) do
     local is_last_child = index == #children
     local position = node:data()
@@ -84,6 +86,7 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
       expansion_icon = icons.collapsed
     end
     canvas:write(expansion_icon, { group = config.highlights.expand_marker })
+    local current_line = canvas:length()
     canvas:add_mapping("next_failed", function()
       local row = vim.fn.line(".") - 1
       local extmarks = vim.api.nvim_buf_get_extmarks(
@@ -118,6 +121,25 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
         end
       end
     end)
+    canvas:add_mapping("parent", function()
+      vim.fn.setpos(".", { 0, parent_line, 1, 0 })
+    end)
+
+    if prev_sibling_line then
+      canvas:add_mapping(
+        "prev_sibling",
+        -- Pass in prev_sibling_line to prevent a reference to it
+        -- from being captured in the closure
+        (function(psl)
+          return function()
+            vim.fn.setpos(".", { 0, psl, 1, 0 })
+          end
+        end)(prev_sibling_line)
+      )
+      canvas:add_mapping("next_sibling", function()
+        vim.fn.setpos(".", { 0, current_line, 1, 0 })
+      end, { line = prev_sibling_line })
+    end
 
     if expandable then
       canvas:add_mapping(
@@ -291,6 +313,7 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
     if self.expanded_positions[position.id] then
       has_running = self:_render(canvas, node, expanded, focused, chid_indent) or has_running
     end
+    prev_sibling_line = current_line
   end
   return has_running
 end
