@@ -177,8 +177,11 @@ Default values:
         jumpto = "i",
         mark = "m",
         next_failed = "J",
+        next_sibling = ">",
         output = "o",
+        parent = "P",
         prev_failed = "K",
+        prev_sibling = "<",
         run = "r",
         run_marked = "R",
         short = "O",
@@ -326,6 +329,9 @@ for its adapter
 adapter
 {next_failed} `(string|string[])` Jump to the next failed position
 {prev_failed} `(string|string[])` Jump to the previous failed position
+{next_sibling} `(string|string[])` Jump to the next sibling of selected
+{prev_sibling} `(string|string[])` Jump to the previous sibling of selected
+{parent} `(string|string[])` Jump to the parent of selected
 {watch} `(string|string[])` Toggle watching for changes
 
                                                          *neotest.Config.output*
