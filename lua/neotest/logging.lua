@@ -61,6 +61,12 @@ function Logger.new(filename, opts)
     vim.notify(warn_msg, vim.log.levels.WARN)
   end
 
+  local source_offset = opts.source_offset or 0
+  if source_offset < 0 then
+    source_offset = 0
+    vim.notify("Neotest logger source_offset value cannot be negative", vim.log.levels.WARN)
+  end
+
   for level, levelnr in pairs(vim.log.levels) do
     logger[level:lower()] = function(...)
       local argc = select("#", ...)
@@ -70,7 +76,7 @@ function Logger.new(filename, opts)
       if argc == 0 then
         return true
       end
-      local info = debug.getinfo(2, "Sl")
+      local info = debug.getinfo(2 + source_offset, "Sl")
       local fileinfo = string.format("%s:%s", info.short_src, info.currentline)
       local parts = {
         table.concat({ level, "|", os.date(log_date_format), "|", fileinfo, "|" }, " "),
