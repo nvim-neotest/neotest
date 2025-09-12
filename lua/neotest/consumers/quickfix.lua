@@ -78,10 +78,12 @@ local init = function()
         end
       end
     else
-      if type(config.quickfix.close) == "function" then
-        config.quickfix.close()
-      else
-        nio.api.nvim_command("cclose")
+      if config.quickfix.close then
+        if type(config.quickfix.close) == "function" then
+          config.quickfix.close()
+        else
+          nio.api.nvim_command("cclose")
+        end
       end
     end
   end
