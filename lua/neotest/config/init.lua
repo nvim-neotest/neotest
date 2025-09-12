@@ -136,6 +136,8 @@ local js_watch_query = [[
 ---@field enabled boolean
 ---@field open boolean|function Set to true to open quickfix on startup, or a function to be
 --- called when the quickfix results are set
+---@field close boolean|function Set to true to close quickfix when no errors remain, or a function to be
+--- called when the quickfix results are empty
 
 ---@class neotest.Config.diagnostic
 ---@field enabled boolean
@@ -287,6 +289,7 @@ local default_config = {
   quickfix = {
     enabled = true,
     open = false,
+    close = false,
   },
   state = {
     enabled = true,
