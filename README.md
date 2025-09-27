@@ -101,6 +101,7 @@ See the adapter's documentation for their specific setup instructions.
 | plenary               |                             [neotest-plenary](https://github.com/nvim-neotest/neotest-plenary)                              |
 | go                    | [neotest-go](https://github.com/akinsho/neotest-go) <br> [neotest-golang](https://github.com/fredrikaverpil/neotest-golang) |
 | jest                  |                                 [neotest-jest](https://github.com/haydenmeade/neotest-jest)                                 |
+| mocha                 |                                 [neotest-mocha](https://github.com/adrigzr/neotest-mocha)                                 |
 | vitest                |                               [neotest-vitest](https://github.com/marilari88/neotest-vitest)                                |
 | bun                   |                               [neotest-bun](https://github.com/arthur944/neotest-bun)                                       |
 | stenciljs             |                              [neotest-stenciljs](https://github.com/benelan/neotest-stenciljs)                              |
@@ -129,6 +130,7 @@ See the adapter's documentation for their specific setup instructions.
 | bash                  |                                   [neotest-bash](https://github.com/rcasia/neotest-bash)                                    |
 | hardhat               |                             [neotest-hardhat](https://github.com/TheSnakeWitcher/hardhat.nvim)                              |
 | swift (Swift Testing) |                           [neotest-swift-testing](https://github.com/mmllr/neotest-swift-testing)                           |
+| busted                |                           [neotest-busted](https://github.com/MisanthropicBit/neotest-busted)                           |
 
 For any runner without an adapter you can use [neotest-vim-test](https://github.com/nvim-neotest/neotest-vim-test) which supports any runner that vim-test supports.
 The vim-test adapter does not support some of the more advanced features such as error locations or per-test output.
