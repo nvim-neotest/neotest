@@ -131,23 +131,23 @@ end
 
 --- Jump to the last test position
 function neotest.jump.last()
-    local position_id, last_args = require("neotest.consumers.run").get_last_run()
+  local position_id, last_args = require("neotest.consumers.run").get_last_run()
 
-    if not position_id or not last_args then
-        lib.notify("No tests run yet")
-        return
+  if not position_id or not last_args then
+    lib.notify("No tests run yet")
+    return
+  end
+
+  nio.run(function()
+    local tree = client:get_position(position_id, last_args)
+
+    if not tree then
+      lib.notify("Last test run no longer exists")
+      return
     end
 
-    nio.run(function()
-        local tree = client:get_position(position_id, last_args)
-
-        if not tree then
-            lib.notify("Last test run no longer exists")
-            return
-        end
-
-        jump_to(tree)
-    end)
+    jump_to(tree)
+  end)
 end
 
 neotest.jump = setmetatable(neotest.jump, {
