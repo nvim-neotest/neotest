@@ -1321,6 +1321,8 @@ This does only the required parsing
 Replaces `LanguageTree:parse`
 https://github.com/neovim/neovim/blob/master/runtime/lua/vim/treesitter/languagetree.lua
 
+This is now just equivalent to `LanguageTree:parse(false)[1]`.
+
                                            *neotest.lib.treesitter.ParseOptions*
 Inherits: `neotest.lib.positions.ParseOptions`
 

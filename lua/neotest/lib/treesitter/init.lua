@@ -82,14 +82,10 @@ end
 --- This does only the required parsing
 --- Replaces `LanguageTree:parse`
 --- https://github.com/neovim/neovim/blob/master/runtime/lua/vim/treesitter/languagetree.lua
+---
+--- This is now just equivalent to `LanguageTree:parse(false)[1]`.
 function neotest.lib.treesitter.fast_parse(lang_tree)
-  if lang_tree._valid then
-    return lang_tree._trees
-  end
-
-  local parser = lang_tree._parser
-  local old_trees = lang_tree._trees
-  return parser:parse(old_trees[1], lang_tree._source)
+  return lang_tree:parse()[1]
 end
 
 ---@class neotest.lib.treesitter.ParseOptions : neotest.lib.positions.ParseOptions
@@ -125,12 +121,7 @@ function neotest.lib.treesitter.get_parse_root(file_path, content, opts)
     --- it from trying to read the query from runtime files
     fast and { injections = { [lang] = "" } } or {}
   )
-  local root
-  if fast then
-    root = neotest.lib.treesitter.fast_parse(lang_tree):root()
-  else
-    root = lang_tree:parse()[1]:root()
-  end
+  local root = lang_tree:parse()[1]:root()
   return root, lang
 end
 
