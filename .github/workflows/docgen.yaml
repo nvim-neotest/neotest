@@ -18,10 +18,10 @@ jobs:
           - os: ubuntu-22.04
             url: https://github.com/neovim/neovim/releases/download/v0.5.1/nvim-linux64.tar.gz
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
       - run: date +%F > todays-date
       - name: Restore cache for today's nightly.
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: _neovim
           key: ${{ runner.os }}-${{ matrix.url }}-${{ hashFiles('todays-date') }}
