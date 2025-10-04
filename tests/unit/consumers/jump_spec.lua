@@ -1,4 +1,5 @@
 local Tree = require("neotest.types").Tree
+local stub = require("luassert.stub")
 
 local jump = require("neotest.consumers.jump")
 
@@ -35,6 +36,13 @@ describe("jump consumer", function()
         end
       end
       return nearest
+    end,
+    get_position = function(_, pos_id, _)
+      if pos_id == "namespace 3::test 4" then
+        return tree:node(5)
+      end
+
+      return nil
     end,
     get_results = function()
       return {
@@ -133,5 +141,18 @@ describe("jump consumer", function()
     jump.prev({ status = "failed" })
     local pos = vim.api.nvim_win_get_cursor(0)
     assert.same({ 5, 0 }, pos)
+  end)
+
+  it("last goes to last run test", function()
+    local run = require("neotest.consumers.run")
+    stub(run, "get_last_run", "namespace 3::test 4", {})
+
+    vim.api.nvim_win_set_cursor(0, { 1, 0 })
+    jump.last()
+    local pos = vim.api.nvim_win_get_cursor(0)
+    assert.same({ 11, 0 }, pos)
+
+    ---@diagnostic disable-next-line: undefined-field
+    run.get_last_run:revert()
   end)
 end)
