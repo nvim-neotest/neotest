@@ -52,12 +52,14 @@ local function init(client)
       if summary.win:is_open() then
         func()
       else
-        vim.api.nvim_create_autocmd("User", {
-          pattern = "NeotestSummaryOpen",
-          group = group,
-          callback = func,
-          once = true,
-        })
+        vim.schedule(function()
+          vim.api.nvim_create_autocmd("User", {
+            pattern = "NeotestSummaryOpen",
+            group = group,
+            callback = func,
+            once = true,
+          })
+        end)
       end
     end
 
