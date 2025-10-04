@@ -16,7 +16,7 @@ jobs:
       matrix:
         include:
           - os: ubuntu-22.04
-            url: https://github.com/neovim/neovim/releases/download/v0.5.1/nvim-linux64.tar.gz
+            url: https://github.com/neovim/neovim/releases/download/v0.9.1/nvim-linux64.tar.gz
     steps:
       - uses: actions/checkout@v5
       - run: date +%F > todays-date
@@ -34,6 +34,7 @@ jobs:
           }
           mkdir -p ~/.local/share/nvim/site/pack/vendor/start
           git clone --depth 1 https://github.com/echasnovski/mini.nvim ~/.local/share/nvim/site/pack/vendor/start/mini.nvim
+          git clone --depth 1 https://github.com/nvim-neotest/nvim-nio ~/.local/share/nvim/site/pack/vendor/start/nvim-nio
           ln -s ${{ github.workspace }} ~/.local/share/nvim/site/pack/vendor/start/neotest
       - name: Generating docs
         run: |
