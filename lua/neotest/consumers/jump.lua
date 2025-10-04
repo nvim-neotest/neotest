@@ -109,7 +109,7 @@ function neotest.jump.next(args)
   end)
 end
 
----Jump to the position after the cursor position in the current file
+--- Jump to the position after the cursor position in the current file
 ---@param args? neotest.jump.JumpArgs
 function neotest.jump.prev(args)
   args = args or {}
