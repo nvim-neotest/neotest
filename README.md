@@ -107,6 +107,7 @@ See the adapter's documentation for their specific setup instructions.
 | playwright            |                             [neotest-playwright](https://github.com/thenbe/neotest-playwright)                              |
 | rspec                 |                                 [neotest-rspec](https://github.com/olimorris/neotest-rspec)                                 |
 | minitest              |                               [neotest-minitest](https://github.com/zidhuss/neotest-minitest)                               |
+| ruby, minitest        |                               [neotest-ruby-minitest](https://github.com/volodya-lombrozo/neotest-ruby-minitest)            |
 | dart, flutter         |                                  [neotest-dart](https://github.com/sidlatau/neotest-dart)                                   |
 | testthat              |                            [neotest-testthat](https://github.com/shunsambongi/neotest-testthat)                             |
 | phpunit               |                               [neotest-phpunit](https://github.com/olimorris/neotest-phpunit)                               |
