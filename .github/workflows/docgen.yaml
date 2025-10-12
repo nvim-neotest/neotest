@@ -1,11 +1,11 @@
 # Taken from telescope
 name: Generate docs
 
-on:
-  push:
-    branches-ignore:
-      - master
-  pull_request: ~
+# on:
+#   push:
+#     branches-ignore:
+#       - master
+#   pull_request: ~
 
 jobs:
   build-sources:
