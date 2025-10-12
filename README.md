@@ -202,6 +202,30 @@ Attach to the nearest test, see `:h neotest.run.attach()`
 require("neotest").run.attach()
 ```
 
+Get the command for the nearest test
+
+```lua
+local cmd = require("neotest").run.get_command()
+```
+
+Get the command for the current file
+
+```lua
+local cmd = require("neotest").run.get_command(vim.fn.expand("%"))
+```
+
+Use the command programmatically
+
+```lua
+local cmd = require('neotest').run.get_command()
+
+if cmd then
+  vim.fn.setreg('*', table.concat(cmd, ' '))
+  -- get_command may block for a bit, so send a notification when it is done
+  vim.notify('Copied ' .. cmd[1] .. ' command!')
+end
+```
+
 ## Consumers
 
 For extra features neotest provides consumers which interact with the state of the tests and their results.
