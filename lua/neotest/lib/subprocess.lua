@@ -116,6 +116,7 @@ function neotest.lib.subprocess.add_to_rtp(to_add)
   end
   logger.debug("Setting rtp in subprocess", rtp)
   nio.fn.rpcrequest(child_chan, "nvim_set_option_value", "runtimepath", rtp, {})
+  nio.fn.rpcrequest(child_chan, "nvim_exec_lua", "vim.cmd('runtime! plugin/filetypes.lua')", {})
 end
 
 ---@private

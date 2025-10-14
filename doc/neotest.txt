@@ -118,6 +118,7 @@ Default values:
       running = "",
       running_animated = { "/", "|", "\\", "-", "/", "|", "\\", "-" },
       skipped = "",
+      test = "",
       unknown = "",
       watching = ""
     },
@@ -177,8 +178,11 @@ Default values:
         jumpto = "i",
         mark = "m",
         next_failed = "J",
+        next_sibling = ">",
         output = "o",
+        parent = "P",
         prev_failed = "K",
+        prev_sibling = "<",
         run = "r",
         run_marked = "R",
         short = "O",
@@ -193,13 +197,14 @@ Default values:
       symbol_queries = {
         elixir = <function 1>,
         go = "        ;query\n        ;Captures imported types\n        (qualified_type name: (type_identifier) @symbol)\n        ;Captures package-local and built-in types\n        (type_identifier)@symbol\n        ;Captures imported function calls and variables/constants\n        (selector_expression field: (field_identifier) @symbol)\n        ;Captures package-local functions calls\n        (call_expression function: (identifier) @symbol)\n      ",
-        haskell = "        ;query\n        ;explicit import\n        ((import_item [(variable)]) @symbol)\n        ;symbols that may be imported implicitly\n        ((type) @symbol)\n        (qualified_variable (variable) @symbol)\n        (exp_apply (exp_name (variable) @symbol))\n        ((constructor) @symbol)\n        ((operator) @symbol)\n      ",
+        haskell = "        ;query\n        ;explicit import\n        (import_name (variable) @symbol)\n        ;symbols that may be imported implicitly\n        ((type) @symbol)\n        (qualified (name) @symbol)\n        (apply (variable) @symbol)\n        ((constructor) @symbol)\n        ((operator) @symbol)\n      ",
         java = "        ;query\n        ;captures imported classes\n        (import_declaration\n            (scoped_identifier name: ((identifier) @symbol))\n        )\n      ",
         javascript = '  ;query\n  ;Captures named imports\n  (import_specifier name: (identifier) @symbol)\n  ;Captures default import\n  (import_clause (identifier) @symbol)\n  ;Capture require statements\n  (variable_declarator \n  name: (identifier) @symbol\n  value: (call_expression (identifier) @function  (#eq? @function "require")))\n  ;Capture namespace imports\n  (namespace_import (identifier) @symbol)\n',
         lua = '        ;query\n        ;Captures module names in require calls\n        (function_call\n          name: ((identifier) @function (#eq? @function "require"))\n          arguments: (arguments (string) @symbol))\n      ',
         python = "        ;query\n        ;Captures imports and modules they're imported from\n        (import_from_statement (_ (identifier) @symbol))\n        (import_statement (_ (identifier) @symbol))\n      ",
         ruby = '        ;query\n        ;rspec - class name\n        (call\n          method: (identifier) @_ (#match? @_ "^(describe|context)")\n          arguments: (argument_list (constant) @symbol )\n        )\n\n        ;rspec - namespaced class name\n        (call\n          method: (identifier)\n          arguments: (argument_list\n            (scope_resolution\n              name: (constant) @symbol))\n        )\n      ',
         rust = "        ;query\n        ;submodule import\n        (mod_item\n          name: (identifier) @symbol)\n        ;single import\n        (use_declaration\n          argument: (scoped_identifier\n            name: (identifier) @symbol))\n        ;import list\n        (use_declaration\n          argument: (scoped_use_list\n            list: (use_list\n                [(scoped_identifier\n                   path: (identifier)\n                   name: (identifier) @symbol)\n                 ((identifier) @symbol)])))\n        ;wildcard import\n        (use_declaration\n          argument: (scoped_use_list\n            path: (identifier)\n            [(use_list\n              [(scoped_identifier\n                path: (identifier)\n                name: (identifier) @symbol)\n                ((identifier) @symbol)\n              ])]))\n      ",
+        swift = "        ;query\n        ;import\n        (simple_identifier) @symbol\n      ",
         tsx = '  ;query\n  ;Captures named imports\n  (import_specifier name: (identifier) @symbol)\n  ;Captures default import\n  (import_clause (identifier) @symbol)\n  ;Capture require statements\n  (variable_declarator \n  name: (identifier) @symbol\n  value: (call_expression (identifier) @function  (#eq? @function "require")))\n  ;Capture namespace imports\n  (namespace_import (identifier) @symbol)\n',
         typescript = '  ;query\n  ;Captures named imports\n  (import_specifier name: (identifier) @symbol)\n  ;Captures default import\n  (import_clause (identifier) @symbol)\n  ;Capture require statements\n  (variable_declarator \n  name: (identifier) @symbol\n  value: (call_expression (identifier) @function  (#eq? @function "require")))\n  ;Capture namespace imports\n  (namespace_import (identifier) @symbol)\n'
       }
@@ -325,6 +330,9 @@ for its adapter
 adapter
 {next_failed} `(string|string[])` Jump to the next failed position
 {prev_failed} `(string|string[])` Jump to the previous failed position
+{next_sibling} `(string|string[])` Jump to the next sibling of selected
+{prev_sibling} `(string|string[])` Jump to the previous sibling of selected
+{parent} `(string|string[])` Jump to the parent of selected
 {watch} `(string|string[])` Toggle watching for changes
 
                                                          *neotest.Config.output*
@@ -475,6 +483,14 @@ Toggle the output panel
 Clears the output panel
 >vim
   lua require("neotest").output_panel.clear()
+<
+
+                                                 *neotest.output_panel.buffer()*
+`buffer`()
+
+Returns the buffer of the output panel
+>vim
+  lua require("neotest").output_panel.buffer()
 <
 
 
@@ -759,9 +775,14 @@ Parameters~
                                                            *neotest.jump.prev()*
 `prev`({args})
 
-to the position after the cursor position in the current file
+Jump to the position after the cursor position in the current file
 Parameters~
 {args?} `(neotest.jump.JumpArgs)`
+
+                                                           *neotest.jump.last()*
+`last`()
+
+Jump to the last test position
 
 
 ==============================================================================
@@ -850,7 +871,7 @@ partial: boolean))`
 {starting} `(fun())`
 {started} `(fun())`
 Type ~
-neotest.Client
+`(neotest.Client)`
 
                                                     *neotest.client.RunTreeArgs*
 Fields~
@@ -1324,6 +1345,8 @@ This does only the required parsing
 Replaces `LanguageTree:parse`
 https://github.com/neovim/neovim/blob/master/runtime/lua/vim/treesitter/languagetree.lua
 
+This is now just equivalent to `LanguageTree:parse(false)[1]`.
+
                                            *neotest.lib.treesitter.ParseOptions*
 Inherits: `neotest.lib.positions.ParseOptions`
 
@@ -1331,8 +1354,9 @@ Fields~
 {fast?} `(boolean)` Use faster parsing (Should be unchanged unless injections
 are needed)
 {build_position?} `(fun(file_path: string, source: string, captured_nodes:
-table<string, userdata>): neotest.Position|neotest.Position[]|nil)` Builds one
-or more positions from the captured nodes from a query match.
+table<string, userdata>, metadata: table<string,
+vim.treesitter.query.TSMetadata>): neotest.Position|neotest.Position[]|nil)`
+Builds one or more positions from the captured nodes from a query match.
 
                                       *neotest.lib.treesitter.normalise_query()*
 `normalise_query`({lang}, {query})
@@ -1556,6 +1580,7 @@ Fields~
 {data?} `(T)`
 {accum} `(fun(prev: T, new: any): T)` A function to combine previous data and
 new data
+{semaphore} `(nio.control.Semaphore)`
 
                                                      *neotest.FanoutAccum:new()*
 `FanoutAccum:new`({accum}, {init})
@@ -1574,6 +1599,7 @@ Parameters~
 
                                                     *neotest.FanoutAccum:push()*
 `FanoutAccum:push`({data})
+
 
 Parameters~
 {data} `(T)`
@@ -1609,6 +1635,7 @@ Fields~
 Fields~
 {message} `(string)`
 {line?} `(integer)`
+{severity?} `(integer)` Diagnostic severity (see vim.diagnostic.severity)
 
                                                                *neotest.Process*
 Fields~
@@ -1649,7 +1676,7 @@ Fields~
 result collection
 {strategy?} `(table|neotest.Strategy)` Arguments for strategy or override for
 chosen strategy
-{stream} `(fun(output_stream: fun(): string[]): fun():)` table<string,
+{stream?} `(fun(output_stream: fun(): string[]): fun():)` table<string,
 neotest.Result>
 
 

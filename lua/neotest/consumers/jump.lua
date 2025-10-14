@@ -109,7 +109,7 @@ function neotest.jump.next(args)
   end)
 end
 
----Jump to the position after the cursor position in the current file
+--- Jump to the position after the cursor position in the current file
 ---@param args? neotest.jump.JumpArgs
 function neotest.jump.prev(args)
   args = args or {}
@@ -126,6 +126,27 @@ function neotest.jump.prev(args)
     if not jump_to_prev(pos, predicate) then
       lib.notify("No tests above cursor", vim.log.levels.WARN)
     end
+  end)
+end
+
+--- Jump to the last test position
+function neotest.jump.last()
+  local position_id, last_args = require("neotest.consumers.run").get_last_run()
+
+  if not position_id or not last_args then
+    lib.notify("No tests run yet")
+    return
+  end
+
+  nio.run(function()
+    local tree = client:get_position(position_id, last_args)
+
+    if not tree then
+      lib.notify("Last test run no longer exists")
+      return
+    end
+
+    jump_to(tree)
   end)
 end
 
