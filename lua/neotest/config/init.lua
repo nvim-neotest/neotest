@@ -2,25 +2,23 @@
 ---@toc_entry Configuration Options
 
 local function define_highlights()
-  vim.cmd([[
-  hi default link NeotestPassed DiagnosticOk
-  hi default link NeotestFailed DiagnosticError
-  hi default link NeotestRunning DiagnosticWarn
-  hi default link NeotestSkipped DiagnosticInfo
-  hi default link NeotestTest Normal
-  hi default link NeotestNamespace DiagnosticHint
-  hi default NeotestFocused gui=bold,underline cterm=bold,underline
-  hi default link NeotestFile DiagnosticInfo
-  hi default link NeotestDir DiagnosticInfo
-  hi default link NeotestIndent DiagnosticHint
-  hi default link NeotestExpandMarker DiagnosticHint
-  hi default link NeotestAdapterName DiagnosticError
-  hi default link NeotestWinSelect Title
-  hi default link NeotestMarked DiagnosticHint
-  hi default link NeotestTarget DiagnosticError
-  hi default link NeotestWatching DiagnosticWarn
-  hi default link NeotestUnknown Normal
-]])
+  vim.api.nvim_set_hl(0, "NeotestPassed", { link = "DiagnosticOk", default = true })
+  vim.api.nvim_set_hl(0, "NeotestFailed", { link = "DiagnosticError", default = true })
+  vim.api.nvim_set_hl(0, "NeotestRunning", { link = "DiagnosticWarn", default = true })
+  vim.api.nvim_set_hl(0, "NeotestSkipped", { link = "DiagnosticInfo", default = true })
+  vim.api.nvim_set_hl(0, "NeotestTest", { link = "Normal", default = true })
+  vim.api.nvim_set_hl(0, "NeotestNamespace", { link = "DiagnosticHint", default = true })
+  vim.api.nvim_set_hl(0, "NeotestFocused", { bold = true, underline = true, default = true })
+  vim.api.nvim_set_hl(0, "NeotestFile", { link = "DiagnosticInfo", default = true })
+  vim.api.nvim_set_hl(0, "NeotestDir", { link = "DiagnosticInfo", default = true })
+  vim.api.nvim_set_hl(0, "NeotestIndent", { link = "DiagnosticHint", default = true })
+  vim.api.nvim_set_hl(0, "NeotestExpandMarker", { link = "DiagnosticHint", default = true })
+  vim.api.nvim_set_hl(0, "NeotestAdapterName", { link = "DiagnosticError", default = true })
+  vim.api.nvim_set_hl(0, "NeotestWinSelect", { link = "Title", default = true })
+  vim.api.nvim_set_hl(0, "NeotestMarked", { link = "DiagnosticHint", default = true })
+  vim.api.nvim_set_hl(0, "NeotestTarget", { link = "DiagnosticError", default = true })
+  vim.api.nvim_set_hl(0, "NeotestWatching", { link = "DiagnosticWarn", default = true })
+  vim.api.nvim_set_hl(0, "NeotestUnknown", { link = "Normal", default = true })
 end
 
 local augroup = vim.api.nvim_create_augroup("NeotestColorSchemeRefresh", {})
