@@ -335,18 +335,34 @@ function neotest.Client:_get_adapter(position_id, adapter_id)
   end
 
   assert(position_id)
-  for a_id, adapter in pairs(self._adapters) do
-    if self._state:positions(a_id, position_id) then
-      return a_id, adapter
-    end
 
-    local root = self._state:positions(a_id)
-    if
-      (not root or vim.startswith(position_id, root:data().path))
-      and (lib.files.is_dir(position_id) or adapter.is_test_file(position_id))
-    then
-      return a_id, adapter
+  local function find_adapter()
+    for a_id, adapter in pairs(self._adapters) do
+      if self._state:positions(a_id, position_id) then
+        return a_id, adapter
+      end
+
+      local root = self._state:positions(a_id)
+      if
+        (not root or vim.startswith(position_id, root:data().path))
+        and (lib.files.is_dir(position_id) or adapter.is_test_file(position_id))
+      then
+        return a_id, adapter
+      end
     end
+  end
+
+  -- First attempt to find adapter
+  local found_id, found_adapter = find_adapter()
+  if found_id then
+    return found_id, found_adapter
+  end
+
+  -- If no adapter is found and client is started, update adapters for this path's directory and try again
+  if self._started then
+    local dir = lib.files.is_dir(position_id) and position_id or lib.files.parent(position_id)
+    self:_update_adapters(dir)
+    return find_adapter()
   end
 end
 
