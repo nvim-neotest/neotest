@@ -259,55 +259,35 @@ describe("neotest client", function()
     end)
 
     describe("adapter discovery for paths outside cwd", function()
-      a.it("calls _update_adapters when adapter not found for path", function()
-        local update_adapters_called_with = {}
-        local original_update_adapters = client._update_adapters
-        client._update_adapters = function(self, path)
-          table.insert(update_adapters_called_with, path)
-          return original_update_adapters(self, path)
-        end
-
-        -- Start client
-        client:_ensure_started()
-
-        -- Clear the call history from startup
-        update_adapters_called_with = {}
-
-        -- Request adapter for a test file that won't match the existing adapter
+      local parent_stub, update_adapters_stub
+      before_each(function()
         -- Use a file path that would belong to a different project/root
         local test_path = "/completely/different/path/test_file"
         local parent_dir = "/completely/different/path"
 
-        -- Stub lib.files functions to make this path valid
-        local original_parent = lib.files.parent
-        local original_is_dir = lib.files.is_dir
-        lib.files.parent = function(path)
-          if path == test_path then
-            return parent_dir
-          end
-          return original_parent(path)
-        end
-        lib.files.is_dir = function(path)
-          if path == test_path then
-            return false
-          end
-          if path == parent_dir then
-            return true
-          end
-          return original_is_dir(path)
-        end
+        parent_stub = stub(lib.files, "parent")
+        parent_stub.on_call_with(test_path).returns(parent_dir)
+
+        dirs[#dirs + 1] = parent_dir
+
+        update_adapters_stub = stub(client, "_update_adapters")
+      end)
+
+      after_each(function()
+        parent_stub:revert()
+        update_adapters_stub:revert()
+      end)
+
+      a.it("calls _update_adapters when adapter not found for path", function()
+        local test_path = "/completely/different/path/test_file"
+        local parent_dir = "/completely/different/path"
+
+        client:_ensure_started()
 
         client:_get_adapter(test_path)
 
-        -- Restore
-        lib.files.parent = original_parent
-        lib.files.is_dir = original_is_dir
-
         -- Verify _update_adapters was called with the parent directory
-        assert.True(vim.tbl_contains(update_adapters_called_with, parent_dir))
-
-        -- Restore original function
-        client._update_adapters = original_update_adapters
+        assert.stub(client._update_adapters).was_called_with(client, parent_dir)
       end)
     end)
   end)
