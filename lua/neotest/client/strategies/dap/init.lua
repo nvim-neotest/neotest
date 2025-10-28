@@ -48,6 +48,16 @@ return function(spec, context)
   end)
 
   local finish_future = nio.control.future()
+  local output_finish_future = nio.control.future()
+  local pending_output_tasks = 0
+  local finish_requested = false
+
+  local function maybe_finish_output()
+    if finish_requested and pending_output_tasks == 0 and not output_finish_future.is_set() then
+      output_finish_future.set()
+    end
+  end
+
   local result_code
 
   local adapter_before = spec.strategy.before
@@ -61,24 +71,33 @@ return function(spec, context)
     before = function(config)
       dap.listeners.after.event_output[handler_id] = function(_, body)
         if vim.tbl_contains({ "stdout", "stderr" }, body.category) then
+          pending_output_tasks = pending_output_tasks + 1
           nio.run(function()
-            data_accum:push(body.output)
+            local ok, err = pcall(data_accum.push, data_accum, body.output)
+            pending_output_tasks = pending_output_tasks - 1
+            maybe_finish_output()
+            if not ok then
+              error(err)
+            end
           end)
         end
       end
       dap.listeners.after.event_exited[handler_id] = function(_, info)
         result_code = info.exitCode
+        finish_requested = true
+        maybe_finish_output()
         pcall(finish_future.set)
       end
 
       return adapter_before and adapter_before() or config
     end,
     after = function()
-      local received_exit = result_code ~= nil
-      if not received_exit then
+      if result_code == nil then
         result_code = 0
-        pcall(finish_future.set)
       end
+      finish_requested = true
+      maybe_finish_output()
+      pcall(finish_future.set)
       dap.listeners.after.event_output[handler_id] = nil
       dap.listeners.after.event_exited[handler_id] = nil
       if adapter_after then
@@ -92,9 +111,21 @@ return function(spec, context)
     end,
     output_stream = function()
       local queue = nio.control.queue()
-      data_accum:subscribe(queue.put)
+      data_accum:subscribe(function(data)
+        -- Keep writer coroutine non-blocking so pending task counter drains immediately
+        queue.put_nowait(data)
+      end)
       return function()
-        return nio.first({ finish_future.wait, queue.get })
+        -- Race next chunk vs. output flush completion; `data == nil` means flush future fired
+        local data = nio.first({ queue.get, output_finish_future.wait })
+        if data then
+          -- Happy path: queue produced a chunk before we learned output is done
+          return data
+        end
+        -- Flush any late-arriving chunks that landed after the finish future resolved
+        while queue.size() ~= 0 do
+          return queue.get()
+        end
       end
     end,
     output = function()
@@ -108,6 +139,15 @@ return function(spec, context)
     end,
     result = function()
       finish_future:wait()
+      if not output_finish_future.is_set() then
+        -- Allow output-side timeout so fast exits still flush through the accumulator
+        nio.first({
+          output_finish_future.wait,
+          function()
+            nio.sleep(100)
+          end,
+        })
+      end
       return result_code
     end,
   }
