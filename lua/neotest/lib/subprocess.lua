@@ -104,7 +104,8 @@ function neotest.lib.subprocess.add_to_rtp(to_add)
   local rtp = nio.fn.rpcrequest(child_chan, "nvim_get_option_value", "runtimepath", {})
 
   for _, func in ipairs(to_add) do
-    local source = Path:new(debug.getinfo(func).source:sub(2))
+    local source_path_str = debug.getinfo(func).source:sub(2):gsub("[/\\]", Path.path.sep)
+    local source = Path:new(source_path_str)
     while
       not is_root(source.filename) and not vim.endswith(source.filename, Path.path.sep .. "lua")
     do
