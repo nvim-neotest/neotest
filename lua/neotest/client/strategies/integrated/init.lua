@@ -33,6 +33,14 @@ return function(spec)
     assert(not write_err, write_err)
   end)
 
+  local pending_output_tasks = 0
+  local finish_requested = false
+  local function maybe_finish_output()
+    if finish_requested and pending_output_tasks == 0 and not output_finish_future.is_set() then
+      output_finish_future.set()
+    end
+  end
+
   local success, job = pcall(nio.fn.jobstart, command, {
     cwd = cwd,
     env = env,
@@ -41,11 +49,15 @@ return function(spec)
     width = spec.strategy.width,
     on_stdout = function(_, data)
       if #data == 1 and data[1] == "" then
-        output_finish_future.set()
+        finish_requested = true
+        maybe_finish_output()
         return
       end
+      pending_output_tasks = pending_output_tasks + 1
       nio.run(function()
         output_accum:push(table.concat(data, "\n"))
+        pending_output_tasks = pending_output_tasks - 1
+        maybe_finish_output()
       end)
     end,
     on_exit = function(_, code)
