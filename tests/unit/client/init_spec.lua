@@ -257,6 +257,39 @@ describe("neotest client", function()
         assert.Not.Nil(tree)
       end)
     end)
+
+    describe("adapter discovery for paths outside cwd", function()
+      local parent_stub, update_adapters_stub
+      before_each(function()
+        -- Use a file path that would belong to a different project/root
+        local test_path = "/completely/different/path/test_file"
+        local parent_dir = "/completely/different/path"
+
+        parent_stub = stub(lib.files, "parent")
+        parent_stub.on_call_with(test_path).returns(parent_dir)
+
+        dirs[#dirs + 1] = parent_dir
+
+        update_adapters_stub = stub(client, "_update_adapters")
+      end)
+
+      after_each(function()
+        parent_stub:revert()
+        update_adapters_stub:revert()
+      end)
+
+      a.it("calls _update_adapters when adapter not found for path", function()
+        local test_path = "/completely/different/path/test_file"
+        local parent_dir = "/completely/different/path"
+
+        client:_ensure_started()
+
+        client:_get_adapter(test_path)
+
+        -- Verify _update_adapters was called with the parent directory
+        assert.stub(client._update_adapters).was_called_with(client, parent_dir)
+      end)
+    end)
   end)
 
   describe("running tests", function()
