@@ -27,8 +27,12 @@ function PersistentWindow:new(opts)
   }, self)
 end
 
+---@class neotest.WindowOpenOpts
+---@field enter boolean Navigate to the window after opening (default: false)
+
+---@param opts neotest.WindowOpenOpts
 ---@return integer
-function PersistentWindow:open()
+function PersistentWindow:open(opts)
   if self:is_open() then
     return self._win
   end
@@ -42,7 +46,9 @@ function PersistentWindow:open()
     self._win = self._open() or nio.api.nvim_get_current_win()
   end
 
-  nio.api.nvim_set_current_win(cur_win)
+  if not opts.enter then
+    nio.api.nvim_set_current_win(cur_win)
+  end
 
   nio.api.nvim_win_set_buf(self._win, self:buffer())
 
