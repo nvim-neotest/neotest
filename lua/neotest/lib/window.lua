@@ -30,7 +30,7 @@ end
 ---@class neotest.WindowOpenOpts
 ---@field enter boolean Navigate to the window after opening (default: false)
 
----@param opts neotest.WindowOpenOpts
+---@param opts neotest.WindowOpenOpts?
 ---@return integer
 function PersistentWindow:open(opts)
   if self:is_open() then
