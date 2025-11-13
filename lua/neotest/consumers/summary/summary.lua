@@ -38,8 +38,9 @@ function Summary:new(client)
   }, self)
 end
 
-function Summary:open()
-  self.win:open()
+---@param opts neotest.WindowOpenOpts?
+function Summary:open(opts)
+  self.win:open(opts)
   vim.api.nvim_exec_autocmds("User", { pattern = events.open })
 end
 
