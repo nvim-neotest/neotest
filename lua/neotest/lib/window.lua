@@ -33,6 +33,8 @@ end
 ---@param opts neotest.WindowOpenOpts?
 ---@return integer
 function PersistentWindow:open(opts)
+  opts = opts or { enter = false }
+
   if self:is_open() then
     return self._win
   end
