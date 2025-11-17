@@ -96,43 +96,43 @@ See the adapter's documentation for their specific setup instructions.
 
 | Test Runner           |                                                           Adapter                                                           |
 | :-------------------- | :-------------------------------------------------------------------------------------------------------------------------: |
-| pytest                |                              [neotest-python](https://github.com/nvim-neotest/neotest-python)                               |
-| python-unittest       |                              [neotest-python](https://github.com/nvim-neotest/neotest-python)                               |
-| plenary               |                             [neotest-plenary](https://github.com/nvim-neotest/neotest-plenary)                              |
-| go                    | [neotest-go](https://github.com/akinsho/neotest-go) <br> [neotest-golang](https://github.com/fredrikaverpil/neotest-golang) |
-| jest                  |                                 [neotest-jest](https://github.com/haydenmeade/neotest-jest)                                 |
-| mocha                 |                                 [neotest-mocha](https://github.com/adrigzr/neotest-mocha)                                 |
-| vitest                |                               [neotest-vitest](https://github.com/marilari88/neotest-vitest)                                |
+| bash                  |                                   [neotest-bash](https://github.com/rcasia/neotest-bash)                                    |
+| bazel                 |                                 [neotest-bazel](https://github.com/sluongng/neotest-bazel)                                  |
 | bun                   |                               [neotest-bun](https://github.com/arthur944/neotest-bun)                                       |
-| stenciljs             |                              [neotest-stenciljs](https://github.com/benelan/neotest-stenciljs)                              |
-| playwright            |                             [neotest-playwright](https://github.com/thenbe/neotest-playwright)                              |
-| rspec                 |                                 [neotest-rspec](https://github.com/olimorris/neotest-rspec)                                 |
-| minitest              |                               [neotest-minitest](https://github.com/zidhuss/neotest-minitest)                               |
-| ruby, minitest        |                               [neotest-ruby-minitest](https://github.com/volodya-lombrozo/neotest-ruby-minitest)            |
+| busted                |                           [neotest-busted](https://github.com/MisanthropicBit/neotest-busted)                           |
+| c++ (ctest)           |                                  [neotest-ctest](https://github.com/orjangj/neotest-ctest)                                  |
+| c++ (google test)     |                                  [neotest-gtest](https://github.com/alfaix/neotest-gtest)                                   |
 | dart, flutter         |                                  [neotest-dart](https://github.com/sidlatau/neotest-dart)                                   |
-| testthat              |                            [neotest-testthat](https://github.com/shunsambongi/neotest-testthat)                             |
-| phpunit               |                               [neotest-phpunit](https://github.com/olimorris/neotest-phpunit)                               |
-| pest                  |                                   [neotest-pest](https://github.com/V13Axel/neotest-pest)                                   |
-| rust (treesitter)     |                                   [neotest-rust](https://github.com/rouge8/neotest-rust)                                    |
-| rust (LSP)            |                                   [rustaceanvim](https://github.com/mrcjkb/rustaceanvim)                                    |
-| elixir                |                                [neotest-elixir](https://github.com/jfpedroza/neotest-elixir)                                |
+| deno                  |                                 [neotest-deno](https://github.com/MarkEmmons/neotest-deno)                                  |
 | dotnet (treesitter)   |                               [neotest-dotnet](https://github.com/Issafalcon/neotest-dotnet)                                |
 | dotnet (vstest)       |                               [neotest-vstest](https://github.com/nsidorenco/neotest-vstest)                                |
-| scala                 |                                [neotest-scala](https://github.com/stevanmilic/neotest-scala)                                |
-| haskell               |                                [neotest-haskell](https://github.com/mrcjkb/neotest-haskell)                                 |
-| deno                  |                                 [neotest-deno](https://github.com/MarkEmmons/neotest-deno)                                  |
-| java                  |                                   [neotest-java](https://github.com/rcasia/neotest-java)                                    |
-| kotlin                |                             [neotest-kotlin](https://github.com/codymikol/neotest-kotlin.nvim)                              |
+| elixir                |                                [neotest-elixir](https://github.com/jfpedroza/neotest-elixir)                                |
 | foundry               |                               [neotest-foundry](https://github.com/llllvvuu/neotest-foundry)                                |
-| zig                   |                                 [neotest-zig](https://github.com/lawrence-laz/neotest-zig)                                  |
-| c++ (google test)     |                                  [neotest-gtest](https://github.com/alfaix/neotest-gtest)                                   |
-| c++ (ctest)           |                                  [neotest-ctest](https://github.com/orjangj/neotest-ctest)                                  |
+| go                    | [neotest-go](https://github.com/akinsho/neotest-go) <br> [neotest-golang](https://github.com/fredrikaverpil/neotest-golang) |
 | gradle                |                                [neotest-gradle](https://github.com/weilbith/neotest-gradle)                                 |
-| bazel                 |                                 [neotest-bazel](https://github.com/sluongng/neotest-bazel)                                  |
-| bash                  |                                   [neotest-bash](https://github.com/rcasia/neotest-bash)                                    |
 | hardhat               |                             [neotest-hardhat](https://github.com/TheSnakeWitcher/hardhat.nvim)                              |
+| haskell               |                                [neotest-haskell](https://github.com/mrcjkb/neotest-haskell)                                 |
+| java                  |                                   [neotest-java](https://github.com/rcasia/neotest-java)                                    |
+| jest                  |                                 [neotest-jest](https://github.com/haydenmeade/neotest-jest)                                 |
+| kotlin                |                             [neotest-kotlin](https://github.com/codymikol/neotest-kotlin.nvim)                              |
+| minitest              |                               [neotest-minitest](https://github.com/zidhuss/neotest-minitest)                               |
+| mocha                 |                                 [neotest-mocha](https://github.com/adrigzr/neotest-mocha)                                 |
+| pest                  |                                   [neotest-pest](https://github.com/V13Axel/neotest-pest)                                   |
+| phpunit               |                               [neotest-phpunit](https://github.com/olimorris/neotest-phpunit)                               |
+| playwright            |                             [neotest-playwright](https://github.com/thenbe/neotest-playwright)                              |
+| plenary               |                             [neotest-plenary](https://github.com/nvim-neotest/neotest-plenary)                              |
+| pytest                |                              [neotest-python](https://github.com/nvim-neotest/neotest-python)                               |
+| python-unittest       |                              [neotest-python](https://github.com/nvim-neotest/neotest-python)                               |
+| rspec                 |                                 [neotest-rspec](https://github.com/olimorris/neotest-rspec)                                 |
+| ruby, minitest        |                               [neotest-ruby-minitest](https://github.com/volodya-lombrozo/neotest-ruby-minitest)            |
+| rust (LSP)            |                                   [rustaceanvim](https://github.com/mrcjkb/rustaceanvim)                                    |
+| rust (treesitter)     |                                   [neotest-rust](https://github.com/rouge8/neotest-rust)                                    |
+| scala                 |                                [neotest-scala](https://github.com/stevanmilic/neotest-scala)                                |
+| stenciljs             |                              [neotest-stenciljs](https://github.com/benelan/neotest-stenciljs)                              |
 | swift (Swift Testing) |                           [neotest-swift-testing](https://github.com/mmllr/neotest-swift-testing)                           |
-| busted                |                           [neotest-busted](https://github.com/MisanthropicBit/neotest-busted)                           |
+| testthat              |                            [neotest-testthat](https://github.com/shunsambongi/neotest-testthat)                             |
+| vitest                |                               [neotest-vitest](https://github.com/marilari88/neotest-vitest)                                |
+| zig                   |                                 [neotest-zig](https://github.com/lawrence-laz/neotest-zig)                                  |
 
 For any runner without an adapter you can use [neotest-vim-test](https://github.com/nvim-neotest/neotest-vim-test) which supports any runner that vim-test supports.
 The vim-test adapter does not support some of the more advanced features such as error locations or per-test output.
