@@ -122,6 +122,7 @@ end
 
 ---@private
 function neotest.lib.subprocess._set_parent_address(parent_address)
+  ---@private
   _G._NEOTEST_IS_CHILD = true
   parent_chan = vim.fn.sockconnect("tcp", parent_address, { rpc = true })
   logger.info("Connected to parent instance")
