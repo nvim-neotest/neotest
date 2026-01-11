@@ -63,11 +63,10 @@ function neotest.lib.subprocess.init()
       require("neotest").setup,
       require("nio").sleep,
       require("plenary.path").new,
-      require("nvim-treesitter").new,
     }
-    if pcall(require, "nvim-treesitter") then
-      to_add[#to_add + 1] = require("nvim-treesitter").setup
-    end
+
+    local parsers = vim.api.nvim_get_runtime_file("parser/*", true)
+    vim.list_extend(to_add, parsers)
 
     neotest.lib.subprocess.add_to_rtp(to_add)
 
