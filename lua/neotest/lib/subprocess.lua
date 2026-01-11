@@ -63,9 +63,9 @@ function neotest.lib.subprocess.init()
       require("neotest").setup,
       require("nio").sleep,
       require("plenary.path").new,
-      require("nvim-treesitter").new,
     }
     if pcall(require, "nvim-treesitter") then
+      to_add[#to_add + 1] = require("nvim-treesitter").new
       to_add[#to_add + 1] = require("nvim-treesitter").setup
     end
 
