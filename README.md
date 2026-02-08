@@ -133,6 +133,7 @@ See the adapter's documentation for their specific setup instructions.
 | hardhat               |                             [neotest-hardhat](https://github.com/TheSnakeWitcher/hardhat.nvim)                              |
 | swift (Swift Testing) |                           [neotest-swift-testing](https://github.com/mmllr/neotest-swift-testing)                           |
 | busted                |                           [neotest-busted](https://github.com/MisanthropicBit/neotest-busted)                           |
+| nix-unit              |                           [neotest-nix-unit](https://github.com/Jumziey/neotest-nix-unit.nvim)                              |
 
 For any runner without an adapter you can use [neotest-vim-test](https://github.com/nvim-neotest/neotest-vim-test) which supports any runner that vim-test supports.
 The vim-test adapter does not support some of the more advanced features such as error locations or per-test output.
