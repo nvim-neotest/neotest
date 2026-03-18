@@ -153,23 +153,30 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
       canvas:add_mapping(
         "expand_all",
         async_func(function()
-          local positions = {}
-          local root_type = position.type
-          --  Don't want to load all files under dir to prevent memory issues
-          if root_type == "dir" then
+          if self.expanded_positions[position.id] then
             for _, pos in node:iter() do
-              if pos.type == "dir" then
+              self.expanded_positions[pos.id] = nil
+            end
+            neotest.summary.render()
+          else
+            local positions = {}
+            local root_type = position.type
+            --  Don't want to load all files under dir to prevent memory issues
+            if root_type == "dir" then
+              for _, pos in node:iter() do
+                if pos.type == "dir" then
+                  positions[pos.id] = true
+                end
+              end
+            else
+              for _, pos in
+                self.client:get_position(position.id, { adapter = self.adapter_id }):iter()
+              do
                 positions[pos.id] = true
               end
             end
-          else
-            for _, pos in
-              self.client:get_position(position.id, { adapter = self.adapter_id }):iter()
-            do
-              positions[pos.id] = true
-            end
+            neotest.summary.render(positions)
           end
-          neotest.summary.render(positions)
         end)
       )
 
