@@ -147,9 +147,9 @@ function Summary:run()
           else
             self.components[adapter_id]:render(canvas, tree, all_expanded, self.focused)
           end
-          all_expanded = {}
           canvas:write("\n")
         end
+        all_expanded = {}
       else
         nio.run(function()
           self.client:get_adapters()
