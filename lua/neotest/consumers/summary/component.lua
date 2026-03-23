@@ -48,6 +48,16 @@ function SummaryComponent:render(canvas, tree, expanded, focused, indent)
     if not tree then
       return
     end
+    local position = tree:data()
+    canvas:add_mapping("run", function()
+      require("neotest").run.run({ position.id, adapter = self.adapter_id })
+    end)
+    canvas:add_mapping("debug", function()
+      require("neotest").run.run({ position.id, adapter = self.adapter_id, strategy = "dap" })
+    end)
+    canvas:add_mapping("stop", function()
+      require("neotest").run.stop({ position.id, adapter = self.adapter_id })
+    end)
     canvas:add_mapping("clear_target", function()
       require("neotest").summary.target(self.adapter_id)
     end)
