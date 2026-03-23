@@ -57,7 +57,7 @@ local all_expanded = {}
 ---@param adapter_id string
 function Summary:_write_header(canvas, adapter_id, tree)
   canvas:write(
-    vim.split(adapter_id, ":", { trimempty = true })[1] .. " ",
+    vim.split(adapter_id, ":", { trimempty = true })[1],
     { group = config.highlights.adapter_name }
   )
 
@@ -87,7 +87,7 @@ function Summary:_write_header(canvas, adapter_id, tree)
 
     for _, status in ipairs({ "test", "passed", "failed", "running", "skipped" }) do
       canvas:write(
-        config.icons[status] .. " " .. tostring(status_counts[status]) .. " ",
+        " " .. config.icons[status] .. " " .. tostring(status_counts[status]),
         { group = config.highlights[status] or config.highlights.namespace }
       )
     end
