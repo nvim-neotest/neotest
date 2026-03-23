@@ -459,8 +459,11 @@ function neotest.Client:_start(args)
     end)
   end)
 
-  autocmd("DirChanged", function()
-    local dir = vim.loop.cwd()
+  autocmd("DirChanged", function(args)
+    if vim.v.event.scope == "window" then
+      return
+    end
+    local dir = vim.v.event.cwd or vim.loop.cwd()
     nio.run(function()
       self:_update_adapters(dir)
     end)
