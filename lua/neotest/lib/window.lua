@@ -111,6 +111,7 @@ function window_factory.panel(opts)
       buftype = "nofile",
     },
     winopts = {
+      winfixbuf = true,
       winfixwidth = true,
       number = false,
       relativenumber = false,
