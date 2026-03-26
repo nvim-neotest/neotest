@@ -8,7 +8,7 @@ local function open_output(result, opts)
   local output = opts.short and result.short or (result.output and lib.files.read(result.output))
   if not output then
     if not opts.quiet then
-      lib.notify("Output not found for position", "warn")
+      lib.notify("Output not found for position", vim.log.levels.WARN)
     end
     return
   end
@@ -179,7 +179,7 @@ function neotest.output.open(opts)
     tree, adapter_id = client:get_position(opts.position_id, opts)
   end
   if not tree then
-    lib.notify("No tests found in file", "warn")
+    lib.notify("No tests found in file", vim.log.levels.WARN)
     return
   end
   local result = client:get_results(adapter_id)[tree:data().id]

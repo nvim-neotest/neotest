@@ -154,7 +154,7 @@ function neotest.run.stop(args)
     pos = neotest.run.get_tree_from_args(args)
   end
   if not pos then
-    lib.notify(args.interactive and "No test selected" or "No tests found", "warn")
+    lib.notify(args.interactive and "No test selected" or "No tests found", vim.log.levels.WARN)
     return
   end
   client:stop(pos, args)
@@ -181,7 +181,7 @@ function neotest.run.attach(args)
     pos = neotest.run.get_tree_from_args(args)
   end
   if not pos then
-    lib.notify(args.interactive and "No test selected" or "No tests found", "warn")
+    lib.notify(args.interactive and "No test selected" or "No tests found", vim.log.levels.WARN)
     return
   end
   client:attach(pos, args)

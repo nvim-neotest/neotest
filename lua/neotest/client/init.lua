@@ -90,7 +90,7 @@ function neotest.Client:run_tree(tree, args)
   end)
 
   if not success then
-    lib.notify(("%s: %s"):format(adapter.name, errmsg), "warn")
+    lib.notify(("%s: %s"):format(adapter.name, errmsg), vim.log.levels.WARN)
     all_results = {}
     for _, pos in tree:iter() do
       all_results[pos.id] = { status = "skipped" }
@@ -115,7 +115,7 @@ function neotest.Client:stop(position, args)
   args = args or {}
   local adapter_id = args.adapter or self:_get_running_adapters(position:data().id)[1]
   if not adapter_id then
-    lib.notify("No running process found", "warn")
+    lib.notify("No running process found", vim.log.levels.WARN)
     return
   end
   self._runner:stop(position, adapter_id)
@@ -132,7 +132,7 @@ function neotest.Client:attach(position, args)
   args = args or {}
   local adapter_id = args.adapter or self:_get_running_adapters(position:data().id)[1]
   if not adapter_id then
-    lib.notify("No running process found", "warn")
+    lib.notify("No running process found", vim.log.levels.WARN)
     return
   end
   self._runner:attach(position, adapter_id)
