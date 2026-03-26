@@ -28,6 +28,8 @@ return function(spec, context)
   if vim.tbl_isempty(spec.strategy) then
     return
   end
+  -- synchronize with main loop to safely require dap
+  nio.scheduler()
   local dap = require("dap")
 
   local handler_id = "neotest_" .. nio.fn.localtime()
