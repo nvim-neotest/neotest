@@ -226,6 +226,16 @@ function neotest.Client:is_running(position_id, args)
   return #self:_get_running_adapters(position_id) > 0
 end
 
+---Loads results for all adapters into state
+---@async
+---@param all_results table<string, neotest.Result>
+---@return nil
+function neotest.Client:load_results(all_results)
+  for adapter_id, adapter_results in pairs(all_results) do
+    self._state:update_results(adapter_id, adapter_results)
+  end
+end
+
 ---@param position_id string
 ---@return string[]
 ---@private
