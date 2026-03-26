@@ -95,11 +95,12 @@ end
 --- ```vim
 ---   lua require("neotest").summary.open()
 --- ```
-function neotest.summary.open()
+---@param opts neotest.WindowOpenOpts?
+function neotest.summary.open(opts)
   if summary.win:is_open() then
     return
   end
-  summary:open()
+  summary:open(opts)
   summary:render()
 end
 
@@ -116,12 +117,13 @@ end
 --- ```vim
 ---  lua require("neotest").summary.toggle()
 --- ```
-function neotest.summary.toggle()
+---@param open_opts neotest.WindowOpenOpts?
+function neotest.summary.toggle(open_opts)
   nio.run(function()
     if summary.win:is_open() then
       summary:close()
     else
-      summary:open()
+      summary:open(open_opts)
       summary:render()
     end
   end)
