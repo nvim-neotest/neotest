@@ -59,17 +59,41 @@ function neotest.lib.subprocess.init()
       return
     end
 
-    local to_add = {
+    local paths_to_add = {}
+
+    local plugin_funcs = {
       require("neotest").setup,
       require("nio").sleep,
       require("plenary.path").new,
-      require("nvim-treesitter").new,
     }
-    if pcall(require, "nvim-treesitter") then
-      to_add[#to_add + 1] = require("nvim-treesitter").setup
+
+    for _, plugin_func in ipairs(plugin_funcs) do
+      local root = neotest.lib.subprocess.resolve_plugin_root(plugin_func)
+      if root then
+        table.insert(paths_to_add, root)
+      else
+        logger.error(
+          "Failed to resolve plugin root for subprocess:" .. debug.getinfo(plugin_func).source
+        )
+      end
     end
 
-    neotest.lib.subprocess.add_to_rtp(to_add)
+    -- Discover all installed treesitter parsers and add them to the rtp
+    local parser_files = vim.api.nvim_get_runtime_file("parser/*", true)
+    local seen = {}
+    for _, path in ipairs(parser_files) do
+      local root = path:match("(.+)/parser/")
+      if root and not seen[root] then
+        seen[root] = true
+        table.insert(paths_to_add, root)
+      else
+        if not root then
+          logger.error("Failed to resolve treesitter parser root for subprocess: " .. path)
+        end
+      end
+    end
+
+    neotest.lib.subprocess.add_paths_to_rtp(paths_to_add)
 
     -- Trigger lazy loading of neotest
     nio.fn.rpcrequest(child_chan, "nvim_exec_lua", "return require('neotest') and 0", {})
@@ -100,20 +124,29 @@ local function is_root(pathname)
   return pathname == "/"
 end
 
-function neotest.lib.subprocess.add_to_rtp(to_add)
-  local rtp = nio.fn.rpcrequest(child_chan, "nvim_get_option_value", "runtimepath", {})
+--- Resolve the root directory of a plugin given a function
+---@param plugin_func function
+---@return string|nil
+function neotest.lib.subprocess.resolve_plugin_root(plugin_func)
+  local source_path_str = debug.getinfo(plugin_func).source:sub(2):gsub("[/\\]", Path.path.sep)
+  local source = Path:new(source_path_str)
+  while
+    not is_root(source.filename) and not vim.endswith(source.filename, Path.path.sep .. "lua")
+  do
+    source = source:parent()
+  end
+  if not is_root(source.filename) then
+    return source:parent().filename
+  end
+  return nil
+end
 
-  for _, func in ipairs(to_add) do
-    local source_path_str = debug.getinfo(func).source:sub(2):gsub("[/\\]", Path.path.sep)
-    local source = Path:new(source_path_str)
-    while
-      not is_root(source.filename) and not vim.endswith(source.filename, Path.path.sep .. "lua")
-    do
-      source = source:parent()
-    end
-    if not is_root(source.filename) then
-      rtp = rtp .. "," .. source:parent().filename
-    end
+--- Add paths to the subprocess runtimepath.
+--- @param paths string[] Paths to add to rtp
+function neotest.lib.subprocess.add_paths_to_rtp(paths)
+  local rtp = nio.fn.rpcrequest(child_chan, "nvim_get_option_value", "runtimepath", {})
+  for _, path in ipairs(paths) do
+    rtp = rtp .. "," .. path
   end
   logger.debug("Setting rtp in subprocess", rtp)
   nio.fn.rpcrequest(child_chan, "nvim_set_option_value", "runtimepath", rtp, {})
