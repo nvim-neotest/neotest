@@ -78,6 +78,25 @@ function neotest.lib.subprocess.init()
       end
     end
 
+    -- Discover loaded neotest adapter plugins and add them to the rtp
+    local seen_roots = {}
+    for name, mod in pairs(package.loaded) do
+      if type(mod) == "table" and name:match("^neotest%-") then
+        for _, v in pairs(mod) do
+          if type(v) == "function" then
+            local ok, root = pcall(neotest.lib.subprocess.resolve_plugin_root, v)
+            if ok and root and not seen_roots[root] then
+              seen_roots[root] = true
+              table.insert(paths_to_add, root)
+            end
+            if ok and root then
+              break
+            end
+          end
+        end
+      end
+    end
+
     -- Discover all installed treesitter parsers and add them to the rtp
     local parser_files = vim.api.nvim_get_runtime_file("parser/*", true)
     local seen = {}
