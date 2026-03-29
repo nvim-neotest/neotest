@@ -56,15 +56,13 @@ local function collect(file_path, query, source, root, opts)
       range = { root:range() },
     },
   }
-  for _, match, metadata in query:iter_matches(root, source, nil, nil, { all = false }) do
+  for _, match, metadata in query:iter_matches(root, source, nil, nil) do
     local captured_nodes = {}
     local node_metadata = {}
-    for id, nodes in pairs(match) do
-      local capture = query.captures[id]
-      for _, node in ipairs(nodes) do
-        captured_nodes[capture] = node
-        node_metadata[capture] = metadata[id]
-      end
+    for i, capture in ipairs(query.captures) do
+      local maybe_node = match[i]
+      captured_nodes[capture] = type(maybe_node) == "table" and maybe_node[#maybe_node] or maybe_node
+      node_metadata[capture] = metadata[i]
     end
     local res = opts.build_position(file_path, source, captured_nodes, node_metadata)
     if res then

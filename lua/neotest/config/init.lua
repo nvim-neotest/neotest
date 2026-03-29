@@ -340,8 +340,9 @@ local default_config = {
           ]]
         )
         local symbols = {}
-        for _, match, metadata in query:iter_matches(root, content, nil, nil, { all = false }) do
-          for id, node in pairs(match) do
+        for _, match, metadata in query:iter_matches(root, content, nil, nil) do
+          for id, nodes in pairs(match) do
+            local node = type(nodes) == "table" and nodes[#nodes] or nodes
             local name = query.captures[id]
 
             if name == "symbol" then
