@@ -82,6 +82,7 @@ function neotest.lib.subprocess.init()
     local parser_files = vim.api.nvim_get_runtime_file("parser/*", true)
     local seen = {}
     for _, path in ipairs(parser_files) do
+      path = vim.fs.normalize(path)
       local root = path:match("(.+)/parser/")
       if root and not seen[root] then
         seen[root] = true
