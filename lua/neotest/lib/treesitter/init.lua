@@ -59,9 +59,12 @@ local function collect(file_path, query, source, root, opts)
   for _, match, metadata in query:iter_matches(root, source, nil, nil, { all = false }) do
     local captured_nodes = {}
     local node_metadata = {}
-    for i, capture in ipairs(query.captures) do
-      captured_nodes[capture] = match[i]
-      node_metadata[capture] = metadata[i]
+    for id, nodes in pairs(match) do
+      local capture = query.captures[id]
+      for _, node in ipairs(nodes) do
+        captured_nodes[capture] = node
+        node_metadata[capture] = metadata[id]
+      end
     end
     local res = opts.build_position(file_path, source, captured_nodes, node_metadata)
     if res then
