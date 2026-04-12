@@ -293,6 +293,7 @@ function neotest.lib.files.parse_dir_from_files(root, files)
         path = abs_path,
         name = path_elems[#path_elems],
         range = nil,
+        total_range = nil,
       }
     end
     return positions

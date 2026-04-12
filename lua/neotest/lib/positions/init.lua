@@ -39,14 +39,16 @@ end
 ---@return neotest.Tree
 neotest.lib.positions.nearest = function(tree, line)
   local continue = function(node)
-    local range = node:data().range
+    local data = node:data()
+    local range = data.total_range or data.range
     return not range or line >= range[1]
   end
   local nearest = tree
   local nearest_distance = nil
   local nearest_range_size = nil
   for _, node in tree:iter_nodes({continue = continue}) do
-    local range = node:closest_value_for("range")
+    local pos = node:closest_node_with("range"):data()
+    local range = pos.total_range or pos.range
     if range then
       local dist = distance(line, range)
       local size = range_size(range)
