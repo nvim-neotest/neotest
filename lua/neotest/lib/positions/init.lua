@@ -47,18 +47,35 @@ neotest.lib.positions.nearest = function(tree, line)
   local nearest_distance = nil
   local nearest_range_size = nil
   for _, node in tree:iter_nodes({continue = continue}) do
-    local pos = node:closest_node_with("range"):data()
-    local range = pos.total_range or pos.range
-    if node:data().type ~= "file" and range then
+    (function()
+      if node:data().type == "file" then
+        -- In the first iteration of iter_nodes, node will be the root node,
+        -- which is already selected by default. We do not want to set
+        -- nearest_distance to 0 for it as it will break the logic when
+        -- given line is between tests.
+        return
+      end
+      local pos = node:closest_node_with("range"):data()
+      local range = pos.total_range or pos.range
+      if not range then
+        -- Skip tests without ranges
+        return
+      end
+      if line < range[1] then
+        -- Ignore ranges that start after the given line
+        -- Nearest test should always be at or before given line
+        return
+      end
       local dist = distance(line, range)
       local size = range_size(range)
-      if nearest_distance == nil or dist < nearest_distance or
+      if nearest_distance == nil or
+          dist < nearest_distance or
           (dist == nearest_distance and size < nearest_range_size) then
         nearest = node
         nearest_distance = dist
         nearest_range_size = size
       end
-    end
+    end)()
   end
   return nearest
 end
