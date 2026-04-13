@@ -49,7 +49,7 @@ neotest.lib.positions.nearest = function(tree, line)
   for _, node in tree:iter_nodes({continue = continue}) do
     local pos = node:closest_node_with("range"):data()
     local range = pos.total_range or pos.range
-    if range then
+    if node:data().type ~= "file" and range then
       local dist = distance(line, range)
       local size = range_size(range)
       if nearest_distance == nil or dist < nearest_distance or
