@@ -582,7 +582,7 @@ function neotest.Client:_update_adapters(dir)
     to_add[#to_add + 1] = entry.adapter.is_test_file
   end
   if #to_add > 0 and lib.subprocess.enabled() then
-    local suc, err = pcall(lib.subprocess.add_to_rtp, to_add)
+    local suc, err = pcall(lib.subprocess.add_paths_to_rtp, to_add)
     if not suc then
       logger.error("Failed to add adapter to rtp", err)
     end
