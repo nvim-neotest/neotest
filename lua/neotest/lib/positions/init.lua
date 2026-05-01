@@ -10,21 +10,74 @@ local neotest = { lib = {} }
 ---@class neotest.lib.positions
 neotest.lib.positions = {}
 
+--- Calculates distance from given line to given range
+--- @param line integer line number
+--- @param range integer[] range represented as 4 integers: start_row, start_col, end_row, end_col
+--- @return integer Distance from given line to the range. If line is within range, distance is 0.
+local function distance(line, range)
+  local start_row, end_row = range[1], range[3]
+  if line < start_row then
+    return start_row - line
+  elseif line <= end_row then
+    return 0
+  else
+    return line - end_row
+  end
+end
+
+--- Calculates number of lines of given range
+--- @param range integer[] range represented as 4 integers: start_row, start_col, end_row, end_col
+--- @return integer Number of lines that the range spans over
+local function range_size(range)
+  local start_row, end_row = range[1], range[3]
+  return end_row - start_row + 1
+end
+
 --- Get the nearest position to the given line in the provided file tree
 ---@param tree neotest.Tree
 ---@param line integer
 ---@return neotest.Tree
 neotest.lib.positions.nearest = function(tree, line)
+  local continue = function(node)
+    local data = node:data()
+    local range = data.total_range or data.range
+    return not range or line >= range[1]
+  end
   local nearest = tree
-  for _, node in tree:iter_nodes() do
-    local pos = node:data()
-    if pos.range then
-      if line >= pos.range[1] then
-        nearest = node
-      else
-        return nearest
+  local nearest_distance = nil
+  local nearest_range_size = nil
+  for _, node in tree:iter_nodes({ continue = continue }) do
+    (function()
+      if node:data().type == "file" then
+        -- In the first iteration of iter_nodes, node will be the root node,
+        -- which is already selected by default. We do not want to set
+        -- nearest_distance to 0 for it as it will break the logic when
+        -- given line is between tests.
+        return
       end
-    end
+      local pos = node:closest_node_with("range"):data()
+      local range = pos.total_range or pos.range
+      if not range then
+        -- Skip tests without ranges
+        return
+      end
+      if line < range[1] then
+        -- Ignore ranges that start after the given line
+        -- Nearest test should always be at or before given line
+        return
+      end
+      local dist = distance(line, range)
+      local size = range_size(range)
+      if
+        nearest_distance == nil
+        or dist < nearest_distance
+        or (dist == nearest_distance and size < nearest_range_size)
+      then
+        nearest = node
+        nearest_distance = dist
+        nearest_range_size = size
+      end
+    end)()
   end
   return nearest
 end

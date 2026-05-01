@@ -1618,7 +1618,10 @@ Fields~
 {type} `(neotest.PositionType)`
 {name} `(string)`
 {path} `(string)`
-{range} `(integer[])`
+{range} `(integer[])` range of test definition
+{total_range} `(integer[])` minimum range encapsulating the test and all its
+subtests (in some languages, a test can have subtests outside of its
+definition)
 
                                                                 *M.ResultStatus*
 `ResultStatus`
