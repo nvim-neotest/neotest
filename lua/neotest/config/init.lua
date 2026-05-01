@@ -34,7 +34,7 @@ local js_watch_query = [[
   ;Captures default import
   (import_clause (identifier) @symbol)
   ;Capture require statements
-  (variable_declarator 
+  (variable_declarator
   name: (identifier) @symbol
   value: (call_expression (identifier) @function  (#eq? @function "require")))
   ;Capture namespace imports
@@ -198,6 +198,9 @@ local default_config = {
     watching = "",
     test = "",
     notify = "",
+    dir = "",
+    file = "",
+    namespace = "",
   },
   highlights = {
     passed = "NeotestPassed",

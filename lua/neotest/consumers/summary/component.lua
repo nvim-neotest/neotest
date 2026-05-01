@@ -342,7 +342,7 @@ function SummaryComponent:_get_status(position)
   elseif self.client:is_running(position.id, { adapter = self.adapter_id }) then
     return "running"
   end
-  return "unknown"
+  return position.type
 end
 
 function SummaryComponent:_state_icon(status)
