@@ -4,7 +4,8 @@ local config = require("neotest.config")
 
 local function init(client)
   local statuses = {
-    test = { text = config.icons.test, texthl = config.highlights.unknown },
+    test = { text = config.icons.test, texthl = config.highlights.test },
+    namespace = { text = config.icons.namespace, texthl = config.highlights.namespace },
     passed = { text = config.icons.passed, texthl = config.highlights.passed },
     skipped = { text = config.icons.skipped, texthl = config.highlights.skipped },
     failed = { text = config.icons.failed, texthl = config.highlights.failed },
@@ -25,7 +26,7 @@ local function init(client)
       status = "running"
     end
     if not status then
-      status = "test"
+      status = pos.type
     end
     if config.status.signs and nio.api.nvim_buf_is_valid(buf) and nio.fn.buflisted(buf) ~= 0 then
       local line_count = vim.api.nvim_buf_line_count(buf)
