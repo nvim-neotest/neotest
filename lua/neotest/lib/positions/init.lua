@@ -15,22 +15,22 @@ neotest.lib.positions = {}
 --- @param range integer[] range represented as 4 integers: start_row, start_col, end_row, end_col
 --- @return integer Distance from given line to the range. If line is within range, distance is 0.
 local function distance(line, range)
-    local start_row, end_row = range[1], range[3]
-    if line < start_row then
-        return start_row - line
-    elseif line <= end_row then
-        return 0
-    else
-        return line - end_row
-    end
+  local start_row, end_row = range[1], range[3]
+  if line < start_row then
+    return start_row - line
+  elseif line <= end_row then
+    return 0
+  else
+    return line - end_row
+  end
 end
 
 --- Calculates number of lines of given range
 --- @param range integer[] range represented as 4 integers: start_row, start_col, end_row, end_col
 --- @return integer Number of lines that the range spans over
 local function range_size(range)
-    local start_row, end_row = range[1], range[3]
-    return end_row - start_row + 1
+  local start_row, end_row = range[1], range[3]
+  return end_row - start_row + 1
 end
 
 --- Get the nearest position to the given line in the provided file tree
@@ -46,7 +46,7 @@ neotest.lib.positions.nearest = function(tree, line)
   local nearest = tree
   local nearest_distance = nil
   local nearest_range_size = nil
-  for _, node in tree:iter_nodes({continue = continue}) do
+  for _, node in tree:iter_nodes({ continue = continue }) do
     (function()
       if node:data().type == "file" then
         -- In the first iteration of iter_nodes, node will be the root node,
@@ -68,9 +68,11 @@ neotest.lib.positions.nearest = function(tree, line)
       end
       local dist = distance(line, range)
       local size = range_size(range)
-      if nearest_distance == nil or
-          dist < nearest_distance or
-          (dist == nearest_distance and size < nearest_range_size) then
+      if
+        nearest_distance == nil
+        or dist < nearest_distance
+        or (dist == nearest_distance and size < nearest_range_size)
+      then
         nearest = node
         nearest_distance = dist
         nearest_range_size = size
