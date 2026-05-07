@@ -137,7 +137,8 @@ Default values:
     projects = {},
     quickfix = {
       enabled = true,
-      open = false
+      open = false,
+      close = false
     },
     run = {
       enabled = true
@@ -355,6 +356,8 @@ Fields~
 {open} `(boolean|function)` Set to true to open quickfix on startup, or a
 function to be
 called when the quickfix results are set
+{close} `(boolean|function)` Set to true to close quickfix when no errors
+remain, or a function to be called when the quickfix results are empty
 
                                                      *neotest.Config.diagnostic*
 Fields~
