@@ -210,6 +210,90 @@ function neotest.run.get_last_run()
   return unpack(last_run)
 end
 
+--- Get the command that would be run for a test position
+---
+--- ```vim
+---   local cmd = require("neotest").run.get_command()
+--- ```
+---
+--- Get the command for a specific file
+--- ```vim
+---   local cmd = require("neotest").run.get_command(vim.fn.expand("%"))
+--- ```
+---@param args string|neotest.run.RunArgs? Position ID to get command for or args.
+---@return string[]|nil The command string or nil if not available
+function neotest.run.get_command(args)
+  if not client:is_started() then
+    lib.notify("Waiting for neotest client to start before getting command...")
+
+    local got_adapters = false
+    nio.run(function()
+      ---@diagnostic disable-next-line: undefined-global
+      await(client:get_adapters())
+      got_adapters = true
+    end)
+
+    vim.wait(1000, function()
+      return got_adapters
+    end)
+  end
+
+  local tree = neotest.run.get_tree_from_args(args, false)
+  if not tree then
+    lib.notify("No tests found")
+    return
+  end
+
+  args = type(args) == "string" and { args } or args
+
+  ---@type neotest.run.RunArgs
+  ---@diagnostic disable-next-line: assign-type-mismatch
+  args = args or {}
+
+  ---@diagnostic disable-next-line: invisible
+  local adapter_id, adapter = client:_get_adapter(tree:data().id, args.adapter)
+  if not adapter_id or not adapter then
+    lib.notify("Adapter not found for position", "warn")
+    return
+  end
+
+  -- Ensure that the adapter has a build_spec function
+  if not adapter.build_spec then
+    lib.notify("Adapter doesn't support building test commands", "warn")
+    return
+  end
+
+  local success, spec = pcall(function()
+    return adapter.build_spec(vim.tbl_extend("force", args, { tree = tree }))
+  end)
+
+  if not success then
+    lib.notify("Error building test command: " .. tostring(spec), "error")
+    return
+  end
+
+  if not spec then
+    lib.notify("No command available for this position", "warn")
+    return
+  end
+
+  -- Handle case where spec is a table of specs
+  if spec[1] then
+    -- Multiple commands, let user know we're just getting the first one
+    if #spec > 1 then
+      lib.notify("Multiple commands found, getting the first one", "info")
+    end
+    spec = spec[1]
+  end
+
+  if not spec.command or vim.tbl_isempty(spec.command) then
+    lib.notify("No command found in test specification", "warn")
+    return
+  end
+
+  return spec.command
+end
+
 neotest.run = setmetatable(neotest.run, {
   ---@param client_ neotest.Client
   __call = function(_, client_)
