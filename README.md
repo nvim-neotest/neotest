@@ -31,7 +31,7 @@ See `:h neotest` for details on neotest is designed and how to interact with it 
 
 Neotest uses [nvim-nio](https://github.com/nvim-neotest/nvim-nio) and [plenary.nvim](https://github.com/nvim-lua/plenary.nvim/).
 
-Most adapters will also require [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter).
+Most adapters will also require [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) but Neotest itself doesn't need it to work.
 
 Neotest uses the `CursorHold` event. This uses the `updatetime`
 setting which is by default very high, and lowering this can lead to excessive writes to disk.
@@ -46,7 +46,6 @@ Install with your favourite package manager alongside nvim-dap
 ```vim
 call dein#add("nvim-lua/plenary.nvim")
 call dein#add("antoinemadec/FixCursorHold.nvim")
-call dein#add("nvim-treesitter/nvim-treesitter")
 call dein#add("nvim-neotest/nvim-nio")
 call dein#add("nvim-neotest/neotest")
 ```
@@ -56,7 +55,6 @@ call dein#add("nvim-neotest/neotest")
 ```vim
 Plug 'nvim-lua/plenary.nvim'
 Plug 'antoinemadec/FixCursorHold.nvim'
-Plug 'nvim-treesitter/nvim-treesitter'
 Plug 'nvim-neotest/nvim-nio'
 Plug 'nvim-neotest/neotest'
 ```
@@ -70,7 +68,6 @@ use {
     "nvim-neotest/nvim-nio",
     "nvim-lua/plenary.nvim",
     "antoinemadec/FixCursorHold.nvim",
-    "nvim-treesitter/nvim-treesitter"
   }
 }
 ```
@@ -84,7 +81,6 @@ use {
     "nvim-neotest/nvim-nio",
     "nvim-lua/plenary.nvim",
     "antoinemadec/FixCursorHold.nvim",
-    "nvim-treesitter/nvim-treesitter"
   }
 }
 ```
