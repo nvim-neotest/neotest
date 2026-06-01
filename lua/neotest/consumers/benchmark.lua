@@ -1,6 +1,6 @@
 local nio = require("nio")
 local lib = require("neotest.lib")
-local profile_available, profile = pcall(require, "plenary.profile")
+local profile_available, profile = pcall(require, "jit.p")
 
 ---@private
 ---@type neotest.Client
@@ -27,7 +27,7 @@ function neotest.benchmark.start(args)
 
   nio.run(function()
     local total_time = 0
-    profile.start(log_path, { flame = true })
+    profile.start("G", log_path)
     for _ = 1, count, 1 do
       io.stdout:write("Starting client\n")
       local time = client:_start({ autocmds = false, force = true })
