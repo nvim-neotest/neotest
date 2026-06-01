@@ -191,6 +191,23 @@ describe("files library", function()
       os.remove(path)
     end)
 
+    it("doesn't read file contents when filename matches", function()
+      path = vim.fn.tempname() .. ".lua"
+      local original_readfile = vim.fn.readfile
+      local readfile_called = false
+      vim.fn.readfile = function(...)
+        readfile_called = true
+        return original_readfile(...)
+      end
+
+      local success, filetype = pcall(files.detect_filetype, path)
+      vim.fn.readfile = original_readfile
+
+      assert.True(success)
+      assert.equal("lua", filetype)
+      assert.False(readfile_called)
+    end)
+
     it("detects filetype from tail modeline", function()
       path = vim.fn.tempname()
       local file = assert(io.open(path, "w"))
@@ -207,6 +224,10 @@ describe("files library", function()
         vim.fn.getcwd(),
         files.match_root_pattern("README.md")("lua/neotest/lib/file/init.lua")
       )
+    end)
+
+    it("returns roots without trailing separators", function()
+      assert.equal(vim.fn.getcwd(), files.match_root_pattern("README.md")(vim.fn.getcwd()))
     end)
   end)
 end)
