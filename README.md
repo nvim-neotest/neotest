@@ -29,7 +29,7 @@ See `:h neotest` for details on neotest is designed and how to interact with it 
 
 [![LuaRocks](https://img.shields.io/luarocks/v/neotest/neotest?logo=lua&color=purple)](https://luarocks.org/modules/neotest/neotest)
 
-Neotest uses [nvim-nio](https://github.com/nvim-neotest/nvim-nio) and [plenary.nvim](https://github.com/nvim-lua/plenary.nvim/).
+Neotest uses [nvim-nio](https://github.com/nvim-neotest/nvim-nio).
 
 Most adapters will also require [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter).
 
@@ -44,7 +44,6 @@ Install with your favourite package manager alongside nvim-dap
 [**dein**](https://github.com/Shougo/dein.vim):
 
 ```vim
-call dein#add("nvim-lua/plenary.nvim")
 call dein#add("antoinemadec/FixCursorHold.nvim")
 call dein#add("nvim-treesitter/nvim-treesitter")
 call dein#add("nvim-neotest/nvim-nio")
@@ -54,7 +53,6 @@ call dein#add("nvim-neotest/neotest")
 [**vim-plug**](https://github.com/junegunn/vim-plug)
 
 ```vim
-Plug 'nvim-lua/plenary.nvim'
 Plug 'antoinemadec/FixCursorHold.nvim'
 Plug 'nvim-treesitter/nvim-treesitter'
 Plug 'nvim-neotest/nvim-nio'
@@ -68,7 +66,6 @@ use {
   "nvim-neotest/neotest",
   requires = {
     "nvim-neotest/nvim-nio",
-    "nvim-lua/plenary.nvim",
     "antoinemadec/FixCursorHold.nvim",
     "nvim-treesitter/nvim-treesitter"
   }
@@ -82,7 +79,6 @@ use {
   "nvim-neotest/neotest",
   dependencies = {
     "nvim-neotest/nvim-nio",
-    "nvim-lua/plenary.nvim",
     "antoinemadec/FixCursorHold.nvim",
     "nvim-treesitter/nvim-treesitter"
   }
@@ -273,7 +269,7 @@ will mean different things for different strategies.
 |    dap     | Uses nvim-dap to debug tests (adapter must support providing an nvim-dap configuration)                     |
 
 Custom strategies can implemented by providing a function which takes a `neotest.RunSpec` and returns an table that fits the `neotest.Process`
-interface. Plenary's async library can be used to run asynchronously.
+interface. nvim-nio can be used to run asynchronously.
 
 ## Writing Adapters
 

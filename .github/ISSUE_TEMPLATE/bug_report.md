@@ -42,7 +42,6 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
   "nvim-neotest/neotest",
   dependencies = {
-    "nvim-lua/plenary.nvim",
     "nvim-neotest/nvim-nio",
     "nvim-treesitter/nvim-treesitter",
     -- Install adapters here
