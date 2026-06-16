@@ -230,8 +230,19 @@ end)()
 neotest.lib.files.path = {
   sep = neotest.lib.files.sep,
   exists = neotest.lib.files.exists,
+  normalize = function(path)
+    if type(path) == "string" and vim.fn.has("win32") == 1 then
+      local drive, rest = path:match("^([a-zA-Z]:)(.*)$")
+      if drive then
+        path = drive:upper() .. rest
+      end
+      path = path:gsub("/", "\\")
+    end
+    return path
+  end,
   real = function(path)
     local normalized_path = nio.fn.fnamemodify(path, ":p")
+    normalized_path = neotest.lib.files.path.normalize(normalized_path)
     local exists = neotest.lib.files.exists(normalized_path)
     return exists and normalized_path or nil, exists
   end,

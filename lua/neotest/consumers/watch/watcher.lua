@@ -3,6 +3,8 @@ local logger = require("neotest.logging")
 local nio = require("nio")
 local config = require("neotest.config")
 
+
+
 ---@class neotest.consumers.watch.Watcher
 ---@field lsp_client nio.lsp.Client
 ---@field autocmd_id? string
@@ -71,9 +73,9 @@ function Watcher:_get_linked_files(path, root_path, args)
       end
     end
   end
-  local paths = { path }
+  local paths = { lib.files.path.normalize(path) }
   for uri in pairs(dependency_uris) do
-    local p = vim.uri_to_fname(uri)
+    local p = lib.files.path.normalize(vim.uri_to_fname(uri))
     if uri ~= path_uri and args.filter_path(p, root_path) then
       paths[#paths + 1] = p
     end
@@ -171,13 +173,14 @@ function Watcher:watch(tree, args)
       end
       nio.run(function()
         local path = nio.fn.expand(nio.api.nvim_buf_get_name(autocmd_args.buf), ":p")
+        path = lib.files.path.normalize(path)
 
         local buf_dependants = dependants[path]
         if not buf_dependants then
           return
         end
 
-        if path == tree:data().path then
+        if path == lib.files.path.normalize(tree:data().path) then
           self.discover_positions_event.wait()
         end
         self.discover_positions_event = nio.control.future()

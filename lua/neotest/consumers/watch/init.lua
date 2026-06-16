@@ -66,6 +66,7 @@ end
 local function get_lsp_client(tree)
   for _, buf in ipairs(nio.api.nvim_list_bufs()) do
     local path = nio.fn.fnamemodify(nio.api.nvim_buf_get_name(buf), ":p")
+    path = lib.files.path.normalize(path)
     if tree:get_key(path) then
       local client = get_valid_client(buf)
       if client then
