@@ -98,6 +98,7 @@ See the adapter's documentation for their specific setup instructions.
 | :-------------------- | :-------------------------------------------------------------------------------------------------------------------------: |
 | pytest                |                              [neotest-python](https://github.com/nvim-neotest/neotest-python)                               |
 | python-unittest       |                              [neotest-python](https://github.com/nvim-neotest/neotest-python)                               |
+| python (tryke) |                              [neotest-tryke](https://github.com/thejchap/neotest-tryke) |
 | plenary               |                             [neotest-plenary](https://github.com/nvim-neotest/neotest-plenary)                              |
 | go                    | [neotest-go](https://github.com/akinsho/neotest-go) <br> [neotest-golang](https://github.com/fredrikaverpil/neotest-golang) |
 | jest                  |                                 [neotest-jest](https://github.com/haydenmeade/neotest-jest)                                 |
