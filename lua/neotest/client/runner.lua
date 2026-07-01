@@ -32,19 +32,9 @@ function TestRunner:run_tree(tree, args, adapter_id, adapter, on_results)
       end
     end
 
-    fill_results(self:_missing_results(root, results, not output_path))
+    fill_results(self:_missing_results(root, results, true))
 
     if output_path then
-      for _, pos in root:iter() do
-        if not results[pos.id] and not all_results[pos.id] then
-          results[pos.id] = {
-            status = "failed",
-            errors = {},
-            output = output_path,
-          }
-        end
-      end
-
       for _, result in pairs(results) do
         if not result.output then
           result.output = output_path
@@ -63,6 +53,8 @@ function TestRunner:run_tree(tree, args, adapter_id, adapter, on_results)
   args = vim.tbl_extend("keep", args or {}, { strategy = config.projects[root].default_strategy })
 
   self:_run_tree(tree, args, adapter_id, adapter, results_callback)
+  all_results =
+    vim.tbl_extend("force", all_results, self:_missing_results(tree, all_results, false))
 
   self._running[tree:data().id] = nil
   return all_results
@@ -254,6 +246,7 @@ function TestRunner:_missing_results(tree, results, partial)
 
       if pos_result.status ~= "skipped" and parent_result.status == "passed" then
         parent_result.status = pos_result.status
+        parent_result.output = pos_result.output
       end
 
       results_proxy[parent_pos.id] = parent_result
@@ -287,7 +280,7 @@ function TestRunner:_missing_results(tree, results, partial)
         results_proxy[pos.id] = { status = "skipped" }
       elseif pos.type ~= "dir" and not results_proxy[pos.id] and root_result then
         -- Tests and namespaces not being present means that they failed to even start, count as root result
-        results_proxy[pos.id] = { status = root_result.status }
+        results_proxy[pos.id] = { status = root_result.status, output = root_result.output }
       end
     end
   end
