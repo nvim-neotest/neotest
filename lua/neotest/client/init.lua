@@ -188,6 +188,7 @@ end
 function neotest.Client:get_position(position_id, args)
   self:_ensure_started()
   args = args or {}
+  position_id = lib.files.path.normalize(position_id)
   if position_id and vim.endswith(position_id, lib.files.sep) then
     position_id = string.sub(position_id, 1, #position_id - #lib.files.sep)
   end
@@ -243,6 +244,7 @@ end
 ---@param path string
 ---@private
 function neotest.Client:_update_positions(path, args)
+  path = lib.files.path.normalize(path)
   if not lib.files.exists(path) then
     return
   end
