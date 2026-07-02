@@ -184,4 +184,46 @@ describe("files library", function()
       assert.same({ "first", "second", "third", "fourth", "fifth" }, result)
     end)
   end)
+
+  describe("detecting filetypes", function()
+    local path
+    after_each(function()
+      os.remove(path)
+    end)
+
+    it("doesn't read file contents when filename matches", function()
+      path = vim.fn.tempname() .. ".lua"
+      local original_readfile = vim.fn.readfile
+      local readfile_called = false
+      vim.fn.readfile = function(...)
+        readfile_called = true
+        return original_readfile(...)
+      end
+
+      local success, filetype = pcall(files.detect_filetype, path)
+      vim.fn.readfile = original_readfile
+
+      assert.True(success)
+      assert.equal("lua", filetype)
+      assert.False(readfile_called)
+    end)
+
+    it("detects filetype from tail modeline", function()
+      path = vim.fn.tempname()
+      local file = assert(io.open(path, "w"))
+      file:write("print('test')\n-- vim:ft=lua:\n")
+      file:close()
+
+      assert.equal("lua", files.detect_filetype(path))
+    end)
+  end)
+
+  describe("matching root patterns", function()
+    it("returns an absolute root for relative paths", function()
+      assert.equal(
+        vim.fn.getcwd(),
+        files.match_root_pattern("README.md")("lua/neotest/lib/file/init.lua")
+      )
+    end)
+  end)
 end)

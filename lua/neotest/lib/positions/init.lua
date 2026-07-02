@@ -1,4 +1,3 @@
-local Path = require("plenary.path")
 local Tree = require("neotest.types").Tree
 local utils = require("neotest.utils")
 
@@ -9,6 +8,17 @@ local neotest = { lib = {} }
 --- Functions for interacting with positions and position trees
 ---@class neotest.lib.positions
 neotest.lib.positions = {}
+
+local path_sep = package.config:sub(1, 1)
+
+---@param path string
+---@return boolean
+local function is_root(path)
+  if path_sep == "\\" then
+    return path:match("^[A-Za-z]:\\?$") ~= nil
+  end
+  return path == "/"
+end
 
 --- Calculates distance from given line to given range
 --- @param line integer line number
@@ -89,6 +99,9 @@ end
 ---@return boolean
 neotest.lib.positions.contains = function(parent, child)
   if parent.type == "dir" then
+    if is_root(parent.path) then
+      return vim.startswith(child.path, parent.path)
+    end
     return parent.path == child.path
       or vim.startswith(child.path, parent.path .. require("neotest.lib.file").sep)
   end
@@ -110,12 +123,17 @@ local function get_parent(position)
   if position.type ~= "dir" and position.type ~= "file" then
     error(string.format("Cannot get the parent of %s position", position.type))
   end
-  if position.path == Path.path.root(position.path) then
+  if is_root(position.path) then
     return position
   end
-  local pieces = vim.split(position.path, Path.path.sep)
+  local pieces = vim.split(position.path, path_sep, { plain = true })
   table.remove(pieces)
-  local parent_path = table.concat(pieces, Path.path.sep)
+  local parent_path = table.concat(pieces, path_sep)
+  if parent_path == "" and vim.startswith(position.path, path_sep) then
+    parent_path = path_sep
+  elseif path_sep == "\\" and parent_path:match("^[A-Za-z]:$") then
+    parent_path = parent_path .. path_sep
+  end
 
   return {
     type = "dir",
