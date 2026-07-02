@@ -131,6 +131,7 @@ See the adapter's documentation for their specific setup instructions.
 | swift (Swift Testing) |                           [neotest-swift-testing](https://github.com/mmllr/neotest-swift-testing)                           |
 | busted                |                           [neotest-busted](https://github.com/MisanthropicBit/neotest-busted)                               |
 | nix-unit              |                           [neotest-nix-unit](https://github.com/Jumziey/neotest-nix-unit.nvim)                              |
+| nix flake checks, nix-unit |                           [neotest-nix](https://github.com/khaneliman/neotest-nix)                                     |
 | gleam (unitest)       |                           [neotest-gleam-unitest](https://github.com/ashton/neotest-gleam-unitest)                          |
 | odin                  |                           [neotest-odin](https://github.com/joseildofilho/neotest-odin)                                     |
 | NodeJS test-runner    |                           [neotest-nodejs](https://github.com/AkisArou/neotest-nodejs)                                      |
