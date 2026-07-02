@@ -14,7 +14,7 @@ M.PositionType = {
 ---@field name string
 ---@field path string
 ---@field range integer[] range of test definition
----@field total_range integer[] minimum range encapsulating the test and all its
+---@field total_range? integer[] minimum range encapsulating the test and all its
 --- subtests (in some languages, a test can have subtests outside of its
 --- definition)
 
