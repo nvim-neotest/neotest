@@ -84,7 +84,9 @@ jobs:
     needs: release
     steps:
       - uses: actions/checkout@v5
-      - name: Get Version 
+        with:
+          fetch-depth: 0
+      - name: Get Version
         run: echo "LUAROCKS_VERSION=$(git fetch --tags; git describe --abbrev=0 --tags)" >> $GITHUB_ENV
       - name: LuaRocks Upload
         uses: nvim-neorocks/luarocks-tag-release@v7
