@@ -1134,7 +1134,7 @@ Type ~
 `detect_filetype`({path})
 
 Detect the filetype of a file by checking the name, extensions, shebang or
-modeline. This is a memoized wrapper around plenary's filetype detection.
+modeline. This is a memoized wrapper around Neovim's filetype detection.
 Parameters~
 {path} `(string)`
 Return~
