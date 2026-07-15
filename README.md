@@ -94,11 +94,11 @@ See the adapter's documentation for their specific setup instructions.
 | :-------------------- | :-------------------------------------------------------------------------------------------------------------------------: |
 | pytest                |                              [neotest-python](https://github.com/nvim-neotest/neotest-python)                               |
 | python-unittest       |                              [neotest-python](https://github.com/nvim-neotest/neotest-python)                               |
-| python (tryke) |                              [neotest-tryke](https://github.com/thejchap/neotest-tryke) |
+| python (tryke)        |                              [neotest-tryke](https://github.com/thejchap/neotest-tryke)                                     |
 | plenary               |                             [neotest-plenary](https://github.com/nvim-neotest/neotest-plenary)                              |
 | go                    | [neotest-go](https://github.com/akinsho/neotest-go) <br> [neotest-golang](https://github.com/fredrikaverpil/neotest-golang) |
 | jest                  |                                 [neotest-jest](https://github.com/haydenmeade/neotest-jest)                                 |
-| mocha                 |                                 [neotest-mocha](https://github.com/adrigzr/neotest-mocha)                                 |
+| mocha                 |                                 [neotest-mocha](https://github.com/adrigzr/neotest-mocha)                                   |
 | vitest                |                               [neotest-vitest](https://github.com/marilari88/neotest-vitest)                                |
 | bun                   |                               [neotest-bun](https://github.com/arthur944/neotest-bun)                                       |
 | stenciljs             |                              [neotest-stenciljs](https://github.com/benelan/neotest-stenciljs)                              |
@@ -131,6 +131,7 @@ See the adapter's documentation for their specific setup instructions.
 | swift (Swift Testing) |                           [neotest-swift-testing](https://github.com/mmllr/neotest-swift-testing)                           |
 | busted                |                           [neotest-busted](https://github.com/MisanthropicBit/neotest-busted)                               |
 | nix-unit              |                           [neotest-nix-unit](https://github.com/Jumziey/neotest-nix-unit.nvim)                              |
+| nix flake checks, nix-unit |                           [neotest-nix](https://github.com/khaneliman/neotest-nix)                                     |
 | gleam (unitest)       |                           [neotest-gleam-unitest](https://github.com/ashton/neotest-gleam-unitest)                          |
 | odin                  |                           [neotest-odin](https://github.com/joseildofilho/neotest-odin)                                     |
 | NodeJS test-runner    |                           [neotest-nodejs](https://github.com/AkisArou/neotest-nodejs)                                      |
