@@ -29,7 +29,7 @@ See `:h neotest` for details on neotest is designed and how to interact with it 
 
 [![LuaRocks](https://img.shields.io/luarocks/v/neotest/neotest?logo=lua&color=purple)](https://luarocks.org/modules/neotest/neotest)
 
-Neotest uses [nvim-nio](https://github.com/nvim-neotest/nvim-nio) and [plenary.nvim](https://github.com/nvim-lua/plenary.nvim/).
+Neotest uses [nvim-nio](https://github.com/nvim-neotest/nvim-nio).
 
 Most adapters will also require [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) but Neotest itself doesn't need it to work.
 
@@ -44,7 +44,6 @@ Install with your favourite package manager alongside nvim-dap
 [**dein**](https://github.com/Shougo/dein.vim):
 
 ```vim
-call dein#add("nvim-lua/plenary.nvim")
 call dein#add("antoinemadec/FixCursorHold.nvim")
 call dein#add("nvim-neotest/nvim-nio")
 call dein#add("nvim-neotest/neotest")
@@ -53,7 +52,6 @@ call dein#add("nvim-neotest/neotest")
 [**vim-plug**](https://github.com/junegunn/vim-plug)
 
 ```vim
-Plug 'nvim-lua/plenary.nvim'
 Plug 'antoinemadec/FixCursorHold.nvim'
 Plug 'nvim-neotest/nvim-nio'
 Plug 'nvim-neotest/neotest'
@@ -66,7 +64,6 @@ use {
   "nvim-neotest/neotest",
   requires = {
     "nvim-neotest/nvim-nio",
-    "nvim-lua/plenary.nvim",
     "antoinemadec/FixCursorHold.nvim",
   }
 }
@@ -79,7 +76,6 @@ use {
   "nvim-neotest/neotest",
   dependencies = {
     "nvim-neotest/nvim-nio",
-    "nvim-lua/plenary.nvim",
     "antoinemadec/FixCursorHold.nvim",
   }
 }
@@ -94,10 +90,11 @@ See the adapter's documentation for their specific setup instructions.
 | :-------------------- | :-------------------------------------------------------------------------------------------------------------------------: |
 | pytest                |                              [neotest-python](https://github.com/nvim-neotest/neotest-python)                               |
 | python-unittest       |                              [neotest-python](https://github.com/nvim-neotest/neotest-python)                               |
+| python (tryke)        |                              [neotest-tryke](https://github.com/thejchap/neotest-tryke)                                     |
 | plenary               |                             [neotest-plenary](https://github.com/nvim-neotest/neotest-plenary)                              |
 | go                    | [neotest-go](https://github.com/akinsho/neotest-go) <br> [neotest-golang](https://github.com/fredrikaverpil/neotest-golang) |
 | jest                  |                                 [neotest-jest](https://github.com/haydenmeade/neotest-jest)                                 |
-| mocha                 |                                 [neotest-mocha](https://github.com/adrigzr/neotest-mocha)                                 |
+| mocha                 |                                 [neotest-mocha](https://github.com/adrigzr/neotest-mocha)                                   |
 | vitest                |                               [neotest-vitest](https://github.com/marilari88/neotest-vitest)                                |
 | bun                   |                               [neotest-bun](https://github.com/arthur944/neotest-bun)                                       |
 | stenciljs             |                              [neotest-stenciljs](https://github.com/benelan/neotest-stenciljs)                              |
@@ -130,7 +127,10 @@ See the adapter's documentation for their specific setup instructions.
 | swift (Swift Testing) |                           [neotest-swift-testing](https://github.com/mmllr/neotest-swift-testing)                           |
 | busted                |                           [neotest-busted](https://github.com/MisanthropicBit/neotest-busted)                               |
 | nix-unit              |                           [neotest-nix-unit](https://github.com/Jumziey/neotest-nix-unit.nvim)                              |
+| nix flake checks, nix-unit |                           [neotest-nix](https://github.com/khaneliman/neotest-nix)                                     |
 | gleam (unitest)       |                           [neotest-gleam-unitest](https://github.com/ashton/neotest-gleam-unitest)                          |
+| odin                  |                           [neotest-odin](https://github.com/joseildofilho/neotest-odin)                                     |
+| NodeJS test-runner    |                           [neotest-nodejs](https://github.com/AkisArou/neotest-nodejs)                                      |
 
 For any runner without an adapter you can use [neotest-vim-test](https://github.com/nvim-neotest/neotest-vim-test) which supports any runner that vim-test supports.
 The vim-test adapter does not support some of the more advanced features such as error locations or per-test output.
@@ -269,7 +269,7 @@ will mean different things for different strategies.
 |    dap     | Uses nvim-dap to debug tests (adapter must support providing an nvim-dap configuration)                     |
 
 Custom strategies can implemented by providing a function which takes a `neotest.RunSpec` and returns an table that fits the `neotest.Process`
-interface. Plenary's async library can be used to run asynchronously.
+interface. nvim-nio can be used to run asynchronously.
 
 ## Writing Adapters
 

@@ -1,6 +1,5 @@
 local nio = require("nio")
 local logger = require("neotest.logging")
-local Path = require("plenary.path")
 
 local child_chan, parent_chan
 ---@type table<number, nio.control.Future>
@@ -8,6 +7,7 @@ local futures = {}
 local next_cb_id = 1
 local enabled = false
 local neotest = { lib = {} }
+local path_sep = package.config:sub(1, 1)
 ---@toc_entry Library: Subprocess
 ---@text
 --- Module to interact with a child Neovim instance.
@@ -64,8 +64,11 @@ function neotest.lib.subprocess.init()
     local plugin_funcs = {
       require("neotest").setup,
       require("nio").sleep,
-      require("plenary.path").new,
     }
+    local has_plenary_path, plenary_path = pcall(require, "plenary.path")
+    if has_plenary_path then
+      plugin_funcs[#plugin_funcs + 1] = plenary_path.new
+    end
 
     for _, plugin_func in ipairs(plugin_funcs) do
       local root = neotest.lib.subprocess.resolve_plugin_root(plugin_func)
@@ -123,8 +126,7 @@ function neotest.lib.subprocess.init()
       "return require('neotest.lib').subprocess._set_parent_address(...)",
       { parent_address }
     )
-    -- Load dependencies
-    nio.fn.rpcrequest(child_chan, "nvim_exec_lua", "require('plenary')", {})
+
     enabled = true
     nio.api.nvim_create_autocmd("VimLeavePre", { callback = cleanup })
   end, function(msg)
@@ -135,8 +137,8 @@ function neotest.lib.subprocess.init()
 end
 
 local function is_root(pathname)
-  if Path.path.sep == "\\" then
-    return string.match(pathname, "^[A-Z]:\\?$")
+  if path_sep == "\\" then
+    return string.match(pathname, "^[A-Za-z]:\\?$")
   end
   return pathname == "/"
 end
@@ -145,15 +147,17 @@ end
 ---@param plugin_func function
 ---@return string|nil
 function neotest.lib.subprocess.resolve_plugin_root(plugin_func)
-  local source_path_str = debug.getinfo(plugin_func).source:sub(2):gsub("[/\\]", Path.path.sep)
-  local source = Path:new(source_path_str)
-  while
-    not is_root(source.filename) and not vim.endswith(source.filename, Path.path.sep .. "lua")
-  do
-    source = source:parent()
+  local source = debug.getinfo(plugin_func).source
+  if vim.startswith(source, "@") then
+    source = source:sub(2)
   end
-  if not is_root(source.filename) then
-    return source:parent().filename
+  source = source:gsub("[/\\]", path_sep)
+
+  while not is_root(source) and vim.fs.basename(source) ~= "lua" do
+    source = vim.fs.dirname(source)
+  end
+  if not is_root(source) then
+    return vim.fs.dirname(source)
   end
   return nil
 end

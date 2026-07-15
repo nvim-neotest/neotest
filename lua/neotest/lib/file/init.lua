@@ -1,7 +1,5 @@
 local logger = require("neotest.logging")
-local Path = require("plenary.path")
 local nio = require("nio")
-local filetype = require("plenary.filetype")
 local fu = require("neotest.lib.func_util")
 local types = require("neotest.types")
 local utils = require("neotest.utils")
@@ -237,10 +235,53 @@ neotest.lib.files.path = {
   end,
 }
 
-local memoized_detect = fu.memoize(filetype.detect)
+---@param options string
+---@return string?
+local function parse_modeline_filetype(options)
+  if options:find("vim:", 1, true) then
+    return options:match(".*:ft=([^: ]*):.*$")
+  end
+end
+
+local memoized_detect = fu.memoize(function(path)
+  local filetype, _, fallback = vim.filetype.match({ filename = path })
+  if filetype and not fallback then
+    return filetype
+  end
+
+  local success, contents = pcall(vim.fn.readfile, path)
+  if not success then
+    return filetype
+  end
+
+  return vim.filetype.match({
+    filename = path,
+    contents = contents,
+  }) or parse_modeline_filetype(contents[#contents] or "")
+end)
+
+local function joinpath(parent, child)
+  if vim.fs and vim.fs.joinpath then
+    return vim.fs.joinpath(parent, child)
+  end
+  if vim.endswith(parent, neotest.lib.files.sep) then
+    return parent .. child
+  end
+  return table.concat({ parent, child }, neotest.lib.files.sep)
+end
+
+local function normalize_absolute_path(path)
+  path = nio.fn.fnamemodify(path, ":p")
+  local sep = neotest.lib.files.sep
+  local is_windows_root = sep == "\\" and path:match("^%a:\\$") ~= nil
+  if path ~= sep and not is_windows_root and vim.endswith(path, sep) then
+    path = path:sub(1, -#sep - 1)
+  end
+  return path
+end
 
 --- Detect the filetype of a file by checking the name, extensions, shebang or
---- modeline. This is a memoized wrapper around plenary's filetype detection.
+--- modeline. This is a memoized wrapper around Neovim's filetype detection.
 ---@param path string
 ---@return string
 function neotest.lib.files.detect_filetype(path)
@@ -358,7 +399,11 @@ end
 function neotest.lib.files.match_root_pattern(...)
   local patterns = utils.tbl_flatten({ ... })
   return function(start_path)
-    local start_parents = Path:new(start_path):parents()
+    start_path = normalize_absolute_path(start_path)
+    local start_parents = {}
+    for parent in vim.fs.parents(start_path) do
+      start_parents[#start_parents + 1] = parent
+    end
     local home = os.getenv("HOME")
     local potential_roots = neotest.lib.files.is_dir(start_path)
         and vim.list_extend({ start_path }, start_parents)
@@ -372,7 +417,7 @@ function neotest.lib.files.match_root_pattern(...)
     end
     for _, path in ipairs(valid_roots) do
       for _, pattern in ipairs(patterns) do
-        for _, p in ipairs(nio.fn.glob(Path:new(path, pattern).filename, true, true)) do
+        for _, p in ipairs(nio.fn.glob(joinpath(path, pattern), true, true)) do
           if neotest.lib.files.exists(p) then
             return path
           end

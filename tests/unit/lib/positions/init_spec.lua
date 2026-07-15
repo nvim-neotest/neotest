@@ -340,4 +340,24 @@ describe("merge", function()
     }
     assert.are.same(expected, ret:to_list())
   end)
+
+  it("merge(dir, dir) merges unrelated root children at filesystem root", function()
+    local dir = create_tree({
+      { type = "dir", id = "/a", path = "/a" },
+    })
+    local new_dir = create_tree({
+      { type = "dir", id = "/b", path = "/b" },
+    })
+    local ret = positions.merge(dir, new_dir)
+    local expected = {
+      { type = "dir", id = "/", name = "", path = "/" },
+      {
+        { type = "dir", id = "/a", path = "/a" },
+      },
+      {
+        { type = "dir", id = "/b", path = "/b" },
+      },
+    }
+    assert.are.same(expected, ret:to_list())
+  end)
 end)

@@ -4,9 +4,11 @@ on:
     branches:
       - master
   pull_request: ~
+  workflow_dispatch: {}
 jobs:
   style:
     name: style
+    if: ${{ github.repository == 'nvim-neotest/neotest' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
@@ -18,6 +20,7 @@ jobs:
 
   tests:
     name: tests
+    if: ${{ github.repository == 'nvim-neotest/neotest' || github.event_name == 'workflow_dispatch' }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -60,7 +63,7 @@ jobs:
 
   release:
     name: release
-    if: ${{ github.ref == 'refs/heads/master' }}
+    if: ${{ (github.repository == 'nvim-neotest/neotest' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/master' }}
     needs:
       - style
       - tests
@@ -80,11 +83,14 @@ jobs:
         run: npx semantic-release
 
   luarocks-upload:
+    if: ${{ github.repository == 'nvim-neotest/neotest' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-22.04
     needs: release
     steps:
       - uses: actions/checkout@v5
-      - name: Get Version 
+        with:
+          fetch-depth: 0
+      - name: Get Version
         run: echo "LUAROCKS_VERSION=$(git fetch --tags; git describe --abbrev=0 --tags)" >> $GITHUB_ENV
       - name: LuaRocks Upload
         uses: nvim-neorocks/luarocks-tag-release@v7
@@ -93,5 +99,4 @@ jobs:
         with:
           version: ${{ env.LUAROCKS_VERSION }}
           dependencies: |
-            plenary.nvim
             nvim-nio
