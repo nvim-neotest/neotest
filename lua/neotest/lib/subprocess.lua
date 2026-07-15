@@ -126,10 +126,7 @@ function neotest.lib.subprocess.init()
       "return require('neotest.lib').subprocess._set_parent_address(...)",
       { parent_address }
     )
-    -- Load dependencies
-    if pcall(require, "nvim-treesitter") then
-      nio.fn.rpcrequest(child_chan, "nvim_exec_lua", "require('nvim-treesitter')", {})
-    end
+
     enabled = true
     nio.api.nvim_create_autocmd("VimLeavePre", { callback = cleanup })
   end, function(msg)

@@ -31,7 +31,7 @@ See `:h neotest` for details on neotest is designed and how to interact with it 
 
 Neotest uses [nvim-nio](https://github.com/nvim-neotest/nvim-nio).
 
-Most adapters will also require [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter).
+Most adapters will also require a treesitter parser installed for the related language.
 
 Neotest uses the `CursorHold` event. This uses the `updatetime`
 setting which is by default very high, and lowering this can lead to excessive writes to disk.
@@ -45,7 +45,6 @@ Install with your favourite package manager alongside nvim-dap
 
 ```vim
 call dein#add("antoinemadec/FixCursorHold.nvim")
-call dein#add("nvim-treesitter/nvim-treesitter")
 call dein#add("nvim-neotest/nvim-nio")
 call dein#add("nvim-neotest/neotest")
 ```
@@ -54,7 +53,6 @@ call dein#add("nvim-neotest/neotest")
 
 ```vim
 Plug 'antoinemadec/FixCursorHold.nvim'
-Plug 'nvim-treesitter/nvim-treesitter'
 Plug 'nvim-neotest/nvim-nio'
 Plug 'nvim-neotest/neotest'
 ```
@@ -67,7 +65,6 @@ use {
   requires = {
     "nvim-neotest/nvim-nio",
     "antoinemadec/FixCursorHold.nvim",
-    "nvim-treesitter/nvim-treesitter"
   }
 }
 ```
@@ -80,7 +77,6 @@ use {
   dependencies = {
     "nvim-neotest/nvim-nio",
     "antoinemadec/FixCursorHold.nvim",
-    "nvim-treesitter/nvim-treesitter"
   }
 }
 ```
@@ -299,7 +295,7 @@ Adapters must solve three problems:
 There are two stages to this, finding files which is often a simple file name check (it's OK if a test file has no
 actual tests in it) and parsing test files.
 
-For languages supported by nvim-treesitter, the easiest way to parse tests is to use the neotest treesitter wrapper to parse a query to
+For languages with a treesitter parser, the easiest way to parse tests is to use the neotest treesitter wrapper to parse a query to
 constuct a tree structure.
 
 The query can define capture groups for tests and namespaces. Each type must have `<type>.name` and `<type>.definition`
