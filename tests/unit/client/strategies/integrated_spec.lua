@@ -7,6 +7,17 @@ A = function(...)
   print(vim.inspect(...))
 end
 describe("integrated strategy", function()
+  after_each(function()
+    for _, win in ipairs(vim.api.nvim_list_wins()) do
+      if vim.api.nvim_win_get_config(win).relative ~= "" then
+        vim.api.nvim_win_close(win, true)
+      end
+    end
+    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+      vim.api.nvim_buf_delete(buf, { force = true })
+    end
+  end)
+
   a.it("produces output", function()
     local process = strategy({
       command = { "printf", "hello" },
