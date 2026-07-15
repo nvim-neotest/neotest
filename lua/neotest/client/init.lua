@@ -498,11 +498,8 @@ function neotest.Client:_start(args)
     end
     local path, line = vim.fn.expand("%:p"), vim.fn.line(".")
 
-    if not lib.files.exists(path) then
-      return
-    end
-
-    if vim.uv.fs_stat(path).type == "directory" then
+    local stat = vim.uv.fs_stat(path)
+    if not stat or stat.type == "directory" then
       return
     end
 
