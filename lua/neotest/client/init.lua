@@ -502,6 +502,10 @@ function neotest.Client:_start(args)
       return
     end
 
+    if vim.uv.fs_stat(path).type == "directory" then
+      return
+    end
+
     nio.run(function()
       local pos, pos_adapter_id = self:get_nearest(path, line - 1)
       if not pos then
