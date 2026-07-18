@@ -56,7 +56,9 @@ local function collect(file_path, query, source, root, opts)
       range = { root:range() },
     },
   }
-  for _, match, metadata in query:iter_matches(root, source, nil, nil) do
+  for _, match, metadata in
+    query:iter_matches(root, source, nil, nil, { match_limit = opts.match_limit })
+  do
     local captured_nodes = {}
     local node_metadata = {}
     for i, capture in ipairs(query.captures) do
@@ -93,6 +95,7 @@ end
 ---@class neotest.lib.treesitter.ParseOptions : neotest.lib.positions.ParseOptions
 ---@field fast? boolean Use faster parsing (Should be unchanged unless injections are needed)
 ---@field build_position? fun(file_path: string, source: string, captured_nodes: table<string, userdata>, metadata: table<string, vim.treesitter.query.TSMetadata>): neotest.Position|neotest.Position[]|nil Builds one or more positions from the captured nodes from a query match.
+---@field match_limit? integer Maximum number of in-progress matches for the tree-sitter query cursor (Neovim's default is 256). When the limit is exceeded, the earliest-starting matches are silently dropped, which can hide positions in large files (e.g. long table-driven tests). Requires Neovim 0.10+; ignored on older versions.
 
 --- Build a parsed Query object from a string
 ---@param lang string

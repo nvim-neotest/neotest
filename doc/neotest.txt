@@ -1392,6 +1392,11 @@ are needed)
 table<string, userdata>, metadata: table<string,
 vim.treesitter.query.TSMetadata>): neotest.Position|neotest.Position[]|nil)`
 Builds one or more positions from the captured nodes from a query match.
+{match_limit?} `(integer)` Maximum number of in-progress matches for the
+tree-sitter query cursor (Neovim's default is 256). When the limit is
+exceeded, the earliest-starting matches are silently dropped, which can hide
+positions in large files (e.g. long table-driven tests). Requires Neovim
+0.10+; ignored on older versions.
 
                                       *neotest.lib.treesitter.normalise_query()*
 `normalise_query`({lang}, {query})
