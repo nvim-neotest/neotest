@@ -359,3 +359,16 @@ namespaces, files and directories will be inferred from their child tests.
 
 For collecting test specific error messages, error locations etc you'll need to parse output or hook into the runner.
 See neotest-python and neotest-plenary for examples on how this can be done.
+
+## Running Tests
+
+The test suite runs with [busted](https://lunarmodules.github.io/busted/) using
+[nlua](https://github.com/mfussenegger/nlua) as the Lua interpreter:
+
+```sh
+luarocks test --local
+# or, with busted and nlua already installed:
+./scripts/test
+```
+
+A single file can be run by passing its path: `./scripts/test tests/unit/lib/subprocess_spec.lua`.
