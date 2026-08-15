@@ -154,7 +154,11 @@ function neotest.lib.subprocess.resolve_plugin_root(plugin_func)
   source = source:gsub("[/\\]", path_sep)
 
   while not is_root(source) and vim.fs.basename(source) ~= "lua" do
-    source = vim.fs.dirname(source)
+    local parent = vim.fs.dirname(source)
+    if parent == source then
+      return nil
+    end
+    source = parent
   end
   if not is_root(source) then
     return vim.fs.dirname(source)
