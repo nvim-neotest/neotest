@@ -120,6 +120,8 @@ describe("neotest client", function()
   end)
   after_each(function()
     lib.files.find:revert()
+    lib.files.is_dir:revert()
+    lib.files.exists:revert()
     for _, buf in ipairs(vim.api.nvim_list_bufs()) do
       vim.api.nvim_buf_delete(buf, { force = true })
     end
