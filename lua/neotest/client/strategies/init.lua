@@ -39,10 +39,7 @@ function ProcessTracker:run(pos_id, spec, args, stream_processor, context)
   self._process_semaphore.with(function()
     instance = strategy(spec, context)
     if not instance then
-      lib.notify("Adapter doesn't support chosen strategy.", vim.log.levels.ERROR)
-      local output_path = nio.fn.tempname()
-      assert(io.open(output_path, "w")):close()
-      return { code = 1, output = output_path }
+      return
     end
     self._instances[pos_id] = instance
     if stream_processor then
@@ -53,6 +50,10 @@ function ProcessTracker:run(pos_id, spec, args, stream_processor, context)
     end
     code = instance.result()
   end)
+  if not instance then
+    error("Adapter doesn't provide a correct strategy")
+  end
+
   logger.info("Process for position", pos_id, "exited with code", code)
   local output = instance.output()
   logger.debug("Output of process ", output)
