@@ -38,6 +38,12 @@ neotest.Client = {}
 ---@field started fun()
 ---@type neotest.Client
 
+---Get whether the client has been started
+---@return boolean
+function neotest.Client:is_started()
+  return self._started
+end
+
 function neotest.Client:new(adapters)
   local events = NeotestEventProcessor()
 
