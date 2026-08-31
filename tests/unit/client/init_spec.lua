@@ -729,5 +729,22 @@ describe("neotest client", function()
         assert.equal(9, #vim.tbl_keys(results))
       end)
     end)
+
+    describe("adapter registration with path normalization", function()
+      a.it(
+        "does not duplicate adapters when roots or buffer paths use different slash styles",
+        function()
+          local adapters = client:get_adapters()
+          assert.equal(1, #adapters)
+
+          -- Simulating an open buffer with mixed slashes
+          local alt_path = dir:gsub("\\", "/") .. "/test_file_1"
+          client:_get_adapter(alt_path)
+
+          local adapters_after = client:get_adapters()
+          assert.equal(1, #adapters_after)
+        end
+      )
+    end)
   end)
 end)

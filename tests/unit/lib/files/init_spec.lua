@@ -6,6 +6,17 @@ A = function(...)
 end
 
 describe("files library", function()
+  describe("path normalization", function()
+    it("normalizes path on windows or leaves untouched on unix", function()
+      if vim.fn.has("win32") == 1 then
+        assert.equal("C:\\foo\\bar", files.path.normalize("c:/foo/bar"))
+        assert.equal("D:\\test\\file.lua", files.path.normalize("d:\\test/file.lua"))
+      else
+        assert.equal("/root/test_a", files.path.normalize("/root/test_a"))
+      end
+    end)
+  end)
+
   describe("parsing directory tree from files", function()
     it("places files under the root", function()
       local root = "/root"
@@ -221,13 +232,24 @@ describe("files library", function()
   describe("matching root patterns", function()
     it("returns an absolute root for relative paths", function()
       assert.equal(
-        vim.fn.getcwd(),
+        files.path.normalize(vim.fn.getcwd()),
         files.match_root_pattern("README.md")("lua/neotest/lib/file/init.lua")
       )
     end)
 
     it("returns roots without trailing separators", function()
-      assert.equal(vim.fn.getcwd(), files.match_root_pattern("README.md")(vim.fn.getcwd()))
+      assert.equal(
+        files.path.normalize(vim.fn.getcwd()),
+        files.match_root_pattern("README.md")(vim.fn.getcwd())
+      )
+    end)
+
+    it("returns normalized path", function()
+      local root = files.match_root_pattern("README.md")("lua/neotest/lib/file/init.lua")
+      if vim.fn.has("win32") == 1 then
+        assert.False(root:find("/") ~= nil)
+      end
+      assert.equal(files.path.normalize(vim.fn.getcwd()), root)
     end)
   end)
 end)

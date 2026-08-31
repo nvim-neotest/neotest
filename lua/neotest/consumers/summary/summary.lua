@@ -95,9 +95,10 @@ function Summary:_write_header(canvas, adapter_id, tree)
   end
   canvas:write("\n")
 
-  local cwd = vim.loop.cwd()
-  if tree:data().path ~= cwd then
-    local root_dir = nio.fn.fnamemodify(tree:data().path, ":.")
+  local cwd = lib.files.path.normalize(vim.loop.cwd())
+  local tree_path = lib.files.path.normalize(tree:data().path)
+  if tree_path ~= cwd then
+    local root_dir = nio.fn.fnamemodify(tree_path, ":.")
     canvas:write(root_dir .. "\n", { group = config.highlights.dir })
   end
 end
