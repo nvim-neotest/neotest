@@ -1,5 +1,6 @@
 local config = require("neotest.config")
 local utils = require("neotest.utils")
+local uv = require("neotest._uv")
 local loggers = {}
 
 local log_date_format = "%FT%H:%M:%SZ%z"
@@ -51,7 +52,7 @@ function Logger.new(filename, opts)
   vim.fn.mkdir(logpath, "p")
   local logfile = assert(io.open(logger._filename, "a+"))
 
-  local log_info = vim.loop.fs_stat(logger._filename)
+  local log_info = uv.fs_stat(logger._filename)
   if log_info and log_info.size > LARGE then
     local warn_msg = string.format(
       "Neotest log is large (%d MB): %s",

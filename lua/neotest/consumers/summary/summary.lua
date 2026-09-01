@@ -5,6 +5,7 @@ local config = require("neotest.config")
 local Canvas = require("neotest.consumers.summary.canvas")
 local SummaryComponent = require("neotest.consumers.summary.component")
 local nio = require("nio")
+local uv = require("neotest._uv")
 
 local events = {
   open = "NeotestSummaryOpen",
@@ -95,7 +96,7 @@ function Summary:_write_header(canvas, adapter_id, tree)
   end
   canvas:write("\n")
 
-  local cwd = vim.loop.cwd()
+  local cwd = uv.cwd()
   if tree:data().path ~= cwd then
     local root_dir = nio.fn.fnamemodify(tree:data().path, ":.")
     canvas:write(root_dir .. "\n", { group = config.highlights.dir })

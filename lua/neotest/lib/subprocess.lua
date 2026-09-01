@@ -1,5 +1,6 @@
 local nio = require("nio")
 local logger = require("neotest.logging")
+local uv = require("neotest._uv")
 
 local child_chan, parent_chan
 ---@type table<number, nio.control.Future>
@@ -39,7 +40,7 @@ function neotest.lib.subprocess.init()
     logger.error("Failed to start server: " .. parent_address)
     return
   end
-  local cmd = { vim.loop.exepath(), "--embed", "--headless", "-n", "-u", "NONE" }
+  local cmd = { uv.exepath(), "--embed", "--headless", "-n", "-u", "NONE" }
   logger.info("Starting child process with command: " .. table.concat(cmd, " "))
   success, child_chan = pcall(nio.fn.jobstart, cmd, {
     rpc = true,

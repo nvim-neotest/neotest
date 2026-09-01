@@ -1,4 +1,5 @@
 local nio = require("nio")
+local uv = require("neotest._uv")
 
 local neotest = { lib = {} }
 ---@toc_entry Library: Processes
@@ -26,12 +27,12 @@ neotest.lib.process = {}
 ---@return integer,neotest.lib.process.RunResult Exit code and table containing stdout/stderr keys if requested
 function neotest.lib.process.run(command, args)
   args = args or {}
-  local stdin = vim.loop.new_pipe()
-  local stdout = vim.loop.new_pipe()
-  local stderr = vim.loop.new_pipe()
+  local stdin = uv.new_pipe()
+  local stdout = uv.new_pipe()
+  local stderr = uv.new_pipe()
   local exit_future = nio.control.future()
 
-  local handle, pid = vim.loop.spawn(command[1], {
+  local handle, pid = uv.spawn(command[1], {
     stdio = { stdin, stdout, stderr },
     detached = false,
     args = #command > 1 and vim.list_slice(command, 2, #command) or nil,

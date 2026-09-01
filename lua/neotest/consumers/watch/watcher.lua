@@ -2,6 +2,7 @@ local lib = require("neotest.lib")
 local logger = require("neotest.logging")
 local nio = require("nio")
 local config = require("neotest.config")
+local uv = require("neotest._uv")
 
 ---@class neotest.consumers.watch.Watcher
 ---@field lsp_client nio.lsp.Client
@@ -154,10 +155,10 @@ function Watcher:watch(tree, args)
   local run = require("neotest").run
   local paths = self:_files_in_tree(tree)
 
-  local start = vim.loop.now()
+  local start = uv.now()
   local dependencies = {}
   self:_build_dependencies(tree:root():data().path, paths, args, dependencies)
-  local elapsed = vim.loop.now() - start
+  local elapsed = uv.now() - start
   logger.debug("Built dependencies in", elapsed, "ms for", tree:data().id, ":", dependencies)
   local dependants = self:_build_dependants(dependencies)
 

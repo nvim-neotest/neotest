@@ -4,6 +4,7 @@ local fu = require("neotest.lib.func_util")
 local types = require("neotest.types")
 local utils = require("neotest.utils")
 local Tree = types.Tree
+local uv = require("neotest._uv")
 
 local neotest = { lib = {} }
 
@@ -128,7 +129,7 @@ function neotest.lib.files.stream(file_path)
   end
 
   read()
-  local event = vim.loop.new_fs_event()
+  local event = uv.new_fs_event()
   assert(event, "Failed to create fs event")
   event:start(file_path, {}, function(err, _, _)
     assert(not err)

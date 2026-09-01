@@ -1,6 +1,7 @@
 local lib = require("neotest.lib")
 local nio = require("nio")
 local logger = require("neotest.logging")
+local uv = require("neotest._uv")
 
 ---@return neotest.Strategy
 local get_strategy = function(name)
@@ -14,7 +15,7 @@ local ProcessTracker = {}
 
 function ProcessTracker:new()
   -- Hack for Android devices, where cpu_info() returns nil
-  local cpu_info = vim.loop.cpu_info() or {}
+  local cpu_info = uv.cpu_info() or {}
   local tracker = {
     _instances = {},
     _process_semaphore = nio.control.semaphore(#cpu_info + 4),

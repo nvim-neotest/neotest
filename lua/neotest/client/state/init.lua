@@ -1,5 +1,6 @@
 local logger = require("neotest.logging")
 local lib = require("neotest.lib")
+local uv = require("neotest._uv")
 
 local NeotestEvents = require("neotest.client.events").events
 ---@class neotest.ClientState
@@ -55,7 +56,7 @@ function NeotestClientState:update_positions(adapter_id, tree)
   if not self._positions[adapter_id] then
     if tree:data().type ~= "dir" then
       logger.info("File discovered without root, using cwd", root_id)
-      local root = lib.files.parse_dir_from_files(vim.loop.cwd(), { tree:data().path })
+      local root = lib.files.parse_dir_from_files(uv.cwd(), { tree:data().path })
       tree = lib.positions.merge(tree, root)
     end
     self._positions[adapter_id] = tree

@@ -1,6 +1,8 @@
 ---@tag neotest.config
 ---@toc_entry Configuration Options
 
+local uv = require("neotest._uv")
+
 local function define_highlights()
   vim.cmd([[
   hi default NeotestPassed ctermfg=Green guifg=#96F291
@@ -443,7 +445,7 @@ local NeotestConfigModule = {}
 local convert_concurrent = function(val)
   if val == 0 or val == true then
     -- Hack for Android devices, where cpu_info() returns nil
-    local cpu_info = vim.loop.cpu_info() or {}
+    local cpu_info = uv.cpu_info() or {}
     return #cpu_info + 4
   end
   if val == false then

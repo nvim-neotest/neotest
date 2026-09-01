@@ -1,4 +1,5 @@
 local nio = require("nio")
+local uv = require("neotest._uv")
 local config = require("neotest.config")
 local logger = require("neotest.logging")
 local lib = require("neotest.lib")
@@ -383,7 +384,7 @@ function neotest.Client:_start(args)
   self._state = NeotestState(self._events)
 
   logger.info("Initialising client")
-  local start = vim.loop.now()
+  local start = uv.now()
   self._started = true
   self._events:emit("starting")
   local augroup = nio.api.nvim_create_augroup("neotest.Client", { clear = true })
@@ -430,7 +431,7 @@ function neotest.Client:_start(args)
           return
         end
         --- Provide file paths parent because we could be outside of the root dir.
-        local root = adapter.root(lib.files.parent(file_path)) or vim.loop.cwd()
+        local root = adapter.root(lib.files.parent(file_path)) or uv.cwd()
         adapter_id = ("%s:%s"):format(adapter.name, root)
         self._adapters[adapter_id] = adapter
 
@@ -442,7 +443,7 @@ function neotest.Client:_start(args)
       end
       if not self:get_position(file_path, { adapter = adapter_id }) then
         local root = self._state:positions(adapter_id)
-        if config.projects[root and root:data().path or vim.loop.cwd()].discovery.enabled then
+        if config.projects[root and root:data().path or uv.cwd()].discovery.enabled then
           self:_update_positions(lib.files.parent(file_path), { adapter = adapter_id })
         end
       end
@@ -454,7 +455,7 @@ function neotest.Client:_start(args)
     if vim.v.event.scope == "window" then
       return
     end
-    local dir = vim.v.event.cwd or vim.loop.cwd()
+    local dir = vim.v.event.cwd or uv.cwd()
     nio.run(function()
       self:_update_adapters(dir)
     end)
@@ -471,7 +472,7 @@ function neotest.Client:_start(args)
         return
       end
       local root = self._state:positions(adapter_id)
-      if config.projects[root and root:data().path or vim.loop.cwd()].discovery.enabled then
+      if config.projects[root and root:data().path or uv.cwd()].discovery.enabled then
         self:_update_positions(updated_dir)
       end
     end)
@@ -498,7 +499,7 @@ function neotest.Client:_start(args)
     end
     local path, line = vim.fn.expand("%:p"), vim.fn.line(".")
 
-    local stat = vim.uv.fs_stat(path)
+    local stat = uv.fs_stat(path)
     if not stat or stat.type == "directory" then
       return
     end
@@ -512,9 +513,9 @@ function neotest.Client:_start(args)
     end)
   end)
 
-  self:_update_adapters(vim.loop.cwd())
+  self:_update_adapters(uv.cwd())
 
-  local run_time = (vim.loop.now() - start) / 1000
+  local run_time = (uv.now() - start) / 1000
   logger.info("Initialisation finished in", run_time, "seconds")
   self:_set_focused_file(nio.fn.expand("%:p"))
   self._events:emit("started")
@@ -546,7 +547,7 @@ function neotest.Client:_update_adapters(dir)
       return i, entry.root
     end, adapters_with_root))
 
-  local root = lib.files.is_dir(dir) and dir or vim.loop.cwd()
+  local root = lib.files.is_dir(dir) and dir or uv.cwd()
   for _, adapter in ipairs(adapters_with_bufs) do
     adapters_with_root[#adapters_with_root + 1] = { adapter = adapter, root = root }
   end
