@@ -1,5 +1,7 @@
 local lib = require("neotest.lib")
 
+local assert = require("tests.assertions")
+
 describe("When receiving valid XML", function()
   it("it is parsed correctly", function()
     local xml_data = [[<?xml version="1.0" encoding="UTF-8"?>

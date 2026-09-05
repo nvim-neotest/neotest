@@ -8,6 +8,8 @@ local function create_tree(positions)
   end)
 end
 
+local assert = require("tests.assertions")
+
 describe("client state", function()
   local state, event_processor, emitted_event, emitted_args
   local adapter_id = "adapter_id_1"

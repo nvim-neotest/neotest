@@ -2,6 +2,8 @@ local nio = require("nio")
 local a = nio.tests
 local lib = require("neotest.lib")
 
+local assert = require("tests.assertions")
+
 describe("lib.treesitter.parse_positions_from_string with match_limit", function()
   local file_path = "/match_limit_test.lua"
   -- Binding every function to the single trailing return_statement keeps each

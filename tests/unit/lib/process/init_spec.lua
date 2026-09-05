@@ -2,6 +2,8 @@ local nio = require("nio")
 local a = nio.tests
 local lib = require("neotest.lib")
 
+local assert = require("tests.assertions")
+
 describe("process lib", function()
   describe("running a process", function()
     a.it("returns exit code", function()

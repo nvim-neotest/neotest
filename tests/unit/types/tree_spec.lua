@@ -1,5 +1,7 @@
 local Tree = require("neotest.types").Tree
 
+local assert = require("tests.assertions")
+
 describe("neotest tree", function()
   it("parses lists", function()
     local data = { 1, { 2, { 3 }, { 4, { 5 } } } }

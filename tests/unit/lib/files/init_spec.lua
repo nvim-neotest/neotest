@@ -5,6 +5,8 @@ A = function(...)
   print(vim.inspect(...))
 end
 
+local assert = require("tests.assertions")
+
 describe("files library", function()
   describe("parsing directory tree from files", function()
     it("places files under the root", function()

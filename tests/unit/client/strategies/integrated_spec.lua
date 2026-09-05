@@ -6,6 +6,8 @@ local strategy = require("neotest.client.strategies.integrated")
 A = function(...)
   print(vim.inspect(...))
 end
+local assert = require("tests.assertions")
+
 describe("integrated strategy", function()
   a.it("produces output", function()
     local process = strategy({

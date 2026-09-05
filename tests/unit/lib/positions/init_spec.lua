@@ -7,6 +7,8 @@ local function create_tree(positions)
   end)
 end
 
+local assert = require("tests.assertions")
+
 describe("contains", function()
   it("dir contains file", function()
     local dir = {

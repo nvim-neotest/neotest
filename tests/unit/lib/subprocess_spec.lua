@@ -2,6 +2,8 @@ local nio = require("nio")
 local a = nio.tests
 local sp = require("neotest.lib.subprocess")
 
+local assert = require("tests.assertions")
+
 describe("", function()
   if not sp.enabled() then
     sp.init()
@@ -19,7 +21,9 @@ describe("", function()
     assert.True(result)
   end)
   a.it("can load plenary in subprocess when available in parent", function()
-    assert.True(pcall(require, "plenary.path"))
+    if not pcall(require, "plenary.path") then
+      MiniTest.skip("plenary is no longer a neotest dependency; only tested when installed")
+    end
 
     local result = sp.call([[function()
     return pcall(require, "plenary.path")

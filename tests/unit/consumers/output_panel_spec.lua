@@ -3,7 +3,8 @@ local neotest = require("neotest")
 local nio = require("nio")
 local a = nio.tests
 
-local stub = require("luassert.stub")
+local assert = require("tests.assertions")
+local stub = require("tests.mocks").stub
 local Tree = require("neotest.types").Tree
 local lib = require("neotest.lib")
 

@@ -1,5 +1,7 @@
 local events = require("neotest.client.events")
 
+local assert = require("tests.assertions")
+
 describe("events processor", function()
   ---@type neotest.EventProcessor
   local processor

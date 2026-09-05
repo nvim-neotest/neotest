@@ -1,5 +1,6 @@
 local Tree = require("neotest.types").Tree
-local stub = require("luassert.stub")
+local assert = require("tests.assertions")
+local stub = require("tests.mocks").stub
 
 local jump = require("neotest.consumers.jump")
 
