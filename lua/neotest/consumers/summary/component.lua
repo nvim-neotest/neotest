@@ -33,6 +33,16 @@ function SummaryComponent:toggle_reference(pos_id)
   self.expanded_positions[pos_id] = not self.expanded_positions[pos_id]
 end
 
+function SummaryComponent:positions(id)
+  return self.references and self.references[id] or { { adapter = self.adapter_id, id = id } }
+end
+
+function SummaryComponent:each(id, callback)
+  for _, reference in ipairs(self:positions(id)) do
+    callback(reference.adapter, reference.id)
+  end
+end
+
 local async_func = function(f)
   return function()
     nio.run(f)
@@ -50,13 +60,19 @@ function SummaryComponent:render(canvas, tree, expanded, focused, indent)
     end
     local position = tree:data()
     canvas:add_mapping("run", function()
-      require("neotest").run.run({ position.id, adapter = self.adapter_id })
+      self:each(position.id, function(adapter, id)
+        require("neotest").run.run({ id, adapter = adapter })
+      end)
     end)
     canvas:add_mapping("debug", function()
-      require("neotest").run.run({ position.id, adapter = self.adapter_id, strategy = "dap" })
+      self:each(position.id, function(adapter, id)
+        require("neotest").run.run({ id, adapter = adapter, strategy = "dap" })
+      end)
     end)
     canvas:add_mapping("stop", function()
-      require("neotest").run.stop({ position.id, adapter = self.adapter_id })
+      self:each(position.id, function(adapter, id)
+        require("neotest").run.stop({ id, adapter = adapter })
+      end)
     end)
     canvas:add_mapping("clear_target", function()
       require("neotest").summary.target(self.adapter_id)
@@ -77,7 +93,7 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
     local is_last_child = index == #children
     local position = node:data()
 
-    if expanded[position.id] then
+    if expanded[position.id] or expanded[position.original_id] then
       self.expanded_positions[position.id] = true
     end
 
@@ -179,9 +195,9 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
                 end
               end
             else
-              for _, pos in
-                self.client:get_position(position.id, { adapter = self.adapter_id }):iter()
-              do
+              local expanded_tree = self.references and node
+                or self.client:get_position(position.id, { adapter = self.adapter_id })
+              for _, pos in expanded_tree:iter() do
                 positions[pos.id] = true
               end
             end
@@ -214,14 +230,18 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
     canvas:add_mapping(
       "attach",
       async_func(function()
-        neotest.run.attach(position.id, { adapter = self.adapter_id })
+        self:each(position.id, function(adapter, id)
+          neotest.run.attach(id, { adapter = adapter })
+        end)
       end)
     )
     if neotest.watch then
       canvas:add_mapping(
         "watch",
         async_func(function()
-          neotest.watch.toggle({ position.id, adapter = self.adapter_id })
+          self:each(position.id, function(adapter, id)
+            neotest.watch.toggle({ id, adapter = adapter })
+          end)
           neotest.summary.render()
         end)
       )
@@ -229,32 +249,42 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
     canvas:add_mapping(
       "output",
       async_func(function()
-        neotest.output.open({ position_id = position.id, adapter = self.adapter_id, enter = true })
+        self:each(position.id, function(adapter, id)
+          neotest.output.open({ position_id = id, adapter = adapter, enter = true })
+        end)
       end)
     )
 
     canvas:add_mapping(
       "short",
       async_func(function()
-        neotest.output.open({
-          position_id = position.id,
-          short = true,
-          adapter = self.adapter_id,
-          enter = true,
-        })
+        self:each(position.id, function(adapter, id)
+          neotest.output.open({
+            position_id = id,
+            short = true,
+            adapter = adapter,
+            enter = true,
+          })
+        end)
       end)
     )
 
     canvas:add_mapping("stop", function()
-      neotest.run.stop({ position.id, adapter = self.adapter_id })
+      self:each(position.id, function(adapter, id)
+        neotest.run.stop({ id, adapter = adapter })
+      end)
     end)
 
     canvas:add_mapping("run", function()
-      neotest.run.run({ position.id, adapter = self.adapter_id })
+      self:each(position.id, function(adapter, id)
+        neotest.run.run({ id, adapter = adapter })
+      end)
     end)
 
     canvas:add_mapping("debug", function()
-      neotest.run.run({ position.id, adapter = self.adapter_id, strategy = "dap" })
+      self:each(position.id, function(adapter, id)
+        neotest.run.run({ id, adapter = adapter, strategy = "dap" })
+      end)
     end)
 
     canvas:add_mapping("mark", function()
@@ -311,14 +341,18 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
 
     local state_icon, state_icon_group = self:_state_icon(status)
 
-    if neotest.watch and neotest.watch.is_watching(position.id) then
-      state_icon = config.icons.watching
+    if neotest.watch then
+      for _, ref in ipairs(self:positions(position.id)) do
+        if neotest.watch.is_watching(ref.id, { adapter = ref.adapter }) then
+          state_icon = config.icons.watching
+        end
+      end
     end
 
     canvas:write(" " .. state_icon .. " ", { group = state_icon_group })
 
     local name_groups = { config.highlights[position.type] }
-    if focused == position.id then
+    if focused == position.id or focused == position.original_id then
       table.insert(name_groups, hi.focused)
       canvas:position_cursor()
     end
@@ -336,13 +370,27 @@ function SummaryComponent:_render(canvas, tree, expanded, focused, indent)
 end
 
 function SummaryComponent:_get_status(position)
-  local result = self.client:get_results(self.adapter_id)[position.id]
-  if result then
-    return result.status
-  elseif self.client:is_running(position.id, { adapter = self.adapter_id }) then
-    return "running"
+  if not self.references then
+    local result = self.client:get_results(self.adapter_id)[position.id]
+    if result then
+      return result.status
+    end
+    if self.client:is_running(position.id, { adapter = self.adapter_id }) then
+      return "running"
+    end
+    return position.type
   end
-  return position.type
+  local status = position.type
+  local priority = { failed = 5, running = 4, skipped = 2, passed = 1 }
+  for _, ref in ipairs(self:positions(position.id)) do
+    local result = self.client:get_results(ref.adapter)[ref.id]
+    local candidate = self.client:is_running(ref.id, { adapter = ref.adapter }) and "running"
+      or (result and result.status)
+    if candidate and (priority[candidate] or 0) > (priority[status] or 0) then
+      status = candidate
+    end
+  end
+  return status
 end
 
 function SummaryComponent:_state_icon(status)

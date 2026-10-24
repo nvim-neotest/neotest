@@ -136,11 +136,22 @@ function Summary:run()
       self.render_ready.clear()
       local canvas = Canvas.new(config.summary)
       if self._starting then
-        for _, adapter_id in ipairs(self.client:get_adapters()) do
-          local tree = assert(self.client:get_position(nil, { adapter = adapter_id }))
-          self:_write_header(canvas, adapter_id, tree)
+        local adapters = self.client:get_adapters()
+        local grouped_tree, references
+        if config.summary.group_by == "directory" then
+          grouped_tree, references =
+            require("neotest.consumers.summary.grouping").directory(self.client, adapters)
+          adapters = { "directory" }
+        end
+        for _, adapter_id in ipairs(adapters) do
+          local tree = grouped_tree
+            or assert(self.client:get_position(nil, { adapter = adapter_id }))
+          if not grouped_tree then
+            self:_write_header(canvas, adapter_id, tree)
+          end
           self.components[adapter_id] = self.components[adapter_id]
             or SummaryComponent(self.client, adapter_id)
+          self.components[adapter_id].references = references
           if config.summary.animated then
             if self.components[adapter_id]:render(canvas, tree, all_expanded, self.focused) then
               self.render_ready.set()
