@@ -136,12 +136,14 @@ end
 function neotest.summary.run_marked(args)
   args = args or {}
   for adapter_id, component in pairs(summary.components) do
-    if not args.adapter or args.adapter == adapter_id then
+    if not args.adapter or args.adapter == adapter_id or component.references then
       for pos_id, marked in pairs(component.marked) do
         if marked then
-          require("neotest").run.run(
-            vim.tbl_extend("keep", { pos_id, adapter = component.adapter_id }, args)
-          )
+          component:each(pos_id, function(adapter, id)
+            if not args.adapter or args.adapter == adapter or args.adapter == adapter_id then
+              require("neotest").run.run(vim.tbl_extend("keep", { id, adapter = adapter }, args))
+            end
+          end)
         end
       end
     end
@@ -153,16 +155,13 @@ end
 function neotest.summary.marked()
   local all_marked = {}
   for adapter_id, component in pairs(summary.components) do
-    local adapter_marked = {}
-    local has_marked = false
     for pos_id, marked in pairs(component.marked) do
       if marked then
-        table.insert(adapter_marked, pos_id)
-        has_marked = true
+        for _, ref in ipairs(component:positions(pos_id)) do
+          all_marked[ref.adapter] = all_marked[ref.adapter] or {}
+          table.insert(all_marked[ref.adapter], ref.id)
+        end
       end
-    end
-    if has_marked then
-      all_marked[adapter_id] = adapter_marked
     end
   end
   return all_marked
@@ -176,7 +175,15 @@ end
 function neotest.summary.clear_marked(args)
   args = args or {}
   for adapter_id, component in pairs(summary.components) do
-    if not args.adapter or args.adapter == adapter_id then
+    if component.references and args.adapter and args.adapter ~= adapter_id then
+      for id in pairs(component.marked) do
+        for _, ref in ipairs(component:positions(id)) do
+          if ref.adapter == args.adapter then
+            component.marked[id] = nil
+          end
+        end
+      end
+    elseif not args.adapter or args.adapter == adapter_id then
       component.marked = {}
     end
   end
@@ -187,9 +194,29 @@ end
 ---@param adapter_id string
 ---@param position_id string|nil Position ID to target, nil to reset target
 function neotest.summary.target(adapter_id, position_id)
+  if config.summary.group_by == "directory" then
+    local component = summary.components.directory
+    if not component then
+      return
+    end
+    if position_id and adapter_id ~= "directory" then
+      for id, refs in pairs(component.references or {}) do
+        for _, ref in ipairs(refs) do
+          if ref.adapter == adapter_id and ref.id == position_id then
+            position_id = id
+            break
+          end
+        end
+      end
+    end
+    component.target = position_id
+    summary:render()
+    return
+  end
   local component = summary.components[adapter_id]
   if not component then
     lib.notify(("No tree found for adapter %s"):format(adapter_id))
+    return
   end
   component.target = position_id
   summary:render()

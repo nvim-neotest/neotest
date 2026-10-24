@@ -100,6 +100,7 @@ local js_watch_query = [[
 ---@field mappings neotest.Config.summary.mappings Buffer mappings for summary window
 ---@field open string | fun(): integer A command or function to open a window for the summary
 ---@field count boolean Display number of tests found beside the adapter name
+---@field group_by "adapter"|"directory" Group summary trees by adapter (default) or merge shared directories.
 
 ---@class neotest.Config.summary.mappings
 ---@field expand string|string[] Expand currently selected position
@@ -236,6 +237,7 @@ local default_config = {
     },
   },
   summary = {
+    group_by = "adapter",
     enabled = true,
     count = true,
     animated = true,
