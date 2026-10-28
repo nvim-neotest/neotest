@@ -1,0 +1,14 @@
+return {
+  _all = {
+    coverage = false,
+    lpath = "lua/?.lua;lua/?/init.lua",
+    lua = "nlua",
+  },
+  default = {
+    verbose = true,
+    ROOT = { "tests/unit" },
+    helper = "tests/busted_helper.lua",
+    -- anchored so tests/unit/lib/treesitter/init_spec_disabled.lua stays excluded
+    pattern = "_spec%.lua$",
+  },
+}

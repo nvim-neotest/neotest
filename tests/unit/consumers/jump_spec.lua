@@ -73,6 +73,12 @@ describe("jump consumer", function()
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(text, "\n", {}))
   vim.api.nvim_win_set_buf(0, buf)
 
+  teardown(function()
+    if vim.api.nvim_buf_is_valid(buf) then
+      vim.api.nvim_buf_delete(buf, { force = true })
+    end
+  end)
+
   it("next goes to first test", function()
     vim.api.nvim_win_set_cursor(0, { 1, 0 })
     jump.next()

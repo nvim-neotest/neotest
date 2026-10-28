@@ -21,45 +21,16 @@ jobs:
   tests:
     name: tests
     if: ${{ github.repository == 'nvim-neotest/neotest' || github.event_name == 'workflow_dispatch' }}
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-22.04
-            rev: nightly/nvim-linux-x86_64.tar.gz
-          - os: ubuntu-22.04
-            rev: v0.11.6/nvim-linux-x86_64.tar.gz
+        nvim_version: ['v0.11.6', 'nightly']
     steps:
       - uses: actions/checkout@v5
-      - run: date +%F > todays-date
-      - name: Restore cache for today's nightly.
-        uses: actions/cache@v4
+      - uses: nvim-neorocks/nvim-busted-action@v1
         with:
-          path: _neovim
-          key: ${{ runner.os }}-${{ matrix.rev }}-${{ hashFiles('todays-date') }}
-
-      - name: Prepare dependencies
-        run: |
-          test -d _neovim || {
-            mkdir -p _neovim
-            curl -sL "https://github.com/neovim/neovim/releases/download/${{ matrix.rev }}" | tar xzf - --strip-components=1 -C "${PWD}/_neovim"
-          }
-          mkdir -p ~/.local/share/nvim/site/pack/vendor/start
-          git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
-          git clone --depth 1 --branch main https://github.com/nvim-treesitter/nvim-treesitter ~/.local/share/nvim/site/pack/vendor/start/nvim-treesitter
-          git clone --depth 1 https://github.com/nvim-neotest/nvim-nio ~/.local/share/nvim/site/pack/vendor/start/nvim-nio
-          ln -s $(pwd) ~/.local/share/nvim/site/pack/vendor/start
-          export PATH="${PWD}/_neovim/bin:${PATH}"
-          export VIM="${PWD}/_neovim/share/nvim/runtime"
-          nvim --headless -c 'lua require("nvim-treesitter").install({"lua"}, {}):await(function() vim.cmd("quit") end)'
-
-      - name: Run tests
-        run: |
-          export PATH="${PWD}/_neovim/bin:${PATH}"
-          export VIM="${PWD}/_neovim/share/nvim/runtime"
-          nvim --version
-          ./scripts/test
+          nvim_version: ${{ matrix.nvim_version }}
 
   release:
     name: release
